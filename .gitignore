@@ -1,0 +1,24 @@
+# ── .NET ──────────────────────────────────────────────────────────────────────
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.log
+appsettings.Development.json
+
+# ── Angular ───────────────────────────────────────────────────────────────────
+cobrosv2/node_modules/
+cobrosv2/dist/
+cobrosv2/.angular/
+
+# ── Secretos ──────────────────────────────────────────────────────────────────
+*.env
+*.pfx
+*.p12
+infra/main.parameters.local.json
+migrations_supabase.sql
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db

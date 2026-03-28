@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cobros_postgres
+    environment:
+      POSTGRES_DB: cobros_db
+      POSTGRES_USER: cobros_user
+      POSTGRES_PASSWORD: cobros_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cobros_user -d cobros_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    container_name: cobros_api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=cobros_db;Username=cobros_user;Password=cobros_pass;"
+      Jwt__Secret: "${JWT_SECRET}"
+      Jwt__Issuer: CobrosApi
+      Jwt__Audience: CobrosApp
+      Jwt__ExpiresInMinutes: "30"
+      Google__ClientId: "${GOOGLE_CLIENT_ID}"
+      Cors__AllowedOrigins__0: "${FRONTEND_URL}"
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

@@ -1,0 +1,6 @@
+@CobrosApi_HostAddress = http://localhost:5010
+
+GET {{CobrosApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
