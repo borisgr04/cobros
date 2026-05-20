@@ -2,6 +2,7 @@ using System.Text;
 using CobrosApi.Data;
 using CobrosApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -113,6 +114,10 @@ using (var scope = app.Services.CreateScope())
 }
 
 // ─── Pipeline ───────────────────────────────────────────────────────────────
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 app.UseSwagger();
 app.UseSwaggerUI(opts => opts.SwaggerEndpoint("/swagger/v1/swagger.json", "CobrosApi v1"));
 app.UseCors("CobrosPolicy");
