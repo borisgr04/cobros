@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, AfterViewInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { environment } from '../../../../environments/environment';
@@ -9,7 +9,36 @@ import { environment } from '../../../../environments/environment';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent {
+export class LoginComponent implements AfterViewInit {
+    ngAfterViewInit(): void {
+      if (!this.isDevMode) {
+        // Espera a que la librería de Google esté cargada
+        const tryInit = () => {
+          if (window["initGoogleSignIn"]) {
+            window["initGoogleSignIn"](
+              '852221398029-tbl50a6mdfcageqn2c3t5l1h1ttiu3o4.apps.googleusercontent.com',
+              (response: any) => this.onGoogleCredential(response)
+            );
+          } else {
+            setTimeout(tryInit, 100);
+          }
+        };
+        tryInit();
+      }
+    }
+
+    onGoogleCredential(response: any) {
+      const idToken = response.credential;
+      this.loading.set(true);
+      this.error.set(null);
+      this.auth.googleLogin(idToken).subscribe({
+        next: () => this.router.navigate(["/"]),
+        error: (err) => {
+          this.error.set("No se pudo autenticar con Google.");
+          this.loading.set(false);
+        }
+      });
+    }
   readonly isDevMode = !environment.production || (environment as any).allowDevLogin;
   loading = signal(false);
   error   = signal<string | null>(null);

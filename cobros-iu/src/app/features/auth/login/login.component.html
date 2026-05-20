@@ -37,13 +37,14 @@
       </button>
     }
 
-    <!-- Botón Google (producción — a implementar) -->
+    <!-- Botón Google (solo producción) -->
     @if (!isDevMode) {
-      <button class="btn btn-outline-secondary w-100 login-btn" disabled>
-        <i class="bi bi-google me-2"></i>
-        Iniciar sesión con Google
-      </button>
+      <div id="googleBtnDiv" class="mb-2"></div>
     }
+</div>
+<!-- Carga Google Identity Services solo en producción -->
+<script *ngIf="!isDevMode" src="https://accounts.google.com/gsi/client" async defer></script>
+<script *ngIf="!isDevMode" src="/assets/google-identity-init.js"></script>
 
   </div>
 </div>

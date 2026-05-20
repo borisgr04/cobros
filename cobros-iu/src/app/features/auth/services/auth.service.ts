@@ -1,3 +1,9 @@
+  /** Login con Google: llama a POST /api/auth/google */
+  googleLogin(idToken: string) {
+    return this.http
+      .post<AuthResponse>("/api/auth/google", { idToken })
+      .pipe(tap(res => this.storeSession(res)));
+  }
 import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
