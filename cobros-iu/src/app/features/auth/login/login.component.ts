@@ -10,40 +10,41 @@ import { environment } from '../../../../environments/environment';
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent implements AfterViewInit {
-    ngAfterViewInit(): void {
-      if (!this.isDevMode) {
-        // Espera a que la librería de Google esté cargada
-        const tryInit = () => {
-          if (window["initGoogleSignIn"]) {
-            window["initGoogleSignIn"](
-              '852221398029-tbl50a6mdfcageqn2c3t5l1h1ttiu3o4.apps.googleusercontent.com',
-              (response: any) => this.onGoogleCredential(response)
-            );
-          } else {
-            setTimeout(tryInit, 100);
-          }
-        };
-        tryInit();
-      }
-    }
-
-    onGoogleCredential(response: any) {
-      const idToken = response.credential;
-      this.loading.set(true);
-      this.error.set(null);
-      this.auth.googleLogin(idToken).subscribe({
-        next: () => this.router.navigate(["/"]),
-        error: (err) => {
-          this.error.set("No se pudo autenticar con Google.");
-          this.loading.set(false);
-        }
-      });
-    }
   readonly isDevMode = !environment.production || (environment as any).allowDevLogin;
   loading = signal(false);
   error   = signal<string | null>(null);
 
   constructor(private auth: AuthService, private router: Router) {}
+
+  ngAfterViewInit(): void {
+    if (!this.isDevMode) {
+      const tryInit = () => {
+        const fn = (window as any)['initGoogleSignIn'];
+        if (fn) {
+          fn(
+            '852221398029-tbl50a6mdfcageqn2c3t5l1h1ttiu3o4.apps.googleusercontent.com',
+            (response: any) => this.onGoogleCredential(response)
+          );
+        } else {
+          setTimeout(tryInit, 100);
+        }
+      };
+      tryInit();
+    }
+  }
+
+  onGoogleCredential(response: any): void {
+    const idToken = response.credential;
+    this.loading.set(true);
+    this.error.set(null);
+    this.auth.googleLogin(idToken).subscribe({
+      next: () => this.router.navigate(['/']),
+      error: (_err: unknown) => {
+        this.error.set('No se pudo autenticar con Google.');
+        this.loading.set(false);
+      }
+    });
+  }
 
   entrarComoDev(): void {
     this.loading.set(true);

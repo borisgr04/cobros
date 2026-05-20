@@ -1,9 +1,3 @@
-  /** Login con Google: llama a POST /api/auth/google */
-  googleLogin(idToken: string) {
-    return this.http
-      .post<AuthResponse>("/api/auth/google", { idToken })
-      .pipe(tap(res => this.storeSession(res)));
-  }
 import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -40,6 +34,13 @@ export class AuthService {
   devLogin(email = 'dev@test.com', nombre = 'Dev User') {
     return this.http
       .post<AuthResponse>('/api/auth/dev-login', { email, nombre })
+      .pipe(tap(res => this.storeSession(res)));
+  }
+
+  /** Login con Google: llama a POST /api/auth/google */
+  googleLogin(idToken: string) {
+    return this.http
+      .post<AuthResponse>('/api/auth/google', { idToken })
       .pipe(tap(res => this.storeSession(res)));
   }
 
