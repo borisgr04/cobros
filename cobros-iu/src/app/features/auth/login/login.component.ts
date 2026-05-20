@@ -10,20 +10,25 @@ import { environment } from '../../../../environments/environment';
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent implements AfterViewInit {
-  readonly isDevMode = !environment.production || (environment as any).allowDevLogin;
+  readonly isDevMode      = !environment.production || (environment as any).allowDevLogin;
+  readonly showGoogleLogin = (environment as any).showGoogleLogin === true;
   loading = signal(false);
   error   = signal<string | null>(null);
 
   constructor(private auth: AuthService, private router: Router) {}
 
   ngAfterViewInit(): void {
-    if (!this.isDevMode) {
+    if (this.showGoogleLogin) {
       const tryInit = () => {
-        const fn = (window as any)['initGoogleSignIn'];
-        if (fn) {
-          fn(
-            '852221398029-tbl50a6mdfcageqn2c3t5l1h1ttiu3o4.apps.googleusercontent.com',
-            (response: any) => this.onGoogleCredential(response)
+        const google = (window as any)['google'];
+        if (google?.accounts?.id) {
+          google.accounts.id.initialize({
+            client_id: '852221398029-tbl50a6mdfcageqn2c3t5l1h1ttiu3o4.apps.googleusercontent.com',
+            callback: (response: any) => this.onGoogleCredential(response)
+          });
+          google.accounts.id.renderButton(
+            document.getElementById('googleBtnDiv'),
+            { theme: 'outline', size: 'large', width: '100%' }
           );
         } else {
           setTimeout(tryInit, 100);

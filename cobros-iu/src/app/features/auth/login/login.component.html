@@ -37,12 +37,9 @@
       </button>
     }
 
-    <!-- Botón Google (solo producción) -->
-    @if (!isDevMode) {
-      <div id="googleBtnDiv" class="mb-2"></div>
+    <!-- Botón Google -->
+    @if (showGoogleLogin) {
+      <div id="googleBtnDiv" class="mb-2 d-flex justify-content-center"></div>
     }
-    <!-- Carga Google Identity Services solo en producción -->
-    <script *ngIf="!isDevMode" src="https://accounts.google.com/gsi/client" async defer></script>
-    <script *ngIf="!isDevMode" src="/assets/google-identity-init.js"></script>
   </div>
 </div>
