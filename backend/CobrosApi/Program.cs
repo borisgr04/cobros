@@ -113,13 +113,8 @@ using (var scope = app.Services.CreateScope())
 }
 
 // ─── Pipeline ───────────────────────────────────────────────────────────────
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(opts => opts.SwaggerEndpoint("/swagger/v1/swagger.json", "CobrosApi v1"));
-}
-
-app.UseHttpsRedirection();
+app.UseSwagger();
+app.UseSwaggerUI(opts => opts.SwaggerEndpoint("/swagger/v1/swagger.json", "CobrosApi v1"));
 app.UseCors("CobrosPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
