@@ -41,10 +41,8 @@
     @if (!isDevMode) {
       <div id="googleBtnDiv" class="mb-2"></div>
     }
-</div>
-<!-- Carga Google Identity Services solo en producción -->
-<script *ngIf="!isDevMode" src="https://accounts.google.com/gsi/client" async defer></script>
-<script *ngIf="!isDevMode" src="/assets/google-identity-init.js"></script>
-
+    <!-- Carga Google Identity Services solo en producción -->
+    <script *ngIf="!isDevMode" src="https://accounts.google.com/gsi/client" async defer></script>
+    <script *ngIf="!isDevMode" src="/assets/google-identity-init.js"></script>
   </div>
 </div>
