@@ -1,0 +1,1266 @@
+openapi: 3.0.3
+info:
+  title: Sistema de Gestión de Préstamos - API
+  description: |
+    API REST para el sistema de gestión de préstamos, clientes, pagos y zonas.
+    
+    Este sistema permite:
+    - Gestionar clientes y sus préstamos
+    - Registrar y consultar pagos
+    - Organizar clientes por zonas geográficas
+    - Calcular proyecciones de cuotas e intereses
+    
+    **Relaciones de datos:**
+    - Un Cliente pertenece a una Zona
+    - Un Cliente puede tener múltiples Préstamos
+    - Un Préstamo tiene múltiples Pagos
+    
+    **Reglas de negocio:**
+    - No se puede editar un préstamo que ya tiene pagos registrados
+    - No se puede eliminar un préstamo que tiene pagos registrados
+    - Los IDs se generan automáticamente por el backend
+  version: 1.0.0
+  contact:
+    name: Sistema de Préstamos
+    email: soporte@sistemaprestamos.com
+  license:
+    name: Propietario
+    
+servers:
+  - url: http://localhost:3000/api
+    description: Servidor de desarrollo local
+  - url: https://api.sistemaprestamos.com/api
+    description: Servidor de producción
+
+tags:
+  - name: Clientes
+    description: Operaciones de gestión de clientes
+  - name: Préstamos
+    description: Operaciones de gestión de préstamos
+  - name: Pagos
+    description: Operaciones de gestión de pagos
+  - name: Zonas
+    description: Operaciones de gestión de zonas geográficas
+
+paths:
+  /clientes:
+    get:
+      tags:
+        - Clientes
+      summary: Obtener todos los clientes
+      description: Retorna la lista completa de clientes registrados en el sistema
+      operationId: getAllClientes
+      responses:
+        '200':
+          description: Lista de clientes obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Cliente'
+              examples:
+                clientesExample:
+                  $ref: '#/components/examples/ClientesListExample'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    post:
+      tags:
+        - Clientes
+      summary: Crear un nuevo cliente
+      description: Registra un nuevo cliente en el sistema. El ID se genera automáticamente
+      operationId: createCliente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClienteInput'
+            examples:
+              clienteExample:
+                $ref: '#/components/examples/ClienteInputExample'
+      responses:
+        '201':
+          description: Cliente creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cliente'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  
+  /clientes/{id}:
+    get:
+      tags:
+        - Clientes
+      summary: Obtener un cliente por ID
+      description: Retorna los datos de un cliente específico
+      operationId: getClienteById
+      parameters:
+        - $ref: '#/components/parameters/ClienteIdParam'
+      responses:
+        '200':
+          description: Cliente encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cliente'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    put:
+      tags:
+        - Clientes
+      summary: Actualizar un cliente
+      description: Actualiza los datos de un cliente existente
+      operationId: updateCliente
+      parameters:
+        - $ref: '#/components/parameters/ClienteIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClienteInput'
+      responses:
+        '200':
+          description: Cliente actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cliente'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    delete:
+      tags:
+        - Clientes
+      summary: Eliminar un cliente
+      description: Elimina un cliente del sistema
+      operationId: deleteCliente
+      parameters:
+        - $ref: '#/components/parameters/ClienteIdParam'
+      responses:
+        '204':
+          description: Cliente eliminado exitosamente
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  
+  /clientes/zona/{zonaId}:
+    get:
+      tags:
+        - Clientes
+      summary: Obtener clientes por zona
+      description: Retorna todos los clientes asociados a una zona específica
+      operationId: getClientesByZona
+      parameters:
+        - name: zonaId
+          in: path
+          required: true
+          description: ID de la zona
+          schema:
+            type: string
+          example: zona-1
+      responses:
+        '200':
+          description: Lista de clientes de la zona
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Cliente'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /prestamos:
+    get:
+      tags:
+        - Préstamos
+      summary: Obtener todos los préstamos
+      description: Retorna la lista completa de préstamos registrados en el sistema
+      operationId: getAllPrestamos
+      responses:
+        '200':
+          description: Lista de préstamos obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Prestamo'
+              examples:
+                prestamosExample:
+                  $ref: '#/components/examples/PrestamosListExample'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    post:
+      tags:
+        - Préstamos
+      summary: Crear un nuevo préstamo
+      description: |
+        Registra un nuevo préstamo en el sistema. El ID se genera automáticamente.
+        El sistema calcula automáticamente:
+        - Cantidad de cuotas según frecuencia y fechas
+        - Valor de cada cuota
+      operationId: createPrestamo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrestamoInput'
+            examples:
+              prestamoExample:
+                $ref: '#/components/examples/PrestamoInputExample'
+      responses:
+        '201':
+          description: Préstamo creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prestamo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  
+  /prestamos/{id}:
+    get:
+      tags:
+        - Préstamos
+      summary: Obtener un préstamo por ID
+      description: Retorna los datos de un préstamo específico
+      operationId: getPrestamoById
+      parameters:
+        - $ref: '#/components/parameters/PrestamoIdParam'
+      responses:
+        '200':
+          description: Préstamo encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prestamo'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    put:
+      tags:
+        - Préstamos
+      summary: Actualizar un préstamo
+      description: |
+        Actualiza los datos de un préstamo existente.
+        
+        **Restricción:** No se puede actualizar un préstamo que ya tiene pagos registrados.
+      operationId: updatePrestamo
+      parameters:
+        - $ref: '#/components/parameters/PrestamoIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrestamoInput'
+      responses:
+        '200':
+          description: Préstamo actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prestamo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: No se puede editar un préstamo con pagos registrados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: No se puede editar un préstamo que ya tiene pagos registrados
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    delete:
+      tags:
+        - Préstamos
+      summary: Eliminar un préstamo
+      description: |
+        Elimina un préstamo del sistema.
+        
+        **Restricción:** No se puede eliminar un préstamo que tiene pagos registrados.
+      operationId: deletePrestamo
+      parameters:
+        - $ref: '#/components/parameters/PrestamoIdParam'
+      responses:
+        '204':
+          description: Préstamo eliminado exitosamente
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: No se puede eliminar un préstamo con pagos registrados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: No se puede eliminar un préstamo que tiene pagos registrados
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  
+  /prestamos/cliente/{clienteId}:
+    get:
+      tags:
+        - Préstamos
+      summary: Obtener préstamos por cliente
+      description: Retorna todos los préstamos asociados a un cliente específico
+      operationId: getPrestamosByCliente
+      parameters:
+        - name: clienteId
+          in: path
+          required: true
+          description: ID del cliente
+          schema:
+            type: string
+          example: "1"
+      responses:
+        '200':
+          description: Lista de préstamos del cliente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Prestamo'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  
+  /prestamos/activos:
+    get:
+      tags:
+        - Préstamos
+      summary: Obtener préstamos activos
+      description: Retorna todos los préstamos que no han sido completamente pagados
+      operationId: getPrestamosActivos
+      responses:
+        '200':
+          description: Lista de préstamos activos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Prestamo'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  
+  /prestamos/{id}/cuotas:
+    get:
+      tags:
+        - Préstamos
+      summary: Calcular proyección de cuotas
+      description: |
+        Retorna la proyección detallada de cuotas para un préstamo, incluyendo:
+        - Número de cuota
+        - Fecha esperada de pago
+        - Valor de la cuota
+        - Estado (pagada/pendiente)
+      operationId: calcularCuotasPrestamo
+      parameters:
+        - $ref: '#/components/parameters/PrestamoIdParam'
+      responses:
+        '200':
+          description: Proyección de cuotas calculada
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Cuota'
+              examples:
+                cuotasExample:
+                  $ref: '#/components/examples/CuotasExample'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /pagos:
+    get:
+      tags:
+        - Pagos
+      summary: Obtener todos los pagos
+      description: Retorna la lista completa de pagos registrados en el sistema
+      operationId: getAllPagos
+      responses:
+        '200':
+          description: Lista de pagos obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Pago'
+              examples:
+                pagosExample:
+                  $ref: '#/components/examples/PagosListExample'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    post:
+      tags:
+        - Pagos
+      summary: Registrar un nuevo pago
+      description: Registra un pago para un préstamo. El ID se genera automáticamente
+      operationId: createPago
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PagoInput'
+            examples:
+              pagoExample:
+                $ref: '#/components/examples/PagoInputExample'
+      responses:
+        '201':
+          description: Pago registrado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pago'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  
+  /pagos/{id}:
+    get:
+      tags:
+        - Pagos
+      summary: Obtener un pago por ID
+      description: Retorna los datos de un pago específico
+      operationId: getPagoById
+      parameters:
+        - $ref: '#/components/parameters/PagoIdParam'
+      responses:
+        '200':
+          description: Pago encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pago'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    put:
+      tags:
+        - Pagos
+      summary: Actualizar un pago
+      description: Actualiza los datos de un pago existente
+      operationId: updatePago
+      parameters:
+        - $ref: '#/components/parameters/PagoIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PagoInput'
+      responses:
+        '200':
+          description: Pago actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pago'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    delete:
+      tags:
+        - Pagos
+      summary: Eliminar un pago
+      description: Elimina un pago del sistema
+      operationId: deletePago
+      parameters:
+        - $ref: '#/components/parameters/PagoIdParam'
+      responses:
+        '204':
+          description: Pago eliminado exitosamente
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  
+  /pagos/prestamo/{prestamoId}:
+    get:
+      tags:
+        - Pagos
+      summary: Obtener pagos por préstamo
+      description: Retorna todos los pagos asociados a un préstamo específico
+      operationId: getPagosByPrestamo
+      parameters:
+        - name: prestamoId
+          in: path
+          required: true
+          description: ID del préstamo
+          schema:
+            type: string
+          example: PRE-001
+      responses:
+        '200':
+          description: Lista de pagos del préstamo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Pago'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  
+  /pagos/prestamo/{prestamoId}/total:
+    get:
+      tags:
+        - Pagos
+      summary: Obtener total pagado de un préstamo
+      description: Retorna la suma de todos los pagos realizados para un préstamo
+      operationId: getTotalPagadoByPrestamo
+      parameters:
+        - name: prestamoId
+          in: path
+          required: true
+          description: ID del préstamo
+          schema:
+            type: string
+          example: PRE-001
+      responses:
+        '200':
+          description: Total pagado calculado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  prestamoId:
+                    type: string
+                    description: ID del préstamo
+                  totalPagado:
+                    type: number
+                    format: double
+                    description: Suma total de pagos realizados
+                example:
+                  prestamoId: PRE-001
+                  totalPagado: 369232
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /zonas:
+    get:
+      tags:
+        - Zonas
+      summary: Obtener todas las zonas
+      description: Retorna la lista completa de zonas registradas en el sistema
+      operationId: getAllZonas
+      responses:
+        '200':
+          description: Lista de zonas obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Zona'
+              examples:
+                zonasExample:
+                  $ref: '#/components/examples/ZonasListExample'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    post:
+      tags:
+        - Zonas
+      summary: Crear una nueva zona
+      description: Registra una nueva zona en el sistema. El ID se genera automáticamente
+      operationId: createZona
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ZonaInput'
+            examples:
+              zonaExample:
+                $ref: '#/components/examples/ZonaInputExample'
+      responses:
+        '201':
+          description: Zona creada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Zona'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  
+  /zonas/{id}:
+    get:
+      tags:
+        - Zonas
+      summary: Obtener una zona por ID
+      description: Retorna los datos de una zona específica
+      operationId: getZonaById
+      parameters:
+        - $ref: '#/components/parameters/ZonaIdParam'
+      responses:
+        '200':
+          description: Zona encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Zona'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    put:
+      tags:
+        - Zonas
+      summary: Actualizar una zona
+      description: Actualiza los datos de una zona existente
+      operationId: updateZona
+      parameters:
+        - $ref: '#/components/parameters/ZonaIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ZonaInput'
+      responses:
+        '200':
+          description: Zona actualizada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Zona'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    delete:
+      tags:
+        - Zonas
+      summary: Eliminar una zona
+      description: Elimina una zona del sistema
+      operationId: deleteZona
+      parameters:
+        - $ref: '#/components/parameters/ZonaIdParam'
+      responses:
+        '204':
+          description: Zona eliminada exitosamente
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  
+  /zonas/activas:
+    get:
+      tags:
+        - Zonas
+      summary: Obtener zonas activas
+      description: Retorna solo las zonas con estado 'activo'
+      operationId: getZonasActivas
+      responses:
+        '200':
+          description: Lista de zonas activas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Zona'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    Cliente:
+      type: object
+      required:
+        - id
+        - nombre
+        - identificacion
+        - zonaId
+      properties:
+        id:
+          type: string
+          description: Identificador único del cliente (generado automáticamente)
+          example: "1"
+        nombre:
+          type: string
+          description: Nombre completo del cliente
+          minLength: 1
+          maxLength: 200
+          example: Juan Pérez García
+        alias:
+          type: string
+          description: Alias o apodo del cliente
+          maxLength: 100
+          example: Juanito
+        identificacion:
+          type: string
+          description: Número de identificación oficial del cliente
+          minLength: 1
+          maxLength: 50
+          example: "12345678"
+        direccion:
+          type: string
+          description: Dirección física del cliente
+          maxLength: 300
+          example: Calle Principal #123, Centro
+        zonaId:
+          type: string
+          description: Identificador de la zona a la que pertenece
+          example: zona-1
+        telefono:
+          type: string
+          description: Teléfono de contacto
+          maxLength: 20
+          example: 555-0101
+        cuentaBancaria:
+          type: string
+          description: Cuenta bancaria asociada
+          maxLength: 50
+          example: "1234567890"
+        llave:
+          type: string
+          description: Llave de seguridad o referencia externa
+          maxLength: 100
+        estado:
+          $ref: '#/components/schemas/Estado'
+    
+    ClienteInput:
+      type: object
+      required:
+        - nombre
+        - identificacion
+        - zonaId
+      properties:
+        nombre:
+          type: string
+          minLength: 1
+          maxLength: 200
+          example: Juan Pérez García
+        alias:
+          type: string
+          maxLength: 100
+          example: Juanito
+        identificacion:
+          type: string
+          minLength: 1
+          maxLength: 50
+          example: "12345678"
+        direccion:
+          type: string
+          maxLength: 300
+          example: Calle Principal #123, Centro
+        zonaId:
+          type: string
+          example: zona-1
+        telefono:
+          type: string
+          maxLength: 20
+          example: 555-0101
+        cuentaBancaria:
+          type: string
+          maxLength: 50
+          example: "1234567890"
+        llave:
+          type: string
+          maxLength: 100
+        estado:
+          $ref: '#/components/schemas/Estado'
+    
+    Prestamo:
+      type: object
+      required:
+        - id
+        - clienteId
+        - fechaPrestamo
+        - fechaFinal
+        - valorPrestado
+        - valorTotal
+        - interesProyectado
+        - frecuenciaPago
+        - cantidadCuotas
+        - valorCuota
+      properties:
+        id:
+          type: string
+          description: Identificador único del préstamo (generado automáticamente)
+          example: PRE-001
+        clienteId:
+          type: string
+          description: Identificador del cliente asociado
+          example: "1"
+        fechaPrestamo:
+          type: string
+          format: date-time
+          description: Fecha en que se otorga el préstamo
+          example: "2024-11-15T00:00:00Z"
+        fechaFinal:
+          type: string
+          format: date-time
+          description: Fecha final proyectada para completar el préstamo
+          example: "2025-05-15T00:00:00Z"
+        valorPrestado:
+          type: number
+          format: double
+          description: Valor principal prestado
+          minimum: 0
+          example: 1000000
+        valorTotal:
+          type: number
+          format: double
+          description: Valor total a pagar (incluye intereses)
+          minimum: 0
+          example: 1200000
+        interesProyectado:
+          type: number
+          format: double
+          description: Interés proyectado para el préstamo
+          minimum: 0
+          example: 200000
+        frecuenciaPago:
+          $ref: '#/components/schemas/FrecuenciaPago'
+        cantidadCuotas:
+          type: integer
+          description: Cantidad total de cuotas proyectadas
+          minimum: 1
+          example: 26
+        valorCuota:
+          type: number
+          format: double
+          description: Valor de cada cuota
+          minimum: 0
+          example: 46154
+    
+    PrestamoInput:
+      type: object
+      required:
+        - clienteId
+        - fechaPrestamo
+        - fechaFinal
+        - valorPrestado
+        - valorTotal
+        - interesProyectado
+        - frecuenciaPago
+        - cantidadCuotas
+        - valorCuota
+      properties:
+        clienteId:
+          type: string
+          example: "1"
+        fechaPrestamo:
+          type: string
+          format: date-time
+          example: "2024-11-15T00:00:00Z"
+        fechaFinal:
+          type: string
+          format: date-time
+          example: "2025-05-15T00:00:00Z"
+        valorPrestado:
+          type: number
+          format: double
+          minimum: 0
+          example: 1000000
+        valorTotal:
+          type: number
+          format: double
+          minimum: 0
+          example: 1200000
+        interesProyectado:
+          type: number
+          format: double
+          minimum: 0
+          example: 200000
+        frecuenciaPago:
+          $ref: '#/components/schemas/FrecuenciaPago'
+        cantidadCuotas:
+          type: integer
+          minimum: 1
+          example: 26
+        valorCuota:
+          type: number
+          format: double
+          minimum: 0
+          example: 46154
+    
+    Pago:
+      type: object
+      required:
+        - id
+        - prestamoId
+        - valor
+        - fechaPago
+      properties:
+        id:
+          type: string
+          description: Identificador único del pago (generado automáticamente)
+          example: PAG-001
+        prestamoId:
+          type: string
+          description: Identificador del préstamo al que corresponde
+          example: PRE-001
+        valor:
+          type: number
+          format: double
+          description: Monto del pago realizado
+          minimum: 0
+          example: 46154
+        fechaPago:
+          type: string
+          format: date-time
+          description: Fecha en la que se realiza el pago
+          example: "2024-11-22T00:00:00Z"
+    
+    PagoInput:
+      type: object
+      required:
+        - prestamoId
+        - valor
+        - fechaPago
+      properties:
+        prestamoId:
+          type: string
+          example: PRE-001
+        valor:
+          type: number
+          format: double
+          minimum: 0
+          example: 46154
+        fechaPago:
+          type: string
+          format: date-time
+          example: "2024-11-22T00:00:00Z"
+    
+    Zona:
+      type: object
+      required:
+        - id
+        - nombre
+        - estado
+      properties:
+        id:
+          type: string
+          description: Identificador único de la zona (generado automáticamente)
+          example: zona-1
+        nombre:
+          type: string
+          description: Nombre de la zona
+          minLength: 1
+          maxLength: 100
+          example: Centro
+        estado:
+          $ref: '#/components/schemas/Estado'
+    
+    ZonaInput:
+      type: object
+      required:
+        - nombre
+      properties:
+        nombre:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Centro
+        estado:
+          $ref: '#/components/schemas/Estado'
+    
+    Cuota:
+      type: object
+      description: Proyección de una cuota de préstamo
+      properties:
+        numeroCuota:
+          type: integer
+          description: Número de la cuota en la secuencia
+          example: 1
+        fechaEsperada:
+          type: string
+          format: date
+          description: Fecha esperada de pago
+          example: "2024-11-22"
+        valorCuota:
+          type: number
+          format: double
+          description: Valor de la cuota
+          example: 46154
+        estado:
+          type: string
+          enum: [pagada, pendiente, vencida]
+          description: Estado de la cuota
+          example: pagada
+        valorPagado:
+          type: number
+          format: double
+          description: Valor pagado de la cuota (si aplica)
+          example: 46154
+        fechaPago:
+          type: string
+          format: date
+          description: Fecha real de pago (si aplica)
+          example: "2024-11-22"
+    
+    Estado:
+      type: string
+      enum: [activo, inactivo]
+      description: Estado de una entidad
+      default: activo
+      example: activo
+    
+    FrecuenciaPago:
+      type: string
+      enum: [diario, semanal, quincenal, mensual]
+      description: Frecuencia de pago del préstamo
+      example: semanal
+    
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Mensaje de error
+          example: Recurso no encontrado
+        message:
+          type: string
+          description: Descripción detallada del error
+        code:
+          type: string
+          description: Código de error específico
+  
+  parameters:
+    ClienteIdParam:
+      name: id
+      in: path
+      required: true
+      description: Identificador único del cliente
+      schema:
+        type: string
+      example: "1"
+    
+    PrestamoIdParam:
+      name: id
+      in: path
+      required: true
+      description: Identificador único del préstamo
+      schema:
+        type: string
+      example: PRE-001
+    
+    PagoIdParam:
+      name: id
+      in: path
+      required: true
+      description: Identificador único del pago
+      schema:
+        type: string
+      example: PAG-001
+    
+    ZonaIdParam:
+      name: id
+      in: path
+      required: true
+      description: Identificador único de la zona
+      schema:
+        type: string
+      example: zona-1
+  
+  responses:
+    BadRequest:
+      description: Petición inválida - datos de entrada incorrectos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Datos de entrada inválidos
+            message: El campo 'nombre' es requerido
+    
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Recurso no encontrado
+            message: El recurso solicitado no existe en el sistema
+    
+    InternalServerError:
+      description: Error interno del servidor
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Error interno del servidor
+            message: Ha ocurrido un error inesperado
+  
+  examples:
+    ClientesListExample:
+      summary: Lista de clientes
+      value:
+        - id: "1"
+          nombre: Juan Pérez García
+          alias: Juanito
+          identificacion: "12345678"
+          direccion: Calle Principal #123, Centro
+          zonaId: zona-1
+          telefono: 555-0101
+          cuentaBancaria: "1234567890"
+          estado: activo
+        - id: "2"
+          nombre: María López Hernández
+          alias: Mary
+          identificacion: "87654321"
+          direccion: Avenida Libertad #456, Norte
+          zonaId: zona-1
+          telefono: 555-0102
+          cuentaBancaria: "0987654321"
+          estado: activo
+    
+    ClienteInputExample:
+      summary: Datos para crear un cliente
+      value:
+        nombre: Juan Pérez García
+        alias: Juanito
+        identificacion: "12345678"
+        direccion: Calle Principal #123, Centro
+        zonaId: zona-1
+        telefono: 555-0101
+        cuentaBancaria: "1234567890"
+        estado: activo
+    
+    PrestamosListExample:
+      summary: Lista de préstamos
+      value:
+        - id: PRE-001
+          clienteId: "1"
+          fechaPrestamo: "2024-11-15T00:00:00Z"
+          fechaFinal: "2025-05-15T00:00:00Z"
+          valorPrestado: 1000000
+          valorTotal: 1200000
+          interesProyectado: 200000
+          frecuenciaPago: semanal
+          cantidadCuotas: 26
+          valorCuota: 46154
+        - id: PRE-002
+          clienteId: "2"
+          fechaPrestamo: "2025-01-01T00:00:00Z"
+          fechaFinal: "2025-07-01T00:00:00Z"
+          valorPrestado: 2000000
+          valorTotal: 2400000
+          interesProyectado: 400000
+          frecuenciaPago: quincenal
+          cantidadCuotas: 12
+          valorCuota: 200000
+    
+    PrestamoInputExample:
+      summary: Datos para crear un préstamo
+      value:
+        clienteId: "1"
+        fechaPrestamo: "2024-11-15T00:00:00Z"
+        fechaFinal: "2025-05-15T00:00:00Z"
+        valorPrestado: 1000000
+        valorTotal: 1200000
+        interesProyectado: 200000
+        frecuenciaPago: semanal
+        cantidadCuotas: 26
+        valorCuota: 46154
+    
+    PagosListExample:
+      summary: Lista de pagos
+      value:
+        - id: PAG-001
+          prestamoId: PRE-001
+          valor: 46154
+          fechaPago: "2024-11-22T00:00:00Z"
+        - id: PAG-002
+          prestamoId: PRE-001
+          valor: 46154
+          fechaPago: "2024-11-29T00:00:00Z"
+    
+    PagoInputExample:
+      summary: Datos para registrar un pago
+      value:
+        prestamoId: PRE-001
+        valor: 46154
+        fechaPago: "2024-11-22T00:00:00Z"
+    
+    ZonasListExample:
+      summary: Lista de zonas
+      value:
+        - id: zona-1
+          nombre: Centro
+          estado: activo
+        - id: zona-2
+          nombre: Norte
+          estado: activo
+        - id: zona-3
+          nombre: Sur
+          estado: activo
+    
+    ZonaInputExample:
+      summary: Datos para crear una zona
+      value:
+        nombre: Centro
+        estado: activo
+    
+    CuotasExample:
+      summary: Proyección de cuotas de un préstamo
+      value:
+        - numeroCuota: 1
+          fechaEsperada: "2024-11-22"
+          valorCuota: 46154
+          estado: pagada
+          valorPagado: 46154
+          fechaPago: "2024-11-22"
+        - numeroCuota: 2
+          fechaEsperada: "2024-11-29"
+          valorCuota: 46154
+          estado: pagada
+          valorPagado: 46154
+          fechaPago: "2024-11-29"
+        - numeroCuota: 3
+          fechaEsperada: "2024-12-06"
+          valorCuota: 46154
+          estado: pendiente

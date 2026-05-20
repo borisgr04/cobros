@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mockup Bottom Navigation - Sistema de Cobros</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --primary-color: #2D2D2D;
+      --primary-dark: #1A1A1A;
+      --primary-light: #4A4A4A;
+      --success-color: #00E676;
+      --bg-primary: #FFFFFF;
+      --bg-secondary: #F5F5F5;
+      --bg-tertiary: #E0E0E0;
+      --text-primary: #0D0D0D;
+      --text-secondary: #2D2D2D;
+      --text-tertiary: #4A4A4A;
+      --border-color: #E0E0E0;
+      --shadow-sm: 0 1px 2px 0 rgba(13, 13, 13, 0.15);
+      --shadow-md: 0 4px 6px -1px rgba(13, 13, 13, 0.2), 0 2px 4px -1px rgba(13, 13, 13, 0.15);
+      --shadow-lg: 0 10px 15px -3px rgba(13, 13, 13, 0.25), 0 4px 6px -2px rgba(13, 13, 13, 0.15);
+      --shadow-top: 0 -4px 12px rgba(0, 0, 0, 0.15);
+      --radius-sm: 0.5rem;
+      --radius-md: 0.75rem;
+      --radius-lg: 1rem;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+      min-height: 100vh;
+      padding-bottom: 80px; /* Espacio para la barra inferior */
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    /* HEADER */
+    .header {
+      background: var(--bg-primary);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow-md);
+    }
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .header-icon {
+      width: 3rem;
+      height: 3rem;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.5rem;
+      box-shadow: var(--shadow-md);
+    }
+
+    .header-title h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0 0 0.25rem 0;
+    }
+
+    .subtitle {
+      font-size: 0.875rem;
+      color: var(--text-tertiary);
+      margin: 0;
+    }
+
+    /* ZONAS GRID */
+    .zonas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* MINIMAL CARD */
+    .minimal-card {
+      background: var(--bg-primary);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+      cursor: pointer;
+    }
+
+    .minimal-card:hover {
+      border-color: var(--primary-color);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .minimal-header {
+      padding: 1rem;
+      border-bottom: 2px solid var(--bg-secondary);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .minimal-header-left {
+      flex: 1;
+    }
+
+    .minimal-nombre {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0 0 0.5rem 0;
+    }
+
+    .minimal-estado {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+    }
+
+    .cartera-header {
+      text-align: right;
+    }
+
+    .cartera-label {
+      font-size: 0.625rem;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    .cartera-value {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--success-color);
+      display: block;
+      line-height: 1;
+    }
+
+    .minimal-body {
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      gap: 1.5rem;
+    }
+
+    .minimal-stat {
+      text-align: center;
+    }
+
+    .minimal-stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: block;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+
+    .minimal-stat-label {
+      font-size: 0.625rem;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: block;
+    }
+
+    /* TOTALES */
+    .totales-card {
+      background: var(--bg-primary);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-lg);
+      border: 2px solid var(--border-color);
+      margin-bottom: 1.5rem;
+    }
+
+    .totales-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 0 0 1rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-primary);
+      padding-bottom: 1rem;
+      border-bottom: 3px solid var(--primary-color);
+    }
+
+    .totales-title i {
+      width: 2.5rem;
+      height: 2.5rem;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.25rem;
+      box-shadow: var(--shadow-md);
+    }
+
+    .totales-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+    }
+
+    .total-item {
+      background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      border: 2px solid var(--border-color);
+      text-align: center;
+      transition: all 0.3s;
+    }
+
+    .total-item.clientes-item {
+      border-top: 4px solid var(--primary-color);
+    }
+
+    .total-item.prestamos-item {
+      border-top: 4px solid var(--primary-light);
+    }
+
+    .total-item.cartera-item {
+      border-top: 4px solid var(--success-color);
+      background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+    }
+
+    .total-item.cartera-item .total-value {
+      color: var(--success-color);
+    }
+
+    .total-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .total-value {
+      font-size: 1.5rem;
+      font-weight: 800;
+      line-height: 1;
+      display: block;
+      color: var(--text-primary);
+    }
+
+    /* ============================================ */
+    /* BARRA DE NAVEGACIÓN INFERIOR (BOTTOM NAV) */
+    /* ============================================ */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg-primary);
+      border-top: 1px solid var(--border-color);
+      box-shadow: var(--shadow-top);
+      z-index: 1000;
+      display: none; /* Oculta en desktop */
+    }
+
+    .bottom-nav-container {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 0.5rem 0.25rem;
+    }
+
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.25rem;
+      padding: 0.5rem;
+      text-decoration: none;
+      color: var(--text-tertiary);
+      transition: all 0.3s ease;
+      border-radius: var(--radius-sm);
+      position: relative;
+    }
+
+    .nav-item i {
+      font-size: 1.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .nav-item span {
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      transition: all 0.3s ease;
+    }
+
+    /* Estado activo */
+    .nav-item.active {
+      color: var(--primary-color);
+    }
+
+    .nav-item.active i {
+      transform: scale(1.1);
+    }
+
+    .nav-item.active span {
+      font-weight: 700;
+    }
+
+    /* Efecto hover/tap */
+    .nav-item:active {
+      background: var(--bg-secondary);
+      transform: scale(0.95);
+    }
+
+    /* Badge de notificación (opcional) */
+    .nav-item .badge {
+      position: absolute;
+      top: 0.25rem;
+      right: 0.75rem;
+      background: #FF5252;
+      color: white;
+      font-size: 0.625rem;
+      font-weight: 700;
+      padding: 0.125rem 0.375rem;
+      border-radius: 1rem;
+      min-width: 1rem;
+      text-align: center;
+    }
+
+    /* Indicador inferior para item activo */
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 2rem;
+      height: 3px;
+      background: var(--primary-color);
+      border-radius: 0 0 3px 3px;
+    }
+
+    /* MOSTRAR SOLO EN MÓVIL */
+    @media (max-width: 768px) {
+      .bottom-nav {
+        display: block;
+      }
+
+      body {
+        padding-bottom: 80px;
+      }
+
+      .zonas-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .totales-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .container {
+        padding: 0.75rem;
+      }
+
+      .header {
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .header-title h1 {
+        font-size: 1.25rem;
+      }
+
+      .subtitle {
+        font-size: 0.75rem;
+      }
+    }
+
+    /* DESKTOP: Ocultar barra inferior */
+    @media (min-width: 769px) {
+      .bottom-nav {
+        display: none;
+      }
+
+      body {
+        padding-bottom: 2rem;
+      }
+
+      .container {
+        padding: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- HEADER -->
+    <div class="header">
+      <div class="header-title">
+        <div class="header-icon">
+          <i class="bi bi-house-fill"></i>
+        </div>
+        <div>
+          <h1>Resumen por Zona</h1>
+          <p class="subtitle">Vista general de clientes, préstamos y cartera</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ZONAS GRID -->
+    <div class="zonas-grid">
+      <!-- Zona 1: Centro -->
+      <div class="minimal-card">
+        <div class="minimal-header">
+          <div class="minimal-header-left">
+            <h3 class="minimal-nombre">Centro</h3>
+            <span class="minimal-estado">🟢 Excelente</span>
+          </div>
+          <div class="cartera-header">
+            <span class="cartera-label">Cartera</span>
+            <span class="cartera-value">$125M</span>
+          </div>
+        </div>
+        <div class="minimal-body">
+          <div class="minimal-stat">
+            <span class="minimal-stat-value">45</span>
+            <span class="minimal-stat-label">Clientes</span>
+          </div>
+          <div class="minimal-stat">
+            <span class="minimal-stat-value">32</span>
+            <span class="minimal-stat-label">Préstamos</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Zona 2: Norte -->
+      <div class="minimal-card">
+        <div class="minimal-header">
+          <div class="minimal-header-left">
+            <h3 class="minimal-nombre">Norte</h3>
+            <span class="minimal-estado">🟡 Bueno</span>
+          </div>
+          <div class="cartera-header">
+            <span class="cartera-label">Cartera</span>
+            <span class="cartera-value">$99M</span>
+          </div>
+        </div>
+        <div class="minimal-body">
+          <div class="minimal-stat">
+            <span class="minimal-stat-value">38</span>
+            <span class="minimal-stat-label">Clientes</span>
+          </div>
+          <div class="minimal-stat">
+            <span class="minimal-stat-value">28</span>
+            <span class="minimal-stat-label">Préstamos</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Zona 3: Sur -->
+      <div class="minimal-card">
+        <div class="minimal-header">
+          <div class="minimal-header-left">
+            <h3 class="minimal-nombre">Sur</h3>
+            <span class="minimal-estado">🟠 Regular</span>
+          </div>
+          <div class="cartera-header">
+            <span class="cartera-label">Cartera</span>
+            <span class="cartera-value">$157M</span>
+          </div>
+        </div>
+        <div class="minimal-body">
+          <div class="minimal-stat">
+            <span class="minimal-stat-value">52</span>
+            <span class="minimal-stat-label">Clientes</span>
+          </div>
+          <div class="minimal-stat">
+            <span class="minimal-stat-value">41</span>
+            <span class="minimal-stat-label">Préstamos</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOTALES -->
+    <div class="totales-card">
+      <h3 class="totales-title">
+        <i class="bi bi-calculator"></i>
+        <span>Total General</span>
+      </h3>
+      <div class="totales-grid">
+        <div class="total-item clientes-item">
+          <span class="total-label">Clientes</span>
+          <span class="total-value">135</span>
+        </div>
+        <div class="total-item prestamos-item">
+          <span class="total-label">Préstamos</span>
+          <span class="total-value">101</span>
+        </div>
+        <div class="total-item cartera-item">
+          <span class="total-label">Cartera Total</span>
+          <span class="total-value">$381M</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- BARRA DE NAVEGACIÓN INFERIOR (MOBILE ONLY) -->
+  <!-- ============================================ -->
+  <nav class="bottom-nav">
+    <div class="bottom-nav-container">
+      
+      <!-- Préstamos -->
+      <a href="/prestamos" class="nav-item">
+        <i class="bi bi-cash-coin"></i>
+        <span>Préstamos</span>
+      </a>
+
+      <!-- Clientes -->
+      <a href="/clientes" class="nav-item">
+        <i class="bi bi-people-fill"></i>
+        <span>Clientes</span>
+      </a>
+
+      <!-- Home (Activo) -->
+      <a href="/" class="nav-item active">
+        <i class="bi bi-house-fill"></i>
+        <span>Inicio</span>
+      </a>
+
+      <!-- Zonas -->
+      <a href="/zonas" class="nav-item">
+        <i class="bi bi-geo-alt-fill"></i>
+        <span>Zonas</span>
+      </a>
+
+      <!-- Dashboard -->
+      <a href="/dashboard" class="nav-item">
+        <i class="bi bi-grid-1x2-fill"></i>
+        <span>Tablero</span>
+      </a>
+
+    </div>
+  </nav>
+
+  <script>
+    // Simulación de navegación (cambiar item activo)
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Remover clase active de todos
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        
+        // Agregar clase active al clickeado
+        this.classList.add('active');
+        
+        // En una app real, aquí navegarías con el router
+        console.log('Navegando a:', this.getAttribute('href'));
+      });
+    });
+  </script>
+</body>
+</html>

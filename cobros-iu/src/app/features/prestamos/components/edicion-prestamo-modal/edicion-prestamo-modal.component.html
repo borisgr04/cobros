@@ -1,0 +1,287 @@
+<!-- Modal de edición de préstamo -->
+@if (visible()) {
+  <div class="modal-overlay" (click)="cerrar()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      
+      <!-- Header -->
+      <div class="modal-header">
+        <h2>
+          <i class="bi bi-pencil-square"></i>
+          Editar Préstamo - {{ prestamoOriginal()?.id }}
+        </h2>
+        <button class="btn-cerrar" (click)="cerrar()" aria-label="Cerrar modal">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        
+        @if (exito()) {
+          <!-- Estado de éxito -->
+          <div class="exito-container">
+            <i class="bi bi-check-circle-fill exito-icon"></i>
+            <h3>¡Préstamo actualizado!</h3>
+            <p>Los datos se actualizaron correctamente.</p>
+          </div>
+        } @else if (procesando()) {
+          <!-- Estado de procesamiento -->
+          <div class="procesando-container">
+            <div class="spinner-modern"></div>
+            <p>Actualizando préstamo...</p>
+          </div>
+        } @else {
+          <!-- Advertencia -->
+          <div class="advertencia-panel">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>
+              <strong>Advertencia:</strong>
+              Los cambios afectarán el cálculo de cuotas y proyección del préstamo.
+            </div>
+          </div>
+
+          <!-- Mensaje de error general -->
+          @if (error()) {
+            <div class="alerta alerta-error">
+              <i class="bi bi-exclamation-circle"></i>
+              {{ error() }}
+            </div>
+          }
+
+          <!-- SECCIÓN: Cliente -->
+          <div class="seccion">
+            <div class="seccion-titulo">
+              <i class="bi bi-person-circle"></i>
+              Información del Cliente
+            </div>
+            
+            <div class="campo">
+              <label>
+                Cliente
+                <span class="requerido">*</span>
+              </label>
+              @if (cargandoClientes()) {
+                <div class="cargando-clientes">
+                  <div class="spinner-pequeno"></div>
+                  <span>Cargando clientes...</span>
+                </div>
+              } @else {
+                <select 
+                  class="select-cliente"
+                  [class.error]="errorCliente()"
+                  [(ngModel)]="clienteId"
+                  [ngModelOptions]="{updateOn: 'change'}">
+                  <option value="">Seleccione un cliente</option>
+                  @for (cliente of clientes(); track cliente.id) {
+                    <option [value]="cliente.id">
+                      {{ cliente.nombre }} - {{ cliente.identificacion }}
+                    </option>
+                  }
+                </select>
+              }
+              @if (errorCliente()) {
+                <span class="mensaje-error">
+                  <i class="bi bi-exclamation-circle"></i>
+                  {{ errorCliente() }}
+                </span>
+              }
+            </div>
+          </div>
+
+          <!-- SECCIÓN: Fechas -->
+          <div class="seccion">
+            <div class="seccion-titulo">
+              <i class="bi bi-calendar-range"></i>
+              Fechas del Préstamo
+            </div>
+            
+            <div class="campo-grupo">
+              <div class="campo">
+                <label>
+                  Fecha de Préstamo
+                  <span class="requerido">*</span>
+                </label>
+                <input 
+                  type="date" 
+                  class="input-fecha"
+                  [value]="fechaPrestamo().toISOString().split('T')[0]"
+                  (change)="onFechaPrestamoChange($any($event.target).value)"
+                  [max]="fechaMaxima()">
+              </div>
+
+              <div class="campo">
+                <label>
+                  Fecha Final
+                  <span class="requerido">*</span>
+                </label>
+                <input 
+                  type="date" 
+                  class="input-fecha"
+                  [class.error]="errorFechaFinal()"
+                  [value]="fechaFinal() ? fechaFinal()!.toISOString().split('T')[0] : ''"
+                  (change)="onFechaFinalChange($any($event.target).value)">
+                @if (errorFechaFinal()) {
+                  <span class="mensaje-error">
+                    <i class="bi bi-exclamation-circle"></i>
+                    {{ errorFechaFinal() }}
+                  </span>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- SECCIÓN: Valores -->
+          <div class="seccion">
+            <div class="seccion-titulo">
+              <i class="bi bi-cash-stack"></i>
+              Valores del Préstamo
+            </div>
+            
+            <div class="campo-grupo">
+              <div class="campo">
+                <label>
+                  Valor Prestado
+                  <span class="requerido">*</span>
+                </label>
+                <div class="input-moneda-wrapper">
+                  <span class="prefijo-moneda">$</span>
+                  <input 
+                    type="number" 
+                    class="input-moneda"
+                    [(ngModel)]="valorPrestado"
+                    [ngModelOptions]="{updateOn: 'change'}"
+                    [class.error]="errorValores()"
+                    placeholder="0"
+                    min="1"
+                    step="1000">
+                </div>
+              </div>
+
+              <div class="campo">
+                <label>
+                  Valor Total a Pagar
+                  <span class="requerido">*</span>
+                </label>
+                <div class="input-moneda-wrapper">
+                  <span class="prefijo-moneda">$</span>
+                  <input 
+                    type="number" 
+                    class="input-moneda"
+                    [(ngModel)]="valorTotal"
+                    [ngModelOptions]="{updateOn: 'change'}"
+                    [class.error]="errorValores()"
+                    placeholder="0"
+                    min="1"
+                    step="1000">
+                </div>
+              </div>
+            </div>
+
+            @if (errorValores()) {
+              <span class="mensaje-error">
+                <i class="bi bi-exclamation-circle"></i>
+                {{ errorValores() }}
+              </span>
+            }
+          </div>
+
+          <!-- SECCIÓN: Interés Calculado -->
+          @if (interesProyectado() !== 0) {
+            <div class="interes-panel" [class.positivo]="interesProyectado() > 0" [class.negativo]="interesProyectado() < 0">
+              <div class="interes-contenido">
+                <div class="interes-label">
+                  @if (interesProyectado() > 0) {
+                    <i class="bi bi-check-circle-fill"></i>
+                    Interés Proyectado
+                  } @else {
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    Descuento Aplicado
+                  }
+                </div>
+                <div class="interes-valor">
+                  {{ formatCurrency(interesProyectado()) }}
+                  <span class="interes-porcentaje">
+                    ({{ porcentajeInteres() }}%)
+                  </span>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- SECCIÓN: Frecuencia -->
+          <div class="seccion">
+            <div class="seccion-titulo">
+              <i class="bi bi-arrow-repeat"></i>
+              Frecuencia de Pago
+            </div>
+            
+            <div class="frecuencia-opciones">
+              @for (frec of frecuencias; track frec.value) {
+                <div 
+                  class="frecuencia-card"
+                  [class.selected]="frecuenciaPago() === frec.value"
+                  (click)="seleccionarFrecuencia(frec.value)">
+                  <i class="bi {{ frec.icon }}"></i>
+                  <span>{{ frec.label }}</span>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- SECCIÓN: Resumen Actualizado -->
+          @if (cantidadCuotas() > 0 && fechaFinal()) {
+            <div class="resumen-panel">
+              <div class="resumen-titulo">
+                <i class="bi bi-clipboard-data"></i>
+                Resumen Actualizado
+              </div>
+              
+              <div class="resumen-contenido">
+                <div class="resumen-item">
+                  <span class="resumen-label">Cantidad de Cuotas:</span>
+                  <span class="resumen-valor destacado">{{ cantidadCuotas() }}</span>
+                </div>
+                <div class="resumen-item">
+                  <span class="resumen-label">Valor por Cuota:</span>
+                  <span class="resumen-valor destacado">{{ formatCurrency(valorCuota()) }}</span>
+                </div>
+                <div class="resumen-item">
+                  <span class="resumen-label">Período:</span>
+                  <span class="resumen-valor">
+                    {{ formatDate(fechaPrestamo()) }} - {{ formatDate(fechaFinal()) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          }
+
+          @if (errorCuotas()) {
+            <div class="alerta alerta-error">
+              <i class="bi bi-exclamation-circle"></i>
+              {{ errorCuotas() }}
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Footer con acciones -->
+      @if (!exito() && !procesando()) {
+        <div class="modal-footer">
+          <button 
+            class="btn btn-cancelar"
+            (click)="cerrar()">
+            <i class="bi bi-x-circle"></i>
+            Cancelar
+          </button>
+          <button 
+            class="btn btn-guardar"
+            [disabled]="!esFormularioValido() || !hayDatosModificados()"
+            (click)="actualizarPrestamo()">
+            <i class="bi bi-floppy"></i>
+            Guardar Cambios
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+}

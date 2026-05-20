@@ -1,0 +1,49 @@
+<div class="login-wrapper">
+  <div class="login-card">
+
+    <!-- Logo / Título -->
+    <div class="login-header">
+      <div class="login-icon">
+        <i class="bi bi-cash-coin"></i>
+      </div>
+      <h1 class="login-title">Sistema de Cobros</h1>
+      <p class="login-subtitle">Gestión de préstamos y pagos</p>
+    </div>
+
+    <!-- Error -->
+    @if (error()) {
+      <div class="alert alert-danger d-flex align-items-center gap-2 mb-3" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span>{{ error() }}</span>
+      </div>
+    }
+
+    <!-- Botón dev login -->
+    @if (isDevMode) {
+      <div class="dev-badge">
+        <i class="bi bi-code-slash"></i> Modo Desarrollo
+      </div>
+      <button
+        class="btn btn-primary w-100 login-btn"
+        [disabled]="loading()"
+        (click)="entrarComoDev()">
+        @if (loading()) {
+          <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+          Conectando...
+        } @else {
+          <i class="bi bi-box-arrow-in-right me-2"></i>
+          Entrar como desarrollador
+        }
+      </button>
+    }
+
+    <!-- Botón Google (producción — a implementar) -->
+    @if (!isDevMode) {
+      <button class="btn btn-outline-secondary w-100 login-btn" disabled>
+        <i class="bi bi-google me-2"></i>
+        Iniciar sesión con Google
+      </button>
+    }
+
+  </div>
+</div>

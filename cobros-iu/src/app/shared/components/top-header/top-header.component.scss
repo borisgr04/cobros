@@ -1,0 +1,83 @@
+/* ============================================
+   TOP HEADER
+============================================ */
+.top-header {
+  background: var(--bg-card, #FFFFFF);
+  padding: 1rem 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 60px;
+}
+
+.header-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary, #2D2D2D);
+  margin: 0;
+}
+
+.user-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.icon-button {
+  background: none;
+  border: none;
+  color: var(--text-secondary, #666666);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 200ms ease;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--text-primary, #2D2D2D);
+  }
+  
+  .badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: var(--color-danger, #FF5252);
+    color: white;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 10px;
+    font-weight: bold;
+    min-width: 18px;
+    text-align: center;
+  }
+}
+
+/* ============================================
+   RESPONSIVE BEHAVIOR
+============================================ */
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .top-header {
+    padding: 1rem;
+  }
+  
+  .header-title {
+    font-size: 1.25rem;
+  }
+  
+  .user-actions {
+    gap: 0.5rem;
+  }
+  
+  .icon-button {
+    font-size: 1.1rem;
+    padding: 0.4rem;
+  }
+}

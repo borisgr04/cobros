@@ -1,0 +1,829 @@
+// ============================================================================
+// REPORTES - ESTILOS
+// ============================================================================
+
+// ==========================================
+// VARIABLES Y TEMA - Paleta Oscura Elegante
+// ==========================================
+:host {
+  --primary-color: #2D2D2D;
+  --primary-dark: #1A1A1A;
+  --primary-darker: #0D0D0D;
+  --primary-light: #4A4A4A;
+  --success-color: #00E676;
+  --danger-color: #FF5252;
+  --warning-color: #FFC107;
+  --info-color: #3D5AFE;
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F5F5F5;
+  --bg-tertiary: #E0E0E0;
+  --text-primary: #0D0D0D;
+  --text-secondary: #2D2D2D;
+  --text-tertiary: #4A4A4A;
+  --border-color: #E0E0E0;
+  --shadow-sm: 0 1px 2px 0 rgba(13, 13, 13, 0.15);
+  --shadow-md: 0 4px 6px -1px rgba(13, 13, 13, 0.2), 0 2px 4px -1px rgba(13, 13, 13, 0.15);
+  --shadow-lg: 0 10px 15px -3px rgba(13, 13, 13, 0.25), 0 4px 6px -2px rgba(13, 13, 13, 0.15);
+  --shadow-xl: 0 20px 25px -5px rgba(13, 13, 13, 0.3), 0 10px 10px -5px rgba(13, 13, 13, 0.2);
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// ==========================================
+// CONTENEDOR PRINCIPAL
+// ==========================================
+.reportes-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+  padding: 1rem;
+
+  @media (min-width: 768px) {
+    padding: 1.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    padding: 2rem;
+  }
+}
+
+// ==========================================
+// LOADING STATE
+// ==========================================
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+
+  i {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  p {
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin: 0;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+}
+
+// ==========================================
+// HEADER
+// ==========================================
+.reportes-header {
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-md);
+
+  @media (min-width: 768px) {
+    padding: 2rem;
+  }
+
+  .header-content {
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0 0 0.5rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+
+      @media (min-width: 768px) {
+        font-size: 2rem;
+      }
+
+      i {
+        color: var(--primary-color);
+      }
+    }
+
+    .subtitle {
+      color: var(--text-tertiary);
+      margin: 0;
+      font-size: 0.875rem;
+
+      @media (min-width: 768px) {
+        font-size: 1rem;
+      }
+    }
+  }
+}
+
+// ==========================================
+// FILTROS SECTION
+// ==========================================
+.filtros-section {
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-md);
+
+  .periodo-selector {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+
+    @media (min-width: 768px) {
+      gap: 1rem;
+    }
+
+    .periodo-btn {
+      flex: 1;
+      min-width: 100px;
+      padding: 0.75rem 1rem;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-md);
+      color: var(--text-secondary);
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+
+      i {
+        font-size: 1.25rem;
+      }
+
+      &:hover {
+        background: var(--bg-tertiary);
+        border-color: var(--primary-light);
+      }
+
+      &.active {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+        box-shadow: var(--shadow-md);
+      }
+    }
+  }
+
+  .filtros-adicionales {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    margin-bottom: 1rem;
+
+    .filtro-grupo {
+      flex: 1;
+      min-width: 200px;
+
+      label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+        font-size: 0.875rem;
+
+        i {
+          color: var(--primary-color);
+        }
+      }
+
+      .filtro-select {
+        width: 100%;
+        padding: 0.75rem;
+        background: var(--bg-secondary);
+        border: 2px solid var(--border-color);
+        border-radius: var(--radius-md);
+        color: var(--text-primary);
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--transition);
+
+        &:focus {
+          outline: none;
+          border-color: var(--primary-color);
+          box-shadow: 0 0 0 3px rgba(45, 45, 45, 0.1);
+        }
+      }
+    }
+
+    .btn-limpiar {
+      padding: 0.75rem 1.25rem;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-md);
+      color: var(--text-secondary);
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      &:hover {
+        background: var(--danger-color);
+        border-color: var(--danger-color);
+        color: white;
+      }
+    }
+  }
+
+  .filtros-fecha-personalizada {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 1rem;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border: 2px dashed var(--border-color);
+    margin-top: 1rem;
+
+    .filtro-grupo {
+      flex: 1;
+      min-width: 200px;
+
+      label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+        font-size: 0.875rem;
+
+        i {
+          color: var(--primary-color);
+        }
+      }
+
+      .filtro-input-date {
+        width: 100%;
+        padding: 0.75rem;
+        background: var(--bg-primary);
+        border: 2px solid var(--border-color);
+        border-radius: var(--radius-md);
+        color: var(--text-primary);
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--transition);
+
+        &:focus {
+          outline: none;
+          border-color: var(--primary-color);
+          box-shadow: 0 0 0 3px rgba(45, 45, 45, 0.1);
+        }
+
+        &::-webkit-calendar-picker-indicator {
+          cursor: pointer;
+          filter: invert(0.5);
+        }
+      }
+    }
+  }
+
+  .rango-fechas {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+
+    i {
+      color: var(--primary-color);
+    }
+  }
+}
+
+// ==========================================
+// KPIs PRINCIPALES
+// ==========================================
+.kpis-section {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .kpi-card {
+    background: var(--bg-primary);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition);
+    display: flex;
+    gap: 1rem;
+
+    &:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+    }
+
+    .kpi-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .kpi-content {
+      flex: 1;
+
+      h3 {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-tertiary);
+        margin: 0 0 0.5rem 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .kpi-valor {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 0.5rem 0;
+
+        @media (min-width: 768px) {
+          font-size: 1.75rem;
+        }
+      }
+
+      .kpi-detalle {
+        font-size: 0.75rem;
+        color: var(--text-tertiary);
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 6px;
+        background: var(--bg-tertiary);
+        border-radius: 3px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+
+        .progress-fill {
+          height: 100%;
+          background: linear-gradient(90deg, var(--success-color), var(--info-color));
+          transition: width 0.6s ease;
+          border-radius: 3px;
+        }
+      }
+
+      .estadisticas-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+
+        .stat-item {
+          text-align: center;
+
+          .stat-numero {
+            display: block;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+          }
+
+          .stat-label {
+            display: block;
+            font-size: 0.625rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+
+          &.stat-realizado .stat-numero {
+            color: var(--success-color);
+          }
+
+          &.stat-pendiente .stat-numero {
+            color: var(--warning-color);
+          }
+
+          &.stat-vencido .stat-numero {
+            color: var(--danger-color);
+          }
+        }
+      }
+    }
+
+    &.kpi-cobrado .kpi-icon {
+      background: rgba(0, 230, 118, 0.1);
+      color: var(--success-color);
+    }
+
+    &.kpi-esperado .kpi-icon {
+      background: rgba(61, 90, 254, 0.1);
+      color: var(--info-color);
+    }
+
+    &.kpi-cumplimiento .kpi-icon {
+      background: rgba(255, 193, 7, 0.1);
+      color: var(--warning-color);
+    }
+
+    &.kpi-estadisticas .kpi-icon {
+      background: rgba(45, 45, 45, 0.1);
+      color: var(--primary-color);
+    }
+
+    &.cumplimiento-alto .kpi-icon {
+      background: rgba(0, 230, 118, 0.1);
+      color: var(--success-color);
+    }
+
+    &.cumplimiento-medio .kpi-icon {
+      background: rgba(255, 193, 7, 0.1);
+      color: var(--warning-color);
+    }
+
+    &.cumplimiento-bajo .kpi-icon {
+      background: rgba(255, 82, 82, 0.1);
+      color: var(--danger-color);
+    }
+  }
+}
+
+// ==========================================
+// GRID DE 2 COLUMNAS
+// ==========================================
+.reportes-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+
+  @media (min-width: 1024px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+// ==========================================
+// CARDS GENÉRICAS
+// ==========================================
+.card {
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 2px solid var(--border-color);
+
+    h2 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      i {
+        color: var(--primary-color);
+      }
+    }
+  }
+
+  .card-body {
+    padding: 1.5rem;
+  }
+}
+
+// ==========================================
+// COBROS POR ZONA
+// ==========================================
+.zonas-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  .zona-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+
+    &:hover {
+      background: var(--bg-tertiary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .zona-info {
+      flex: 1;
+
+      h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0 0 0.5rem 0;
+      }
+
+      .zona-stats {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+
+        .cobrado {
+          font-weight: 700;
+          color: var(--success-color);
+        }
+
+        .separator {
+          color: var(--text-tertiary);
+        }
+
+        .esperado {
+          color: var(--text-tertiary);
+        }
+      }
+    }
+
+    .zona-cumplimiento {
+      .cumplimiento-circular {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+        font-weight: 700;
+        border: 3px solid;
+
+        &.cumplimiento-alto {
+          background: rgba(0, 230, 118, 0.1);
+          color: var(--success-color);
+          border-color: var(--success-color);
+        }
+
+        &.cumplimiento-medio {
+          background: rgba(255, 193, 7, 0.1);
+          color: var(--warning-color);
+          border-color: var(--warning-color);
+        }
+
+        &.cumplimiento-bajo {
+          background: rgba(255, 82, 82, 0.1);
+          color: var(--danger-color);
+          border-color: var(--danger-color);
+        }
+      }
+    }
+  }
+}
+
+// ==========================================
+// COBROS POR ESTADO
+// ==========================================
+.estados-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  .estado-item {
+    .estado-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+
+      .estado-indicador {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      h4 {
+        flex: 1;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+      }
+
+      .estado-porcentaje {
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: var(--text-secondary);
+      }
+    }
+
+    .estado-detalles {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-size: 0.75rem;
+
+      .cantidad {
+        color: var(--text-tertiary);
+      }
+
+      .monto {
+        font-weight: 600;
+        color: var(--text-secondary);
+      }
+    }
+
+    .estado-barra {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+      overflow: hidden;
+
+      .barra-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.6s ease;
+      }
+    }
+  }
+}
+
+// ==========================================
+// LISTAS DE CLIENTES
+// ==========================================
+.clientes-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  .cliente-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border-left: 4px solid;
+    transition: var(--transition);
+
+    &.moroso {
+      border-left-color: var(--danger-color);
+    }
+
+    &.cumplidor {
+      border-left-color: var(--success-color);
+    }
+
+    &:hover {
+      background: var(--bg-tertiary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .cliente-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--bg-tertiary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: var(--text-tertiary);
+      flex-shrink: 0;
+    }
+
+    .cliente-info {
+      flex: 1;
+
+      h4 {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0 0 0.25rem 0;
+      }
+
+      .zona {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--text-tertiary);
+        margin-bottom: 0.5rem;
+      }
+
+      .cliente-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+
+        .stat {
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+          font-size: 0.75rem;
+          color: var(--text-secondary);
+          font-weight: 600;
+
+          i {
+            font-size: 0.875rem;
+            color: var(--text-tertiary);
+          }
+
+          &.success {
+            color: var(--success-color);
+
+            i {
+              color: var(--success-color);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// ==========================================
+// ESTADOS VACÍOS
+// ==========================================
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+
+  i {
+    font-size: 3rem;
+    color: var(--text-tertiary);
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  p {
+    color: var(--text-tertiary);
+    margin: 0;
+    font-size: 0.875rem;
+  }
+
+  &.success i {
+    color: var(--success-color);
+  }
+}
+
+.empty-state-main {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+
+  i {
+    font-size: 4rem;
+    color: var(--text-tertiary);
+    margin-bottom: 1.5rem;
+    display: block;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin: 0 0 0.5rem 0;
+  }
+
+  p {
+    color: var(--text-tertiary);
+    margin: 0;
+    font-size: 0.875rem;
+  }
+}

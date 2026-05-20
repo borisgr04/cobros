@@ -1,0 +1,25 @@
+<aside class="sidebar" [class.collapsed]="sidebarState() === 'collapsed'" [class.expanded]="sidebarState() === 'expanded'">
+  <!-- Sidebar Header -->
+  <div class="sidebar-header">
+    <button class="sidebar-toggle" (click)="toggleSidebar()" type="button" aria-label="Toggle sidebar">
+      <i class="bi bi-list"></i>
+    </button>
+    <span class="sidebar-brand">Cobros App</span>
+  </div>
+
+  <!-- Navigation Items -->
+  <nav class="sidebar-nav">
+    @for (item of navItems; track item.path) {
+      <a 
+        [routerLink]="item.path" 
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: item.path === '/' }"
+        class="nav-item" 
+        [attr.data-label]="item.label"
+        [attr.aria-label]="item.label">
+        <i class="nav-icon bi" [ngClass]="item.icon"></i>
+        <span class="nav-label">{{ item.label }}</span>
+      </a>
+    }
+  </nav>
+</aside>

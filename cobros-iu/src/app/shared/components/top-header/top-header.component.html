@@ -1,0 +1,20 @@
+<header class="top-header">
+  <h1 class="header-title">{{ title }}</h1>
+  
+  <div class="user-actions">
+    <button class="icon-button" type="button" aria-label="Notificaciones">
+      <i class="bi bi-bell"></i>
+      @if (notificationCount > 0) {
+        <span class="badge">{{ notificationCount }}</span>
+      }
+    </button>
+    
+    <button class="icon-button" type="button" aria-label="Configuración">
+      <i class="bi bi-gear"></i>
+    </button>
+    
+    <button class="icon-button" type="button" aria-label="Usuario">
+      <i class="bi bi-person-circle"></i>
+    </button>
+  </div>
+</header>

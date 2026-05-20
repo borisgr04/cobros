@@ -1,0 +1,199 @@
+<!-- Modal de Confirmación para Eliminar Préstamo -->
+<div class="modal-overlay" [class.visible]="modalAbierto()" (click)="cerrar()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    
+    <!-- Header del Modal -->
+    <div class="modal-header danger">
+      <div class="header-content">
+        <div class="icon-container">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="title-container">
+          <h2 class="modal-title">⚠️ Eliminar Préstamo - Confirmación Requerida</h2>
+          <p class="modal-subtitle">Esta acción es permanente e irreversible</p>
+        </div>
+      </div>
+      <button 
+        class="btn-close" 
+        (click)="cerrar()"
+        [disabled]="procesando()"
+        title="Cerrar">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Body del Modal -->
+    <div class="modal-body">
+      
+      <!-- Panel de Advertencia Crítica -->
+      <div class="warning-panel critical">
+        <div class="warning-icon">
+          <i class="fas fa-skull-crossbones"></i>
+        </div>
+        <div class="warning-content">
+          <h3 class="warning-title">⚠️ ADVERTENCIA CRÍTICA ⚠️</h3>
+          <ul class="warning-list">
+            <li><strong>Esta acción NO SE PUEDE DESHACER</strong></li>
+            <li>El préstamo será eliminado permanentemente del sistema</li>
+            <li>Se perderán todos los datos asociados</li>
+            <li>No podrás recuperar esta información posteriormente</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Información del Préstamo a Eliminar -->
+      @if (prestamo(); as p) {
+        <div class="prestamo-info">
+          <h3 class="section-title">
+            <i class="fas fa-info-circle"></i>
+            Préstamo que se eliminará:
+          </h3>
+          
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">ID del Préstamo:</span>
+              <span class="info-value id-destacado">{{ p.id }}</span>
+            </div>
+            
+            <div class="info-item">
+              <span class="info-label">Cliente:</span>
+              <span class="info-value">{{ p.cliente?.nombre || 'N/A' }}</span>
+            </div>
+            
+            <div class="info-item">
+              <span class="info-label">Identificación:</span>
+              <span class="info-value">{{ p.cliente?.identificacion || 'N/A' }}</span>
+            </div>
+            
+            <div class="info-item">
+              <span class="info-label">Monto Prestado:</span>
+              <span class="info-value monto">
+                ${{ p.valorPrestado.toLocaleString('es-CO') }}
+              </span>
+            </div>
+            
+            <div class="info-item">
+              <span class="info-label">Valor Total:</span>
+              <span class="info-value monto">
+                ${{ p.valorTotal.toLocaleString('es-CO') }}
+              </span>
+            </div>
+            
+            <div class="info-item">
+              <span class="info-label">Interés:</span>
+              <span class="info-value">{{ p.interesProyectado }}%</span>
+            </div>
+            
+            <div class="info-item">
+              <span class="info-label">Frecuencia:</span>
+              <span class="info-value">{{ p.frecuenciaPago }}</span>
+            </div>
+            
+            <div class="info-item">
+              <span class="info-label">Fecha Préstamo:</span>
+              <span class="info-value">{{ p.fechaPrestamo | date:'dd/MM/yyyy' }}</span>
+            </div>
+            
+            <div class="info-item">
+              <span class="info-label">Fecha Final:</span>
+              <span class="info-value">{{ p.fechaFinal | date:'dd/MM/yyyy' }}</span>
+            </div>
+            
+            <div class="info-item">
+              <span class="info-label">Cuotas:</span>
+              <span class="info-value">{{ p.cantidadCuotas }} cuotas de ${{ p.valorCuota.toLocaleString('es-CO') }}</span>
+            </div>
+            
+            <div class="info-item full-width">
+              <span class="info-label">Total de Pagos Registrados:</span>
+              <span class="info-value" [class.zero]="totalPagos() === 0">
+                {{ totalPagos() }}
+                @if (totalPagos() === 0) {
+                  <span class="check-icon">✓</span>
+                }
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección de Confirmación -->
+        <div class="confirmacion-section">
+          <h3 class="section-title danger">
+            <i class="fas fa-shield-alt"></i>
+            Confirmación de Seguridad
+          </h3>
+          
+          <p class="confirmacion-instruccion">
+            Para confirmar la eliminación, escribe <strong>exactamente</strong> el ID del préstamo:
+            <span class="id-requerido">{{ p.id }}</span>
+          </p>
+          
+          <div class="form-group">
+            <label for="confirmacionId" class="form-label">
+              Escribe el ID del préstamo:
+            </label>
+            <input
+              type="text"
+              id="confirmacionId"
+              class="form-control"
+              [class.valido]="idCoincide()"
+              [class.invalido]="confirmacionId() !== '' && !idCoincide()"
+              [value]="confirmacionId()"
+              (input)="onConfirmacionChange($event)"
+              [disabled]="procesando()"
+              placeholder="Escribe el ID aquí para confirmar"
+              autocomplete="off">
+            
+            @if (confirmacionId() !== '') {
+              <div class="validacion-feedback">
+                @if (idCoincide()) {
+                  <span class="feedback-valido">
+                    <i class="fas fa-check-circle"></i>
+                    ID correcto - Puedes proceder con la eliminación
+                  </span>
+                } @else {
+                  <span class="feedback-invalido">
+                    <i class="fas fa-times-circle"></i>
+                    El ID no coincide - Verifica e intenta de nuevo
+                  </span>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Mensaje de Error -->
+        @if (error()) {
+          <div class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>{{ error() }}</span>
+          </div>
+        }
+      }
+    </div>
+
+    <!-- Footer del Modal -->
+    <div class="modal-footer">
+      <button 
+        class="btn btn-secondary"
+        (click)="cerrar()"
+        [disabled]="procesando()">
+        <i class="fas fa-times"></i>
+        Cancelar
+      </button>
+      
+      <button 
+        [class]="getClasesBotonEliminar()"
+        (click)="eliminarPrestamo()"
+        [disabled]="!puedeEliminar()">
+        @if (procesando()) {
+          <i class="fas fa-spinner fa-spin"></i>
+        } @else {
+          <i class="fas fa-trash-alt"></i>
+        }
+        {{ getTextoBotonEliminar() }}
+      </button>
+    </div>
+
+  </div>
+</div>

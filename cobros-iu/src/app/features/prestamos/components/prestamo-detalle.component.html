@@ -1,0 +1,368 @@
+<div class="detalle-container">
+  <!-- HEADER CON BOTÓN VOLVER -->
+  <div class="detalle-header">
+    <button class="btn-volver" (click)="volver()">
+      <i class="bi bi-arrow-left"></i>
+      <span>Volver a Préstamos</span>
+    </button>
+  </div>
+
+  @if (cargando()) {
+    <!-- Estado de carga -->
+    <div class="loading-state">
+      <div class="spinner-modern"></div>
+      <p>Cargando préstamo...</p>
+    </div>
+  } @else if (error()) {
+    <!-- Estado de error -->
+    <div class="error-state">
+      <i class="bi bi-exclamation-triangle error-icon"></i>
+      <h3>{{ error() }}</h3>
+      <button class="btn-volver-error" (click)="volver()">
+        <i class="bi bi-arrow-left"></i>
+        Volver a la lista
+      </button>
+    </div>
+  } @else if (prestamo()) {
+    <!-- CONTENIDO DEL PRÉSTAMO -->
+    <div class="detalle-content">
+      <!-- CARD PRINCIPAL -->
+      <div class="prestamo-card-detalle">
+        <!-- Header con información del cliente -->
+        <div class="card-header-detalle">
+          <div class="avatar-grande">
+            {{ (prestamo()!.cliente?.nombre || 'S')[0].toUpperCase() }}
+          </div>
+          <div class="info-cliente">
+            <h1 class="nombre-cliente">{{ prestamo()!.cliente?.nombre || 'Cliente Desconocido' }}</h1>
+            <div class="meta-info">
+              <span class="prestamo-id-detalle">{{ prestamo()!.id }}</span>
+              <span class="separator">•</span>
+              <span class="fecha-prestamo">
+                <i class="bi bi-calendar3"></i> {{ formatDateLong(prestamo()!.fechaPrestamo) }}
+              </span>
+            </div>
+          </div>
+          @switch (prestamo()!.estadisticas?.estado) {
+            @case ('activo') {
+              <div class="badge-estado-grande activo">
+                <i class="bi bi-circle-fill"></i> Activo
+              </div>
+            }
+            @case ('completado') {
+              <div class="badge-estado-grande completado">
+                <i class="bi bi-check-circle-fill"></i> Completado
+              </div>
+            }
+            @case ('vencido') {
+              <div class="badge-estado-grande vencido">
+                <i class="bi bi-exclamation-circle-fill"></i> Vencido
+              </div>
+            }
+            @case ('mora') {
+              <div class="badge-estado-grande mora">
+                <i class="bi bi-clock-fill"></i> En Mora
+              </div>
+            }
+          }
+        </div>
+
+        <!-- TABS -->
+        <div class="tabs">
+          <button 
+            class="tab" 
+            [class.active]="tabActiva() === 'info'"
+            (click)="cambiarTab('info')">
+            <i class="bi bi-info-circle"></i>
+            Información
+          </button>
+          <button 
+            class="tab" 
+            [class.active]="tabActiva() === 'pagos'"
+            (click)="cambiarTab('pagos')">
+            <i class="bi bi-cash-stack"></i>
+            Pagos ({{ getTotalPagos() }})
+          </button>
+          <button 
+            class="tab" 
+            [class.active]="tabActiva() === 'proyeccion'"
+            (click)="cambiarTab('proyeccion')">
+            <i class="bi bi-graph-up"></i>
+            Proyección
+          </button>
+        </div>
+
+        <!-- CONTENIDO DE LAS TABS -->
+        <div class="tab-content">
+          <!-- TAB: INFORMACIÓN -->
+          @if (tabActiva() === 'info') {
+            <div class="tab-info">
+              <!-- Resumen Financiero -->
+              <div class="seccion">
+                <h3 class="seccion-titulo">
+                  <i class="bi bi-wallet2"></i>
+                  Resumen Financiero
+                </h3>
+                <div class="grid-info">
+                  <div class="info-card">
+                    <span class="info-label">Valor Prestado</span>
+                    <span class="info-value">{{ formatCurrency(prestamo()!.valorPrestado) }}</span>
+                  </div>
+                  <div class="info-card primary">
+                    <span class="info-label">Total a Pagar</span>
+                    <span class="info-value">{{ formatCurrency(prestamo()!.valorTotal) }}</span>
+                  </div>
+                  <div class="info-card">
+                    <span class="info-label">Interés Total</span>
+                    <span class="info-value">{{ formatCurrency(prestamo()!.interesProyectado) }}</span>
+                  </div>
+                  <div class="info-card">
+                    <span class="info-label">Tasa de Interés</span>
+                    <span class="info-value">{{ calcularTasaInteres(prestamo()!.valorPrestado, prestamo()!.interesProyectado) }}%</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Progreso de Pagos -->
+              <div class="seccion">
+                <h3 class="seccion-titulo">
+                  <i class="bi bi-bar-chart-fill"></i>
+                  Progreso de Pagos
+                </h3>
+                <div class="progress-detalle">
+                  <div class="progress-stats">
+                    <div class="stat">
+                      <span class="stat-label success">
+                        <i class="bi bi-check-circle-fill"></i> Pagado
+                      </span>
+                      <span class="stat-amount">{{ formatCurrency(prestamo()!.estadisticas?.totalPagado || 0) }}</span>
+                    </div>
+                    <div class="stat">
+                      <span class="stat-label pending">
+                        <i class="bi bi-clock-history"></i> Pendiente
+                      </span>
+                      <span class="stat-amount">{{ formatCurrency(prestamo()!.estadisticas?.totalPorCobrar || 0) }}</span>
+                    </div>
+                  </div>
+                  <div class="progress-bar-detalle">
+                    <div
+                      class="progress-fill-detalle"
+                      [ngClass]="getProgressBarClass(prestamo()!.estadisticas?.porcentajePagado || 0)"
+                      [style.width.%]="prestamo()!.estadisticas?.porcentajePagado || 0"
+                    >
+                      <span class="progress-text-detalle">{{ prestamo()!.estadisticas?.porcentajePagado || 0 }}%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Detalles del Préstamo -->
+              <div class="seccion">
+                <h3 class="seccion-titulo">
+                  <i class="bi bi-list-check"></i>
+                  Detalles del Préstamo
+                </h3>
+                <div class="lista-detalles">
+                  <div class="detalle-item">
+                    <span class="detalle-label">
+                      <i class="bi bi-arrow-repeat"></i> Frecuencia de Pago
+                    </span>
+                    <span class="badge-frecuencia-detalle freq-{{ prestamo()!.frecuenciaPago }}">
+                      {{ getTextoFrecuencia(prestamo()!.frecuenciaPago) }}
+                    </span>
+                  </div>
+                  <div class="detalle-item">
+                    <span class="detalle-label">
+                      <i class="bi bi-cash"></i> Valor por Cuota
+                    </span>
+                    <strong>{{ formatCurrency(prestamo()!.valorCuota) }}</strong>
+                  </div>
+                  <div class="detalle-item">
+                    <span class="detalle-label">
+                      <i class="bi bi-list-ol"></i> Total de Cuotas
+                    </span>
+                    <strong>{{ prestamo()!.cantidadCuotas }} cuotas</strong>
+                  </div>
+                  <div class="detalle-item">
+                    <span class="detalle-label">
+                      <i class="bi bi-check2-square"></i> Cuotas Pagadas
+                    </span>
+                    <strong class="success">{{ prestamo()!.estadisticas?.cuotasPagadas || 0 }} cuotas</strong>
+                  </div>
+                  <div class="detalle-item">
+                    <span class="detalle-label">
+                      <i class="bi bi-hourglass-split"></i> Cuotas Pendientes
+                    </span>
+                    <strong class="pending">{{ (prestamo()!.cantidadCuotas - (prestamo()!.estadisticas?.cuotasPagadas || 0)) }} cuotas</strong>
+                  </div>
+                  @if (prestamo()!.estadisticas?.proximaCuotaFecha) {
+                    <div class="detalle-item">
+                      <span class="detalle-label">
+                        <i class="bi bi-alarm"></i> Próxima Cuota
+                      </span>
+                      <strong>{{ formatDate(prestamo()!.estadisticas!.proximaCuotaFecha!) }}</strong>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Acciones -->
+              <div class="seccion-acciones">
+                @if (prestamo()!.estadisticas?.estado !== 'completado') {
+                  <button 
+                    class="btn-accion btn-registrar-pago"
+                    (click)="abrirModalPago()">
+                    <i class="bi bi-cash-stack"></i>
+                    Registrar Pago
+                  </button>
+                }
+                <button 
+                  class="btn-accion btn-editar" 
+                  [disabled]="!puedeEditarPrestamo()"
+                  [title]="!puedeEditarPrestamo() ? 'No se puede editar un préstamo con pagos registrados' : 'Editar préstamo'"
+                  (click)="editarPrestamo()">
+                  <i class="bi bi-pencil"></i>
+                  Editar Préstamo
+                </button>
+                <button 
+                  class="btn-accion btn-eliminar" 
+                  [disabled]="!puedeEliminarPrestamo()"
+                  [title]="!puedeEliminarPrestamo() ? 'No se puede eliminar un préstamo con pagos registrados' : 'Eliminar préstamo'"
+                  (click)="eliminarPrestamo()">
+                  <i class="bi bi-trash"></i>
+                  Eliminar
+                </button>
+                <button class="btn-accion btn-imprimir">
+                  <i class="bi bi-printer"></i>
+                  Imprimir
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- TAB: PAGOS -->
+          @if (tabActiva() === 'pagos') {
+            <div class="tab-pagos">
+              @if (getTotalPagos() === 0) {
+                <div class="empty-tab">
+                  <i class="bi bi-inbox"></i>
+                  <p>No hay pagos registrados aún</p>
+                </div>
+              } @else {
+                <div class="tabla-pagos">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>N°</th>
+                        <th>Fecha</th>
+                        <th>Valor Pagado</th>
+                        <th>Saldo</th>
+                        <th>Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (cuota of proyeccion(); track $index) {
+                        @if (cuota.estado === 'pagada') {
+                          <tr>
+                            <td><strong>{{ cuota.numero }}</strong></td>
+                            <td>{{ formatDate(cuota.fechaPago!) }}</td>
+                            <td class="monto">{{ formatCurrency(cuota.valorPago!) }}</td>
+                            <td class="monto">{{ formatCurrency(0) }}</td>
+                            <td>
+                              <span class="badge-pagado">
+                                <i class="bi bi-check-circle-fill"></i> Pagado
+                              </span>
+                            </td>
+                          </tr>
+                        }
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- TAB: PROYECCIÓN -->
+          @if (tabActiva() === 'proyeccion') {
+            <div class="tab-proyeccion">
+              @if (proyeccion().length === 0) {
+                <div class="empty-tab">
+                  <i class="bi bi-graph-up"></i>
+                  <p>No hay proyección disponible</p>
+                </div>
+              } @else {
+                <div class="tabla-proyeccion">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>N° Cuota</th>
+                        <th>Fecha Esperada</th>
+                        <th>Valor Esperado</th>
+                        <th>Fecha Pago</th>
+                        <th>Valor Pagado</th>
+                        <th>Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (cuota of proyeccion(); track $index) {
+                        <tr [class.fila-pagada]="cuota.estado === 'pagada'" [class.fila-pendiente]="cuota.estado === 'pendiente'">
+                          <td><strong>{{ cuota.numero }}</strong></td>
+                          <td>{{ formatDate(cuota.fechaEsperada) }}</td>
+                          <td class="monto">{{ formatCurrency(cuota.valorEsperado) }}</td>
+                          <td>
+                            @if (cuota.estado === 'pagada') {
+                              {{ formatDate(cuota.fechaPago!) }}
+                            } @else {
+                              <span class="text-muted">—</span>
+                            }
+                          </td>
+                          <td class="monto">
+                            @if (cuota.estado === 'pagada') {
+                              {{ formatCurrency(cuota.valorPago!) }}
+                            } @else {
+                              <span class="text-muted">—</span>
+                            }
+                          </td>
+                          <td>
+                            @if (cuota.estado === 'pagada') {
+                              <span class="badge-pagado">
+                                <i class="bi bi-check-circle-fill"></i> Pagado
+                              </span>
+                            } @else {
+                              <span class="badge-pendiente">
+                                <i class="bi bi-clock"></i> Pendiente
+                              </span>
+                            }
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- MODAL DE REGISTRO DE PAGO -->
+<app-registro-pago-modal
+  (pagoRegistrado)="onPagoRegistrado($event)"
+  (modalCerrado)="cargarPrestamo()">
+</app-registro-pago-modal>
+
+<!-- MODAL DE EDICIÓN DE PRÉSTAMO -->
+<app-edicion-prestamo-modal
+  (prestamoActualizado)="onPrestamoActualizado($event)"
+  (modalCerrado)="cargarPrestamo()">
+</app-edicion-prestamo-modal>
+
+<!-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN DE PRÉSTAMO -->
+<app-confirmacion-eliminar-prestamo-modal
+  (prestamoEliminado)="onPrestamoEliminado($event)"
+  (modalCerrado)="cargarPrestamo()">
+</app-confirmacion-eliminar-prestamo-modal>

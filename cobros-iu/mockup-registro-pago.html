@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mockup – Registrar Pago</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:    #4f46e5;
+      --primary-lt: #ede9fe;
+      --success:    #16a34a;
+      --success-lt: #dcfce7;
+      --error:      #dc2626;
+      --error-lt:   #fee2e2;
+      --surface:    #f8fafc;
+      --border:     #e2e8f0;
+      --text:       #1e293b;
+      --muted:      #64748b;
+      --white:      #ffffff;
+      --radius:     12px;
+      --shadow:     0 4px 24px rgba(0,0,0,.14);
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #94a3b8;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 48px;
+      gap: 40px;
+      color: var(--text);
+    }
+
+    h1 {
+      color: var(--white);
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: .5px;
+      text-align: center;
+    }
+
+    .version-label {
+      display: inline-block;
+      background: var(--white);
+      color: var(--primary);
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+    }
+
+    /* ─── MODAL SHELL ─────────────────────────────────── */
+    .phone-frame {
+      width: 100%;
+      max-width: 390px;
+    }
+
+    .modal-container {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HEADER */
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: var(--primary);
+      color: var(--white);
+    }
+    .modal-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+    .btn-close {
+      background: rgba(255,255,255,.2);
+      border: none;
+      color: var(--white);
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* BODY */
+    .modal-body {
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow-y: auto;
+      max-height: 75vh;
+    }
+
+    /* Cliente info */
+    .cliente-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: var(--white);
+      font-size: 1.2rem;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .cliente-nombre { font-weight: 700; font-size: .95rem; }
+    .prestamo-id { font-size: .75rem; color: var(--muted); }
+
+    /* Resumen préstamo */
+    .prestamo-resumen {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      background: var(--surface);
+      border-radius: 10px;
+      padding: 12px;
+      border: 1px solid var(--border);
+    }
+    .resumen-item { display: flex; flex-direction: column; gap: 2px; }
+    .resumen-item .lbl { font-size: .68rem; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+    .resumen-item .val { font-size: .88rem; font-weight: 600; color: var(--text); }
+    .resumen-item.destacado .val { color: var(--primary); font-size: 1rem; font-weight: 700; }
+
+    /* Divisor */
+    .divider { height: 1px; background: var(--border); }
+
+    /* Fecha */
+    .campo-label {
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .input-fecha {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: .9rem;
+      color: var(--text);
+    }
+    .input-fecha:focus { outline: none; border-color: var(--primary); }
+
+    /* Resumen pago */
+    .resumen-pago {
+      background: var(--primary-lt);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .resumen-fila {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: .85rem;
+    }
+    .resumen-fila .rl { color: var(--muted); }
+    .monto-destacado { font-size: 1.15rem; font-weight: 800; color: var(--primary); }
+    .saldo-nuevo { font-size: .9rem; font-weight: 700; color: var(--success); }
+
+    /* Footer */
+    .modal-footer {
+      padding: 12px 20px 16px;
+      display: flex;
+      gap: 10px;
+      border-top: 1px solid var(--border);
+    }
+    .btn-secondary {
+      flex: 1;
+      padding: 12px;
+      border: 1.5px solid var(--border);
+      background: var(--white);
+      border-radius: 8px;
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text);
+    }
+    .btn-primary {
+      flex: 2;
+      padding: 12px;
+      border: none;
+      background: var(--primary);
+      color: var(--white);
+      border-radius: 8px;
+      font-size: .9rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn-primary:hover { background: #4338ca; }
+
+    /* ─── PROPUESTA A: STEPPER ─────────────────────────── */
+    .stepper-section { display: flex; flex-direction: column; gap: 10px; }
+    .section-title {
+      font-size: .78rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .4px;
+    }
+
+    .stepper-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .stepper-btn {
+      width: 56px;
+      height: 56px;
+      border: none;
+      background: transparent;
+      font-size: 1.5rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s;
+      flex-shrink: 0;
+    }
+    .stepper-btn:hover { background: var(--primary-lt); }
+    .stepper-btn:disabled { color: var(--border); cursor: default; }
+    .stepper-display {
+      flex: 1;
+      text-align: center;
+      border-left: 1.5px solid var(--border);
+      border-right: 1.5px solid var(--border);
+      padding: 6px 4px;
+    }
+    .stepper-num {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--primary);
+      line-height: 1;
+      display: block;
+    }
+    .stepper-sub {
+      font-size: .7rem;
+      color: var(--muted);
+      display: block;
+      margin-top: 2px;
+    }
+
+    .cuota-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: var(--success-lt);
+      border-radius: 8px;
+      font-size: .85rem;
+    }
+    .cuota-info .ci-label { color: var(--success); font-weight: 600; }
+    .cuota-info .ci-value { font-weight: 800; color: var(--success); font-size: 1rem; }
+
+    /* Override / custom amount toggle */
+    .custom-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: .78rem;
+      color: var(--primary);
+      cursor: pointer;
+      text-decoration: underline;
+      background: none;
+      border: none;
+      padding: 0;
+    }
+    .custom-toggle:hover { color: #4338ca; }
+
+    /* Custom amount input (shown when toggled) */
+    .monto-personalizado-row {
+      display: flex;
+      align-items: center;
+      border: 1.5px solid var(--primary);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--white);
+    }
+    .monto-prefix {
+      padding: 10px 12px;
+      background: var(--primary-lt);
+      font-weight: 700;
+      color: var(--primary);
+      font-size: .95rem;
+    }
+    .monto-input {
+      flex: 1;
+      border: none;
+      padding: 10px 12px;
+      font-size: 1rem;
+      color: var(--text);
+      font-weight: 600;
+    }
+    .monto-input:focus { outline: none; }
+    .monto-clear {
+      padding: 10px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    /* quick pills row */
+    .pills-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .pill {
+      padding: 7px 14px;
+      border-radius: 999px;
+      border: 1.5px solid var(--border);
+      background: var(--white);
+      font-size: .82rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text);
+      transition: all .15s;
+    }
+    .pill.active {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: var(--white);
+    }
+    .pill:hover:not(.active) { border-color: var(--primary); color: var(--primary); }
+
+    /* Alert */
+    .alert-warning {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 10px 12px;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 8px;
+      font-size: .78rem;
+      color: #9a3412;
+    }
+
+    /* ─── COMPARISON HEADER ──────────────────────────── */
+    .compare-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--white);
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .3px;
+    }
+    .badge-a { background: #7c3aed; color: var(--white); }
+    .badge-b { background: #0891b2; color: var(--white); }
+
+    /* ─── PROPUESTA B SPECIFICS ──────────────────────── */
+    .tab-bar {
+      display: flex;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px 6px;
+      border: none;
+      background: var(--surface);
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      transition: all .15s;
+      border-right: 1.5px solid var(--border);
+    }
+    .tab-btn:last-child { border-right: none; }
+    .tab-btn.active {
+      background: var(--primary);
+      color: var(--white);
+    }
+    .tab-btn i { font-size: 1.1rem; }
+    .tab-btn span { font-size: .7rem; }
+
+    .tab-panel { display: flex; flex-direction: column; gap: 10px; }
+
+    /* Cuota-card grid for B */
+    .cuotas-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+    .cuota-card {
+      aspect-ratio: 1;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--white);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: .82rem;
+      font-weight: 700;
+      color: var(--text);
+      transition: all .15s;
+      gap: 2px;
+    }
+    .cuota-card .n { font-size: 1.2rem; font-weight: 900; }
+    .cuota-card .lbl { font-size: .55rem; color: var(--muted); text-transform: uppercase; }
+    .cuota-card.active {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: var(--white);
+    }
+    .cuota-card.active .lbl { color: rgba(255,255,255,.7); }
+    .cuota-card:hover:not(.active) { border-color: var(--primary); }
+    .cuota-card.mas { background: var(--surface); color: var(--primary); border-style: dashed; }
+
+    /* Stepper mini for custom cuotas in B */
+    .stepper-mini {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: center;
+    }
+    .stepper-mini-btn {
+      width: 44px; height: 44px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--white);
+      font-size: 1.3rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .stepper-mini-btn:hover { background: var(--primary-lt); border-color: var(--primary); }
+    .stepper-mini-input {
+      width: 72px;
+      text-align: center;
+      border: 1.5px solid var(--primary);
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--primary);
+    }
+    .stepper-mini-input:focus { outline: none; }
+
+    /* ─── CURRENT (REFERENCE) ─────────────────────────── */
+    .radio-option {
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: border-color .15s;
+    }
+    .radio-option.selected { border-color: var(--primary); background: var(--primary-lt); }
+    .radio-header { display: flex; align-items: center; gap: 8px; }
+    .radio-header input { accent-color: var(--primary); width: 16px; height: 16px; }
+    .radio-label { font-size: .88rem; font-weight: 600; }
+    .radio-detail { font-size: .8rem; color: var(--muted); margin-top: 4px; margin-left: 24px; }
+
+    .notes {
+      max-width: 390px;
+      background: var(--white);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: .8rem;
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .notes h4 { font-size: .85rem; margin-bottom: 8px; color: var(--primary); }
+    .notes ul { padding-left: 16px; }
+    .notes li { margin-bottom: 4px; }
+    .notes .pro  { color: var(--success); }
+    .notes .con  { color: var(--error); }
+    .notes strong { color: var(--text); }
+  </style>
+</head>
+<body>
+
+  <h1>Mockup – Registrar Pago</h1>
+  <p style="color:#e2e8f0;font-size:.8rem;text-align:center;margin-top:-28px;">Comparativa de diseños para móvil · Cobros v2</p>
+
+  <!-- ══════════════════════════════════════════════════════
+       DISEÑO ACTUAL (referencia)
+  ══════════════════════════════════════════════════════ -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:390px;">
+    <div class="compare-header">
+      <span class="badge" style="background:#64748b;">ACTUAL – Referencia</span>
+      <span style="font-size:.8rem;opacity:.7;">3 radio buttons separados</span>
+    </div>
+    <div class="phone-frame">
+      <div class="modal-container">
+        <div class="modal-header">
+          <div class="modal-title"><i class="bi bi-cash-stack"></i> Registrar Pago</div>
+          <button class="btn-close"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="cliente-info">
+            <div class="avatar">A</div>
+            <div><div class="cliente-nombre">Ana García Torres</div><span class="prestamo-id">PRE-005</span></div>
+          </div>
+          <div class="prestamo-resumen">
+            <div class="resumen-item"><span class="lbl">Total Préstamo</span><span class="val">$15,500</span></div>
+            <div class="resumen-item destacado"><span class="lbl">Saldo Pendiente</span><span class="val">$11,000</span></div>
+            <div class="resumen-item"><span class="lbl">Cuotas Pagadas</span><span class="val">20 / 31</span></div>
+            <div class="resumen-item"><span class="lbl">Valor Cuota</span><span class="val">$500</span></div>
+          </div>
+
+          <!-- Current radio options -->
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <label class="campo-label">Seleccione el tipo de pago:</label>
+            <div class="radio-option selected">
+              <div class="radio-header">
+                <input type="radio" name="tipoPago" checked>
+                <span class="radio-label">Pagar 1 Cuota Completa</span>
+              </div>
+              <div class="radio-detail">$500</div>
+            </div>
+            <div class="radio-option">
+              <div class="radio-header">
+                <input type="radio" name="tipoPago">
+                <span class="radio-label">Pago Personalizado</span>
+              </div>
+            </div>
+            <div class="radio-option">
+              <div class="radio-header">
+                <input type="radio" name="tipoPago">
+                <span class="radio-label">Pagar Múltiples Cuotas</span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="campo-label">Fecha de Pago:</label>
+            <input type="date" class="input-fecha" value="2026-03-25">
+          </div>
+
+          <div class="resumen-pago">
+            <div class="resumen-fila"><span class="rl"><i class="bi bi-cash-coin"></i> Monto a Pagar:</span><span class="monto-destacado">$500</span></div>
+            <div class="resumen-fila"><span class="rl"><i class="bi bi-wallet2"></i> Nuevo Saldo:</span><span class="saldo-nuevo">$10,500</span></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary">Cancelar</button>
+          <button class="btn-primary"><i class="bi bi-check-lg"></i> Confirmar Pago</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       PROPUESTA A — STEPPER CENTRAL
+  ══════════════════════════════════════════════════════ -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:390px;">
+    <div class="compare-header">
+      <span class="badge badge-a">PROPUESTA A</span>
+      <span style="font-size:.8rem;opacity:.8;">Stepper central + monto override</span>
+    </div>
+    <div class="phone-frame">
+      <div class="modal-container">
+        <div class="modal-header">
+          <div class="modal-title"><i class="bi bi-cash-stack"></i> Registrar Pago</div>
+          <button class="btn-close"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body">
+
+          <!-- Cliente info -->
+          <div class="cliente-info">
+            <div class="avatar">A</div>
+            <div><div class="cliente-nombre">Ana García Torres</div><span class="prestamo-id">PRE-005</span></div>
+          </div>
+
+          <!-- Resumen compacto -->
+          <div class="prestamo-resumen">
+            <div class="resumen-item"><span class="lbl">Total Préstamo</span><span class="val">$15,500</span></div>
+            <div class="resumen-item destacado"><span class="lbl">Saldo Pendiente</span><span class="val">$11,000</span></div>
+            <div class="resumen-item"><span class="lbl">Cuotas Pagadas</span><span class="val">20 / 31</span></div>
+            <div class="resumen-item"><span class="lbl">Valor Cuota</span><span class="val">$500</span></div>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- STEPPER DE CUOTAS -->
+          <div class="stepper-section">
+            <label class="campo-label">¿Cuántas cuotas vas a cobrar?</label>
+
+            <div class="stepper-row">
+              <button class="stepper-btn" disabled>−</button>
+              <div class="stepper-display">
+                <span class="stepper-num">1</span>
+                <span class="stepper-sub">cuota</span>
+              </div>
+              <button class="stepper-btn">+</button>
+            </div>
+
+            <!-- Monto calculado automáticamente -->
+            <div class="cuota-info">
+              <span class="ci-label"><i class="bi bi-calculator"></i> Monto calculado</span>
+              <span class="ci-value">$500</span>
+            </div>
+
+            <!-- Toggle para monto personalizado -->
+            <button class="custom-toggle">
+              <i class="bi bi-pencil-square"></i>
+              Ingresar monto diferente
+            </button>
+
+            <!-- (estado: monto personalizado activo — oculto por defecto) -->
+            <div class="monto-personalizado-row" style="display:none;">
+              <span class="monto-prefix">$</span>
+              <input class="monto-input" type="number" placeholder="Ej: 750" value="">
+              <button class="monto-clear"><i class="bi bi-x-circle"></i></button>
+            </div>
+
+          </div>
+
+          <!-- Fecha -->
+          <div>
+            <label class="campo-label">Fecha de Pago:</label>
+            <input type="date" class="input-fecha" value="2026-03-25">
+          </div>
+
+          <!-- Resumen -->
+          <div class="resumen-pago">
+            <div class="resumen-fila"><span class="rl"><i class="bi bi-cash-coin"></i> Monto a Pagar:</span><span class="monto-destacado">$500</span></div>
+            <div class="resumen-fila"><span class="rl"><i class="bi bi-wallet2"></i> Nuevo Saldo:</span><span class="saldo-nuevo">$10,500</span></div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary">Cancelar</button>
+          <button class="btn-primary"><i class="bi bi-check-lg"></i> Confirmar Pago</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notas Propuesta A -->
+    <div class="notes">
+      <h4><i class="bi bi-lightbulb"></i> Análisis Propuesta A — Stepper</h4>
+      <ul>
+        <li class="pro">✅ <strong>Default visual</strong>: se ve "1 cuota = $500" de inmediato sin seleccionar nada</li>
+        <li class="pro">✅ <strong>Tap rápido</strong>: tocar [+] 2 veces → 3 cuotas, sin abrir menú ni dropdown</li>
+        <li class="pro">✅ <strong>Monto override</strong>: link discreto "Ingresar monto diferente" para casos edge</li>
+        <li class="con">⚠️ <strong>Muchas cuotas</strong>: si necesitas pagar 20 cuotas el [+] requiere 19 taps (se puede editar el número directamente)</li>
+        <li>💡 El campo del stepper puede ser <strong>editable</strong> al hacer tap sobre el número (input numérico)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       PROPUESTA A2 — STEPPER EDITABLE (INTERACTIVA)
+  ══════════════════════════════════════════════════════ -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:390px;">
+    <div class="compare-header">
+      <span class="badge badge-a">PROPUESTA A2 · INTERACTIVA</span>
+      <span style="font-size:.8rem;opacity:.8;">Stepper editable + monto libre</span>
+    </div>
+    <div class="phone-frame">
+      <div class="modal-container">
+        <div class="modal-header">
+          <div class="modal-title"><i class="bi bi-cash-stack"></i> Registrar Pago</div>
+          <button class="btn-close"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="cliente-info">
+            <div class="avatar">A</div>
+            <div><div class="cliente-nombre">Ana García Torres</div><span class="prestamo-id">PRE-005</span></div>
+          </div>
+          <div class="prestamo-resumen">
+            <div class="resumen-item"><span class="lbl">Total Préstamo</span><span class="val">$15,500</span></div>
+            <div class="resumen-item destacado"><span class="lbl">Saldo Pendiente</span><span class="val" id="a2-saldo-header">$11,000</span></div>
+            <div class="resumen-item"><span class="lbl">Cuotas Pagadas</span><span class="val">20 / 31</span></div>
+            <div class="resumen-item"><span class="lbl">Valor Cuota</span><span class="val">$500</span></div>
+          </div>
+          <div class="divider"></div>
+
+          <!-- MODO CUOTAS -->
+          <div class="stepper-section" id="a2-modo-cuotas">
+            <label class="campo-label">¿Cuántas cuotas vas a cobrar?</label>
+
+            <div class="stepper-mini">
+              <button class="stepper-mini-btn" id="a2-btn-menos" onclick="a2Cambiar(-1)">−</button>
+              <input class="stepper-mini-input" id="a2-num-input" type="number" value="1" min="1" max="11"
+                     oninput="a2DesdeInput(this.value)">
+              <button class="stepper-mini-btn" id="a2-btn-mas" onclick="a2Cambiar(1)">+</button>
+            </div>
+            <p style="text-align:center;font-size:.72rem;color:var(--muted);">Toca el número para escribir directamente</p>
+
+            <div class="cuota-info" id="a2-calc-label">
+              <span class="ci-label" id="a2-desglose">1 × $500 =</span>
+              <span class="ci-value" id="a2-calc-value">$500</span>
+            </div>
+
+            <div>
+              <p style="font-size:.72rem;color:var(--muted);margin-bottom:5px;">Accesos rápidos:</p>
+              <div class="pills-row" id="a2-pills">
+                <span class="pill active" onclick="a2Pill(this, 1)">1</span>
+                <span class="pill" onclick="a2Pill(this, 2)">2</span>
+                <span class="pill" onclick="a2Pill(this, 3)">3</span>
+                <span class="pill" onclick="a2Pill(this, 5)">5</span>
+                <span class="pill" onclick="a2Pill(this, 7)">7</span>
+                <span class="pill" onclick="a2Pill(this, 10)">10</span>
+                <span class="pill" id="a2-pill-todo" onclick="a2Todo()">Todo (11)</span>
+              </div>
+            </div>
+
+            <!-- Toggle para monto libre -->
+            <button class="custom-toggle" id="a2-toggle-btn" onclick="a2ToggleModoLibre()">
+              <i class="bi bi-pencil-square"></i>
+              <span id="a2-toggle-label">O ingresar monto libre</span>
+            </button>
+          </div>
+
+          <!-- MODO MONTO LIBRE (oculto por defecto) -->
+          <div class="stepper-section" id="a2-modo-libre" style="display:none;">
+            <label class="campo-label">
+              <i class="bi bi-currency-dollar" style="color:var(--primary)"></i>
+              Monto libre a cobrar
+            </label>
+
+            <div class="monto-personalizado-row">
+              <span class="monto-prefix">$</span>
+              <input class="monto-input" id="a2-monto-libre-input" type="number"
+                     placeholder="Ej: 750"
+                     min="1" max="11000"
+                     oninput="a2ActualizarDesdeLibre(this.value)">
+              <button class="monto-clear" onclick="a2LimpiarLibre()"><i class="bi bi-x-circle"></i></button>
+            </div>
+
+            <div class="alert-warning" id="a2-aviso-libre">
+              <i class="bi bi-info-circle-fill" style="flex-shrink:0;"></i>
+              Ingresa cualquier valor. Si es mayor al saldo ($11,000) se ajustará automáticamente.
+            </div>
+
+            <!-- Volver al modo cuotas -->
+            <button class="custom-toggle" onclick="a2ToggleModoLibre()">
+              <i class="bi bi-grid-3x3-gap"></i>
+              <span>Volver a cuotas</span>
+            </button>
+          </div>
+
+          <div>
+            <label class="campo-label">Fecha de Pago:</label>
+            <input type="date" class="input-fecha" value="2026-03-25">
+          </div>
+
+          <div class="resumen-pago">
+            <div class="resumen-fila">
+              <span class="rl"><i class="bi bi-cash-coin"></i> Monto a Pagar:</span>
+              <span class="monto-destacado" id="a2-resumen-monto">$500</span>
+            </div>
+            <div class="resumen-fila">
+              <span class="rl"><i class="bi bi-wallet2"></i> Nuevo Saldo:</span>
+              <span class="saldo-nuevo" id="a2-resumen-saldo">$10,500</span>
+            </div>
+          </div>
+
+          <div id="a2-alerta-exito" style="display:none;" class="alert-warning" 
+               style="background:#dcfce7;border-color:#86efac;color:#166534;">
+            <i class="bi bi-check-circle-fill" style="flex-shrink:0;color:#16a34a;"></i>
+            <span id="a2-alerta-texto">Pago registrado correctamente.</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="a2Cancelar()">Cancelar</button>
+          <button class="btn-primary" id="a2-btn-confirmar" onclick="a2Confirmar()">
+            <i class="bi bi-check-lg"></i> Confirmar Pago
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="notes">
+      <h4><i class="bi bi-lightbulb"></i> Análisis Propuesta A2 — Stepper Editable</h4>
+      <ul>
+        <li class="pro">✅ <strong>Número editable</strong>: toca el número central y escribe, sin múltiples taps</li>
+        <li class="pro">✅ <strong>Quick pills</strong>: 1,2,3,5,7,10 son las cantidades más frecuentes</li>
+        <li class="pro">✅ <strong>Pill "Todo"</strong>: cancela el saldo completo con 1 tap</li>
+        <li class="pro">✅ <strong>Monto libre</strong>: disponible con 1 tap, sin perder el contexto</li>
+        <li class="pro">✅ <strong>[+] [−]</strong> para ajuste fino táctil</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       PROPUESTA B — TABS (cuotas / monto libre)
+  ══════════════════════════════════════════════════════ -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:390px;">
+    <div class="compare-header">
+      <span class="badge badge-b">PROPUESTA B</span>
+      <span style="font-size:.8rem;opacity:.8;">Tabs Cuotas / Monto libre</span>
+    </div>
+    <div class="phone-frame">
+      <div class="modal-container">
+        <div class="modal-header">
+          <div class="modal-title"><i class="bi bi-cash-stack"></i> Registrar Pago</div>
+          <button class="btn-close"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="cliente-info">
+            <div class="avatar">A</div>
+            <div><div class="cliente-nombre">Ana García Torres</div><span class="prestamo-id">PRE-005</span></div>
+          </div>
+          <div class="prestamo-resumen">
+            <div class="resumen-item"><span class="lbl">Total Préstamo</span><span class="val">$15,500</span></div>
+            <div class="resumen-item destacado"><span class="lbl">Saldo Pendiente</span><span class="val">$11,000</span></div>
+            <div class="resumen-item"><span class="lbl">Cuotas Pagadas</span><span class="val">20 / 31</span></div>
+            <div class="resumen-item"><span class="lbl">Valor Cuota</span><span class="val">$500</span></div>
+          </div>
+          <div class="divider"></div>
+
+          <!-- TABS -->
+          <div class="tab-bar">
+            <button class="tab-btn active">
+              <i class="bi bi-grid-3x3-gap"></i>
+              <span>Por Cuotas</span>
+            </button>
+            <button class="tab-btn">
+              <i class="bi bi-currency-dollar"></i>
+              <span>Monto Libre</span>
+            </button>
+            <button class="tab-btn">
+              <i class="bi bi-wallet-fill"></i>
+              <span>Todo el Saldo</span>
+            </button>
+          </div>
+
+          <!-- TAB ACTIVO: Por Cuotas -->
+          <div class="tab-panel">
+            <label class="campo-label">Selecciona cuántas cuotas:</label>
+
+            <!-- Grid de cuotas rápidas -->
+            <div class="cuotas-grid">
+              <div class="cuota-card active"><span class="n">1</span><span class="lbl">cuota</span></div>
+              <div class="cuota-card"><span class="n">2</span><span class="lbl">cuotas</span></div>
+              <div class="cuota-card"><span class="n">3</span><span class="lbl">cuotas</span></div>
+              <div class="cuota-card"><span class="n">5</span><span class="lbl">cuotas</span></div>
+              <div class="cuota-card"><span class="n">7</span><span class="lbl">cuotas</span></div>
+              <div class="cuota-card"><span class="n">10</span><span class="lbl">cuotas</span></div>
+              <div class="cuota-card"><span class="n">15</span><span class="lbl">cuotas</span></div>
+              <div class="cuota-card mas" style="grid-column:span 2;">
+                <i class="bi bi-pencil"></i>
+                <span class="lbl">Otro número</span>
+              </div>
+            </div>
+
+            <!-- Desglose -->
+            <div class="cuota-info">
+              <span class="ci-label">1 × $500 =</span>
+              <span class="ci-value">$500</span>
+            </div>
+          </div>
+
+          <div>
+            <label class="campo-label">Fecha de Pago:</label>
+            <input type="date" class="input-fecha" value="2026-03-25">
+          </div>
+
+          <div class="resumen-pago">
+            <div class="resumen-fila"><span class="rl"><i class="bi bi-cash-coin"></i> Monto a Pagar:</span><span class="monto-destacado">$500</span></div>
+            <div class="resumen-fila"><span class="rl"><i class="bi bi-wallet2"></i> Nuevo Saldo:</span><span class="saldo-nuevo">$10,500</span></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary">Cancelar</button>
+          <button class="btn-primary"><i class="bi bi-check-lg"></i> Confirmar Pago</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="notes">
+      <h4><i class="bi bi-lightbulb"></i> Análisis Propuesta B — Tabs</h4>
+      <ul>
+        <li class="pro">✅ <strong>Separación clara</strong>: "Por Cuotas" vs "Monto Libre" vs "Todo" — modo evidente</li>
+        <li class="pro">✅ <strong>Grid táctil</strong>: tap sobre la tarjeta numérica, áreas grandes para móvil</li>
+        <li class="pro">✅ <strong>Tab "Todo el Saldo"</strong>: cancela la cuenta completa en 2 taps (tab + confirmar)</li>
+        <li class="con">⚠️ Más taps para llegar al modo monto libre (click en tab)</li>
+        <li class="con">⚠️ El grid de cuotas fijas puede no cubrir todos los casos (¿y si son 12 cuotas?)</li>
+        <li>💡 Tarjeta "Otro número" abre un stepper mini inline</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       RESUMEN COMPARATIVO
+  ══════════════════════════════════════════════════════ -->
+  <div style="max-width:390px;width:100%;">
+    <div class="notes">
+      <h4><i class="bi bi-bar-chart-line"></i> Resumen comparativo</h4>
+      <table style="width:100%;border-collapse:collapse;font-size:.77rem;margin-top:8px;">
+        <thead>
+          <tr style="background:#f1f5f9;">
+            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid #e2e8f0;">Criterio</th>
+            <th style="padding:6px 8px;text-align:center;border-bottom:1px solid #e2e8f0;">Actual</th>
+            <th style="padding:6px 8px;text-align:center;border-bottom:1px solid #e2e8f0;">A – Stepper</th>
+            <th style="padding:6px 8px;text-align:center;border-bottom:1px solid #e2e8f0;">A2 – Pills</th>
+            <th style="padding:6px 8px;text-align:center;border-bottom:1px solid #e2e8f0;">B – Tabs</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding:6px 8px;">Default 1 cuota</td>
+            <td style="text-align:center">✅</td><td style="text-align:center">✅</td><td style="text-align:center">✅</td><td style="text-align:center">✅</td>
+          </tr>
+          <tr style="background:#f8fafc;">
+            <td style="padding:6px 8px;">Facilidad 2–5 cuotas</td>
+            <td style="text-align:center">🟡</td><td style="text-align:center">✅</td><td style="text-align:center">✅</td><td style="text-align:center">✅</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 8px;">Facilidad 10+ cuotas</td>
+            <td style="text-align:center">🟡</td><td style="text-align:center">🟡</td><td style="text-align:center">✅</td><td style="text-align:center">🟡</td>
+          </tr>
+          <tr style="background:#f8fafc;">
+            <td style="padding:6px 8px;">Monto libre / odd</td>
+            <td style="text-align:center">✅</td><td style="text-align:center">✅</td><td style="text-align:center">✅</td><td style="text-align:center">✅</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 8px;">Cancelar saldo total</td>
+            <td style="text-align:center">🟡</td><td style="text-align:center">🟡</td><td style="text-align:center">✅ pill</td><td style="text-align:center">✅ tab</td>
+          </tr>
+          <tr style="background:#f8fafc;">
+            <td style="padding:6px 8px;">Complejidad UI</td>
+            <td style="text-align:center">Media</td><td style="text-align:center">Baja</td><td style="text-align:center">Media</td><td style="text-align:center">Media</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 8px;">Cambios al código</td>
+            <td style="text-align:center">—</td><td style="text-align:center">Bajo</td><td style="text-align:center">Medio</td><td style="text-align:center">Medio</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="margin-top:10px;color:var(--primary);font-weight:600;">
+        💡 Recomendación: <strong>Propuesta A2</strong> — combina el stepper editable (evita 20 taps) con quick pills para los valores más frecuentes (1,2,3,5) y el botón "Todo". Es el mejor balance entre simplicidad y funcionalidad.
+      </p>
+    </div>
+  </div>
+
+
+<script>
+  // ─── Propuesta A2 — datos de la simulación ───────────────
+  const A2 = {
+    valorCuota:     500,
+    saldoPendiente: 11000,
+    cuotasRestantes: 11,
+    modoLibre: false,
+    cuotas: 1,
+  };
+
+  function a2Fmt(n) {
+    return '$' + Math.round(n).toLocaleString('es-CO');
+  }
+
+  function a2ActualizarUI(monto) {
+    const saldoNuevo = Math.max(0, A2.saldoPendiente - monto);
+    document.getElementById('a2-resumen-monto').textContent = a2Fmt(monto);
+    document.getElementById('a2-resumen-saldo').textContent = a2Fmt(saldoNuevo);
+  }
+
+  function a2SincronizarCuotas(n) {
+    // clamp
+    n = Math.max(1, Math.min(A2.cuotasRestantes, n));
+    A2.cuotas = n;
+
+    // input numérico central
+    document.getElementById('a2-num-input').value = n;
+
+    // botones ± 
+    document.getElementById('a2-btn-menos').disabled = (n <= 1);
+    document.getElementById('a2-btn-mas').disabled  = (n >= A2.cuotasRestantes);
+
+    // desglose
+    const monto = Math.min(n * A2.valorCuota, A2.saldoPendiente);
+    const esTodo = (n === A2.cuotasRestantes);
+    document.getElementById('a2-desglose').textContent =
+      esTodo ? `Saldo completo =` : `${n} × ${a2Fmt(A2.valorCuota)} =`;
+    document.getElementById('a2-calc-value').textContent = a2Fmt(monto);
+
+    // pill destacada
+    const pills = document.querySelectorAll('#a2-pills .pill:not(#a2-pill-todo)');
+    pills.forEach(p => {
+      p.classList.toggle('active', parseInt(p.textContent) === n && !esTodo);
+    });
+    document.getElementById('a2-pill-todo').classList.toggle('active', esTodo);
+
+    a2ActualizarUI(monto);
+  }
+
+  function a2Cambiar(delta) {
+    a2SincronizarCuotas(A2.cuotas + delta);
+  }
+
+  function a2DesdeInput(val) {
+    const n = parseInt(val);
+    if (!isNaN(n)) a2SincronizarCuotas(n);
+  }
+
+  function a2Pill(el, n) {
+    if (A2.modoLibre) return;
+    a2SincronizarCuotas(n);
+  }
+
+  function a2Todo() {
+    if (A2.modoLibre) return;
+    a2SincronizarCuotas(A2.cuotasRestantes);
+  }
+
+  // ─── Toggle modo libre ────────────────────────────────
+  function a2ToggleModoLibre() {
+    A2.modoLibre = !A2.modoLibre;
+
+    document.getElementById('a2-modo-cuotas').style.display = A2.modoLibre ? 'none'  : 'flex';
+    document.getElementById('a2-modo-libre').style.display  = A2.modoLibre ? 'flex'  : 'none';
+
+    if (A2.modoLibre) {
+      // pre-cargar el monto calculado como punto de partida
+      const montoActual = A2.cuotas * A2.valorCuota;
+      const input = document.getElementById('a2-monto-libre-input');
+      input.value = montoActual;
+      a2ActualizarDesdeLibre(montoActual);
+      setTimeout(() => { input.focus(); input.select(); }, 80);
+    } else {
+      // volver a modo cuotas
+      document.getElementById('a2-monto-libre-input').value = '';
+      a2SincronizarCuotas(A2.cuotas);
+    }
+  }
+
+  function a2ActualizarDesdeLibre(val) {
+    let monto = parseFloat(val);
+    if (isNaN(monto) || monto <= 0) {
+      document.getElementById('a2-resumen-monto').textContent = '$0';
+      document.getElementById('a2-resumen-saldo').textContent  = a2Fmt(A2.saldoPendiente);
+      return;
+    }
+    monto = Math.min(monto, A2.saldoPendiente);
+    if (parseFloat(val) > A2.saldoPendiente) {
+      document.getElementById('a2-monto-libre-input').value = A2.saldoPendiente;
+    }
+    a2ActualizarUI(monto);
+  }
+
+  function a2LimpiarLibre() {
+    document.getElementById('a2-monto-libre-input').value = '';
+    document.getElementById('a2-resumen-monto').textContent = '$0';
+    document.getElementById('a2-resumen-saldo').textContent = a2Fmt(A2.saldoPendiente);
+    document.getElementById('a2-monto-libre-input').focus();
+  }
+
+  // ─── Confirmar / Cancelar (simulado) ─────────────────
+  function a2Confirmar() {
+    const montoText = document.getElementById('a2-resumen-monto').textContent;
+    const saldoText = document.getElementById('a2-resumen-saldo').textContent;
+
+    if (montoText === '$0') {
+      alert('Ingresá un monto válido antes de confirmar.');
+      return;
+    }
+
+    const btn = document.getElementById('a2-btn-confirmar');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner-small"></div> Registrando...';
+    btn.style.background = '#6b7280';
+
+    setTimeout(() => {
+      btn.innerHTML = '<i class="bi bi-check-lg"></i> Confirmar Pago';
+      btn.disabled = false;
+      btn.style.background = '';
+
+      // Mostrar éxito
+      const alerta = document.getElementById('a2-alerta-exito');
+      alerta.style.cssText = 'display:flex;align-items:flex-start;gap:8px;padding:10px 12px;background:#dcfce7;border:1px solid #86efac;border-radius:8px;font-size:.78rem;color:#166534;';
+      document.getElementById('a2-alerta-texto').textContent =
+        `✓ Pago de ${montoText} registrado. Nuevo saldo: ${saldoText}`;
+      alerta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      // reset visual después de 3s
+      setTimeout(() => {
+        alerta.style.display = 'none';
+        A2.modoLibre = false;
+        // simular que el saldo baja
+        // (solo visual, sin persistencia real)
+      }, 3500);
+    }, 900);
+  }
+
+  function a2Cancelar() {
+    // Reset al estado inicial
+    A2.modoLibre = false;
+    A2.cuotas = 1;
+    document.getElementById('a2-modo-cuotas').style.display = 'flex';
+    document.getElementById('a2-modo-libre').style.display  = 'none';
+    document.getElementById('a2-monto-libre-input').value   = '';
+    document.getElementById('a2-alerta-exito').style.display = 'none';
+    a2SincronizarCuotas(1);
+  }
+
+  // ─── Inicializar al cargar ────────────────────────────
+  a2SincronizarCuotas(1);
+</script>
+
+<style>
+  .spinner-small {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+    display: inline-block;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #a2-modo-cuotas, #a2-modo-libre { flex-direction: column; gap: 10px; }
+</style>
+
+</body>
+</html>

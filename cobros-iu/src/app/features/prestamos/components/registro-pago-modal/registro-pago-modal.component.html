@@ -1,0 +1,215 @@
+@if (visible()) {
+  <div class="modal-overlay" (click)="cerrarConOverlay($event)">
+    <div class="modal-container">
+      <!-- HEADER -->
+      <div class="modal-header">
+        <h2 class="modal-title">
+          <i class="bi bi-cash-stack"></i>
+          Registrar Pago
+        </h2>
+        <button class="btn-close" (click)="cerrar()" [disabled]="procesando()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- BODY -->
+      <div class="modal-body">
+        @if (prestamo()) {
+          <!-- Información del Cliente -->
+          <div class="cliente-info">
+            <div class="avatar-modal">
+              {{ (prestamo()!.cliente?.nombre || 'S')[0].toUpperCase() }}
+            </div>
+            <div>
+              <h3 class="cliente-nombre">{{ prestamo()!.cliente?.nombre }}</h3>
+              <span class="prestamo-id">{{ prestamo()!.id }}</span>
+            </div>
+          </div>
+
+          <!-- Resumen del Préstamo -->
+          <div class="prestamo-resumen">
+            <div class="resumen-item">
+              <span class="label">Total Préstamo:</span>
+              <span class="value">{{ formatCurrency(prestamo()!.valorTotal) }}</span>
+            </div>
+            <div class="resumen-item destacado">
+              <span class="label">Saldo Pendiente:</span>
+              <span class="value primary">{{ formatCurrency(saldoPendiente()) }}</span>
+            </div>
+            <div class="resumen-item">
+              <span class="label">Cuotas Pagadas:</span>
+              <span class="value">{{ prestamo()!.estadisticas?.cuotasPagadas || 0 }} / {{ prestamo()!.cantidadCuotas }}</span>
+            </div>
+            <div class="resumen-item">
+              <span class="label">Valor por Cuota:</span>
+              <span class="value">{{ formatCurrency(prestamo()!.valorCuota) }}</span>
+            </div>
+          </div>
+
+          <!-- Tipo de Pago — Stepper A2 -->
+          @if (!modoLibre()) {
+            <!-- MODO CUOTAS -->
+            <div class="stepper-section">
+              <div class="stepper-label-row">
+                <label class="campo-label">¿Cuántas cuotas vas a cobrar?</label>
+                <button class="modo-libre-link" type="button" (click)="toggleModoLibre()">
+                  <i class="bi bi-pencil-square"></i>
+                  Monto libre
+                </button>
+              </div>
+
+              <!-- Stepper [−] [num] [+] -->
+              <div class="stepper-mini-row">
+                <button class="stepper-mini-btn"
+                        type="button"
+                        (click)="cambiarCuotas(-1)"
+                        [disabled]="cantidadCuotas() <= 1">−</button>
+                <input class="stepper-mini-input"
+                       type="number"
+                       [value]="cantidadCuotas()"
+                       (input)="setCuotasDesdeTeclado($any($event.target).value)"
+                       min="1"
+                       [max]="cuotasRestantes()">
+                <button class="stepper-mini-btn"
+                        type="button"
+                        (click)="cambiarCuotas(1)"
+                        [disabled]="esTodas()">+</button>
+              </div>
+              <p class="stepper-hint">Toca el número para escribir directamente</p>
+
+              <!-- Desglose calculado -->
+              <div class="cuota-calc-info">
+                <span class="ci-label">
+                  @if (esTodas()) {
+                    Saldo completo =
+                  } @else {
+                    {{ cantidadCuotas() }} × {{ formatCurrency(prestamo()!.valorCuota) }} =
+                  }
+                </span>
+                <span class="ci-value">{{ formatCurrency(montoAPagar()) }}</span>
+              </div>
+
+              <!-- Quick pills -->
+              <div class="pills-section">
+                <span class="pills-hint">Accesos rápidos:</span>
+                <div class="pills-row">
+                  @for (n of quickPills(); track n) {
+                    <button class="pill"
+                            type="button"
+                            [class.active]="cantidadCuotas() === n && !esTodas()"
+                            (click)="seleccionarPill(n)">{{ n }}</button>
+                  }
+                  <button class="pill pill-todo"
+                          type="button"
+                          [class.active]="esTodas()"
+                          (click)="seleccionarTodas()">
+                    Todo ({{ cuotasRestantes() }})
+                  </button>
+                </div>
+              </div>
+            </div>
+          } @else {
+            <!-- MODO MONTO LIBRE -->
+            <div class="stepper-section">
+              <label class="campo-label">
+                <i class="bi bi-currency-dollar"></i>
+                Monto libre a cobrar
+              </label>
+
+              <div class="monto-libre-row" [class.has-error]="error()">
+                <span class="monto-libre-prefix">$</span>
+                <input class="monto-libre-input"
+                       type="number"
+                       placeholder="Ej: 750"
+                       [value]="montoPersonalizado() || null"
+                       (input)="actualizarMontoLibre($any($event.target).value)"
+                       min="1"
+                       [max]="saldoPendiente()">
+                <button class="monto-libre-clear"
+                        type="button"
+                        (click)="montoPersonalizado.set(0); error.set('')">
+                  <i class="bi bi-x-circle"></i>
+                </button>
+              </div>
+
+              <div class="alert-info">
+                <i class="bi bi-info-circle-fill"></i>
+                Máximo {{ formatCurrency(saldoPendiente()) }}. Si ingresás más, se ajustará automáticamente.
+              </div>
+
+              <!-- Volver a cuotas -->
+              <button class="modo-libre-link" type="button" (click)="toggleModoLibre()">
+                <i class="bi bi-grid-3x3-gap"></i>
+                Volver a cuotas
+              </button>
+            </div>
+          }
+
+          <!-- Fecha de Pago -->
+          <div class="campo-fecha">
+            <label class="campo-label">Fecha de Pago:</label>
+            <input 
+              type="date" 
+              class="input-fecha"
+              [value]="fechaPago() | date:'yyyy-MM-dd'"
+              (change)="onFechaChange($any($event.target).value)"
+              [max]="fechaMaxima">
+          </div>
+
+          <!-- Resumen del Pago -->
+          <div class="resumen-pago">
+            <div class="resumen-fila">
+              <span class="resumen-label">
+                <i class="bi bi-cash-coin"></i> Monto a Pagar:
+              </span>
+              <span class="monto-destacado">{{ formatCurrency(montoAPagar()) }}</span>
+            </div>
+            <div class="resumen-fila">
+              <span class="resumen-label">
+                <i class="bi bi-wallet2"></i> Nuevo Saldo:
+              </span>
+              <span class="saldo-nuevo">{{ formatCurrency(nuevoSaldo()) }}</span>
+            </div>
+          </div>
+
+          <!-- Mensajes de Error -->
+          @if (error()) {
+            <div class="alert-error">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              {{ error() }}
+            </div>
+          }
+
+          <!-- Mensaje de Éxito (durante procesamiento) -->
+          @if (procesando()) {
+            <div class="alert-success">
+              <div class="spinner-small"></div>
+              Registrando pago...
+            </div>
+          }
+        }
+      </div>
+
+      <!-- FOOTER -->
+      <div class="modal-footer">
+        <button 
+          class="btn-secondary" 
+          (click)="cerrar()"
+          [disabled]="procesando()">
+          Cancelar
+        </button>
+        <button 
+          class="btn-primary" 
+          (click)="registrarPago()"
+          [disabled]="!esMontoValido() || procesando()">
+          @if (procesando()) {
+            <span class="spinner-btn"></span>
+          } @else {
+            <i class="bi bi-check-circle"></i>
+          }
+          Registrar Pago
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,154 @@
+<div class="zonas-container">
+  <!-- HEADER -->
+  <div class="zonas-header">
+    <div class="header-content">
+      <div class="header-title">
+        <div class="icon-wrapper">
+          <i class="bi bi-geo-alt"></i>
+        </div>
+        <div>
+          <h1 class="title">Gestión de Zonas</h1>
+          <p class="subtitle">Organiza tus clientes por ubicación geográfica</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button class="btn-nueva-zona" (click)="abrirModalNueva()">
+          <i class="bi bi-plus-circle-fill"></i>
+          <span>Nueva Zona</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="header-stats-row">
+      <div class="header-stats">
+        <div class="stat-card">
+          <span class="stat-label">Total</span>
+          <span class="stat-value">{{ zonas().length }}</span>
+        </div>
+        <div class="stat-card stat-success">
+          <span class="stat-label">Activas</span>
+          <span class="stat-value">{{ zonasActivas() }}</span>
+        </div>
+        <div class="stat-card stat-muted">
+          <span class="stat-label">Inactivas</span>
+          <span class="stat-value">{{ zonasInactivas() }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTROLES DE BÚSQUEDA Y FILTROS -->
+  <div class="controles-zona">
+    <div class="busqueda-wrapper">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Buscar zona por nombre..."
+        [(ngModel)]="terminoBusqueda">
+    </div>
+
+    <div class="filtros-estado">
+      <button
+        class="filtro-btn"
+        [class.active]="filtroEstado() === 'todas'"
+        (click)="filtroEstado.set('todas')">
+        Todas
+      </button>
+      <button
+        class="filtro-btn"
+        [class.active]="filtroEstado() === 'activo'"
+        (click)="filtroEstado.set('activo')">
+        Activas
+      </button>
+      <button
+        class="filtro-btn"
+        [class.active]="filtroEstado() === 'inactivo'"
+        (click)="filtroEstado.set('inactivo')">
+        Inactivas
+      </button>
+    </div>
+  </div>
+
+  <!-- GRID DE ZONAS -->
+  <div class="zonas-grid">
+    @for (zona of zonasFiltradas(); track zona.id) {
+      <div 
+        class="zona-card" 
+        [class.inactiva]="zona.estado === 'inactivo'"
+        (click)="verPrestamosZona(zona)"
+        role="button"
+        tabindex="0"
+        [title]="'Ver préstamos de ' + zona.nombre">
+        
+        <!-- Header de la card -->
+        <div class="zona-card-header">
+          <div class="zona-icono">
+            <i class="bi bi-geo-alt"></i>
+          </div>
+          <div class="zona-info">
+            <h3 class="zona-nombre">{{ zona.nombre }}</h3>
+            <span class="badge" [class.badge-success]="zona.estado === 'activo'" [class.badge-secondary]="zona.estado === 'inactivo'">
+              <i class="bi" [class.bi-check-circle-fill]="zona.estado === 'activo'" [class.bi-x-circle-fill]="zona.estado === 'inactivo'"></i>
+              {{ zona.estado === 'activo' ? 'Activa' : 'Inactiva' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Contador de clientes -->
+        <div class="zona-stats">
+          <div class="stat-item">
+            <i class="bi bi-people-fill"></i>
+            <span class="stat-numero">{{ contarClientes(zona.id) }}</span>
+            <span class="stat-texto">clientes activos</span>
+          </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="zona-acciones">
+          <button
+            class="btn-accion btn-ver"
+            (click)="verClientesZona(zona); $event.stopPropagation()"
+            [disabled]="contarClientes(zona.id) === 0"
+            title="Ver clientes de esta zona">
+            <i class="bi bi-eye-fill"></i>
+            Ver Clientes
+          </button>
+          <button
+            class="btn-accion btn-editar"
+            (click)="abrirModalEditar(zona); $event.stopPropagation()"
+            title="Editar zona">
+            <i class="bi bi-pencil-fill"></i>
+          </button>
+          <button
+            class="btn-accion"
+            [class.btn-desactivar]="zona.estado === 'activo'"
+            [class.btn-activar]="zona.estado === 'inactivo'"
+            (click)="cambiarEstado(zona); $event.stopPropagation()"
+            [title]="zona.estado === 'activo' ? 'Desactivar zona' : 'Activar zona'">
+            <i class="bi" [class.bi-toggle-on]="zona.estado === 'activo'" [class.bi-toggle-off]="zona.estado === 'inactivo'"></i>
+          </button>
+        </div>
+      </div>
+    } @empty {
+      <div class="empty-state">
+        <i class="bi bi-geo-alt"></i>
+        <h3>No hay zonas disponibles</h3>
+        <p>{{ terminoBusqueda() ? 'No se encontraron zonas con ese nombre' : 'Crea tu primera zona para organizar clientes' }}</p>
+        @if (!terminoBusqueda()) {
+          <button class="btn-nueva-zona" (click)="abrirModalNueva()">
+            <i class="bi bi-plus-circle-fill"></i>
+            Nueva Zona
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- MODAL -->
+  <app-zona-modal
+    (guardado)="guardarZona($event)"
+    (cancelado)="cargarDatos()">
+  </app-zona-modal>
+</div>

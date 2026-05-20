@@ -1,0 +1,400 @@
+<div class="clientes-container">
+  <!-- Header moderno -->
+  <header class="clientes-header">
+    <div class="header-content">
+      <div class="header-title">
+        <div class="icon-wrapper">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <div>
+          <h1 class="title">Gestión de Clientes</h1>
+          <p class="subtitle">Administra la información de tus clientes</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="header-stats">
+          <div class="stat-card">
+            <span class="stat-label">Total</span>
+            <span class="stat-value">{{ clientes().length }}</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Activos</span>
+            <span class="stat-value">{{ clientesActivos() }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mensajes de alerta modernos -->
+  @if (mensaje()) {
+    <div class="alert-modern alert-{{ mensaje()!.tipo }}" role="alert">
+      <div class="alert-icon">
+        <i class="bi bi-{{ mensaje()!.tipo === 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill' }}"></i>
+      </div>
+      <div class="alert-content">
+        <p class="alert-message">{{ mensaje()!.texto }}</p>
+      </div>
+      <button type="button" class="alert-close" (click)="mensaje.set(null)">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+  }
+
+  <!-- Barra de acciones mobile-first -->
+  <div class="action-bar">
+    <div class="filters-row">
+      <!-- Filtro por zona -->
+      <div class="filter-wrapper">
+        <i class="bi bi-geo-alt filter-icon"></i>
+        <select
+          class="filter-select"
+          [(ngModel)]="zonaFiltroId"
+          [value]="zonaFiltroId()"
+          (ngModelChange)="zonaFiltroId.set($event)"
+        >
+          <option value="">Todas las zonas</option>
+          @for (zona of zonas(); track zona.id) {
+            <option [value]="zona.id">{{ zona.nombre }}</option>
+          }
+        </select>
+      </div>
+      
+      <!-- Campo de búsqueda -->
+      <div class="search-wrapper">
+        <i class="bi bi-search search-icon"></i>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Buscar cliente..."
+          [(ngModel)]="terminoBusqueda"
+          [value]="terminoBusqueda()"
+          (ngModelChange)="terminoBusqueda.set($event)"
+        >
+        @if (terminoBusqueda()) {
+          <button class="clear-search" (click)="terminoBusqueda.set('')">
+            <i class="bi bi-x-circle-fill"></i>
+          </button>
+        }
+      </div>
+    </div>
+    
+    <button
+      class="btn-add-client"
+      (click)="nuevoCliente()"
+      [disabled]="cargando()"
+    >
+      <i class="bi bi-plus-lg"></i>
+      <span class="btn-text">Nuevo</span>
+    </button>
+  </div>
+
+  <!-- Formulario de creación/edición moderno -->
+  @if (mostrarFormulario()) {
+    <div class="form-modal-overlay">
+      <div class="form-modal">
+        <div class="form-header">
+          <div class="form-title">
+            <i class="bi bi-{{ modoEdicion() ? 'pencil-square' : 'person-plus' }}"></i>
+            <h2>{{ modoEdicion() ? 'Editar Cliente' : 'Nuevo Cliente' }}</h2>
+          </div>
+          <button class="btn-close-modal" (click)="cancelarFormulario()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div class="form-body">
+        <form (ngSubmit)="guardarCliente()" class="modern-form">
+          <!-- Nombre -->
+          <div class="form-group">
+            <label for="nombre" class="form-label">
+              <i class="bi bi-person"></i>
+              Nombre Completo <span class="required">*</span>
+            </label>
+            <input
+              type="text"
+              class="form-input"
+              id="nombre"
+              [(ngModel)]="formulario.nombre"
+              name="nombre"
+              required
+              placeholder="Ej: Juan Pérez García"
+            >
+          </div>
+
+          <!-- Alias -->
+          <div class="form-group">
+            <label for="alias" class="form-label">
+              <i class="bi bi-tag"></i>
+              Alias
+            </label>
+            <input
+              type="text"
+              class="form-input"
+              id="alias"
+              [(ngModel)]="formulario.alias"
+              name="alias"
+              placeholder="Ej: Juanito"
+            >
+          </div>
+
+          <div class="form-row">
+            <!-- Identificación -->
+            <div class="form-group">
+              <label for="identificacion" class="form-label">
+                <i class="bi bi-card-text"></i>
+                Identificación <span class="required">*</span>
+              </label>
+              <input
+                type="text"
+                class="form-input"
+                id="identificacion"
+                [(ngModel)]="formulario.identificacion"
+                name="identificacion"
+                required
+                placeholder="Ej: 12345678"
+              >
+            </div>
+
+            <!-- Zona -->
+            <div class="form-group">
+              <label for="zonaId" class="form-label">
+                <i class="bi bi-geo-alt"></i>
+                Zona <span class="required">*</span>
+              </label>
+              <select
+                class="form-input"
+                id="zonaId"
+                [(ngModel)]="formulario.zonaId"
+                name="zonaId"
+                required
+              >
+                @for (zona of zonas(); track zona.id) {
+                  <option [value]="zona.id">{{ zona.nombre }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <!-- Dirección -->
+          <div class="form-group">
+            <label for="direccion" class="form-label">
+              <i class="bi bi-house"></i>
+              Dirección
+            </label>
+            <input
+              type="text"
+              class="form-input"
+              id="direccion"
+              [(ngModel)]="formulario.direccion"
+              name="direccion"
+              placeholder="Ej: Calle Principal #123"
+            >
+          </div>
+
+          <div class="form-row">
+            <!-- Teléfono -->
+            <div class="form-group">
+              <label for="telefono" class="form-label">
+                <i class="bi bi-telephone"></i>
+                Teléfono
+              </label>
+              <input
+                type="tel"
+                class="form-input"
+                id="telefono"
+                [(ngModel)]="formulario.telefono"
+                name="telefono"
+                placeholder="Ej: 555-0101"
+              >
+            </div>
+
+            <!-- Cuenta Bancaria -->
+            <div class="form-group">
+              <label for="cuentaBancaria" class="form-label">
+                <i class="bi bi-bank"></i>
+                Cuenta Bancaria
+              </label>
+              <input
+                type="text"
+                class="form-input"
+                id="cuentaBancaria"
+                [(ngModel)]="formulario.cuentaBancaria"
+                name="cuentaBancaria"
+                placeholder="Ej: 1234567890"
+              >
+            </div>
+          </div>
+
+          <div class="form-row">
+            <!-- Llave -->
+            <div class="form-group">
+              <label for="llave" class="form-label">
+                <i class="bi bi-key"></i>
+                Llave
+              </label>
+              <input
+                type="text"
+                class="form-input"
+                id="llave"
+                [(ngModel)]="formulario.llave"
+                name="llave"
+                placeholder="Código de referencia"
+              >
+            </div>
+
+            <!-- Estado -->
+            <div class="form-group">
+              <label for="estado" class="form-label">
+                <i class="bi bi-toggle-on"></i>
+                Estado
+              </label>
+              <select
+                class="form-input"
+                id="estado"
+                [(ngModel)]="formulario.estado"
+                name="estado"
+              >
+                <option value="activo">Activo</option>
+                <option value="inactivo">Inactivo</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Botones de acción modernos -->
+          <div class="form-actions">
+            <button
+              type="button"
+              class="btn-cancel"
+              (click)="cancelarFormulario()"
+              [disabled]="cargando()"
+            >
+              <i class="bi bi-x-lg"></i>
+              <span>Cancelar</span>
+            </button>
+            <button
+              type="submit"
+              class="btn-save"
+              [disabled]="cargando()"
+            >
+              @if (cargando()) {
+                <span class="spinner"></span>
+                <span>Guardando...</span>
+              } @else {
+                <i class="bi bi-check2"></i>
+                <span>Guardar Cliente</span>
+              }
+            </button>
+          </div>
+        </form>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Lista de clientes mobile-first -->
+  <div class="clientes-list">
+    @if (cargando() && clientes().length === 0) {
+      <div class="loading-state">
+        <div class="spinner-modern"></div>
+        <p>Cargando clientes...</p>
+      </div>
+    } @else if (clientesFiltrados().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">
+          <i class="bi bi-inbox"></i>
+        </div>
+        <h3>{{ terminoBusqueda() ? 'Sin resultados' : 'No hay clientes' }}</h3>
+        <p>
+          {{ terminoBusqueda() ? 'Intenta con otros términos de búsqueda' : 'Comienza agregando tu primer cliente' }}
+        </p>
+        @if (!terminoBusqueda()) {
+          <button class="btn-empty-action" (click)="nuevoCliente()">
+            <i class="bi bi-plus-lg"></i>
+            Agregar Cliente
+          </button>
+        }
+      </div>
+    } @else {
+      <!-- Vista de cards para móvil -->
+      <div class="clientes-grid">
+        @for (cliente of clientesFiltrados(); track cliente.id) {
+          <div class="cliente-card">
+            <div class="card-header-info">
+              <div class="avatar">
+                <i class="bi bi-person-circle"></i>
+              </div>
+              <div class="client-info">
+                @if (cliente.alias) {
+                  <p class="client-alias">
+                    <i class="bi bi-tag-fill"></i>
+                    "{{ cliente.alias }}"
+                  </p>
+                }
+                <h3 class="client-name">{{ cliente.nombre }}</h3>
+                <div class="client-badges">
+                  <span class="badge badge-{{ cliente.estado }}">
+                    <i class="bi bi-circle-fill"></i>
+                    {{ cliente.estado === 'activo' ? 'Activo' : 'Inactivo' }}
+                  </span>
+                  <span class="badge badge-zone">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    {{ getNombreZona(cliente.zonaId) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="card-details">
+              <div class="detail-item">
+                <i class="bi bi-card-text"></i>
+                <span>{{ cliente.identificacion }}</span>
+              </div>
+              @if (cliente.telefono) {
+                <div class="detail-item">
+                  <i class="bi bi-telephone"></i>
+                  <a href="tel:{{ cliente.telefono }}">{{ cliente.telefono }}</a>
+                </div>
+              }
+              @if (cliente.direccion) {
+                <div class="detail-item">
+                  <i class="bi bi-house"></i>
+                  <span>{{ cliente.direccion }}</span>
+                </div>
+              }
+            </div>
+
+            <div class="card-actions">
+              <button
+                class="btn-action btn-view"
+                (click)="nuevoPrestamoCliente(cliente)"
+                [disabled]="cargando()"
+                title="Ver préstamos del cliente"
+              >
+                <i class="bi bi-cash-coin"></i>
+                <span>Préstamos</span>
+              </button>
+              <button
+                class="btn-action btn-edit"
+                (click)="editarCliente(cliente)"
+                [disabled]="cargando()"
+                title="Editar cliente"
+              >
+                <i class="bi bi-pencil"></i>
+                <span>Editar</span>
+              </button>
+              <button
+                class="btn-action btn-delete"
+                (click)="eliminarCliente(cliente)"
+                [disabled]="cargando()"
+                title="Eliminar cliente"
+              >
+                <i class="bi bi-trash"></i>
+                <span>Eliminar</span>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

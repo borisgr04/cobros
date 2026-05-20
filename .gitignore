@@ -8,9 +8,9 @@ obj/
 appsettings.Development.json
 
 # ── Angular ───────────────────────────────────────────────────────────────────
-cobrosv2/node_modules/
-cobrosv2/dist/
-cobrosv2/.angular/
+cobros-iu/node_modules/
+cobros-iu/dist/
+cobros-iu/.angular/
 
 # ── Secretos ──────────────────────────────────────────────────────────────────
 *.env

@@ -1,0 +1,41 @@
+/* ============================================
+   MAIN CONTENT AREA
+============================================ */
+.main-content {
+  transition: margin-left 300ms ease;
+  min-height: 100vh;
+}
+
+.main-content.sidebar-collapsed {
+  margin-left: 70px;
+}
+
+.main-content.sidebar-expanded {
+  margin-left: 220px;
+}
+
+/* ============================================
+   RESPONSIVE BEHAVIOR
+============================================ */
+
+/* Mobile: no sidebar margin, add bottom padding for bottom nav */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0 !important;
+    padding-bottom: 80px; /* Space for bottom navigation */
+  }
+}
+
+/* Tablet: collapsed by default */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .main-content {
+    margin-left: 70px;
+  }
+}
+
+/* Desktop: expanded by default */
+@media (min-width: 1025px) {
+  .main-content {
+    margin-left: 220px;
+  }
+}

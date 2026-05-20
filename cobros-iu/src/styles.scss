@@ -1,0 +1,144 @@
+/* Global Styles - Mobile First Design - Paleta Oscura Elegante */
+
+/* Variables de color - Negros y grises con acentos de color */
+:root {
+  /* Paleta principal - Negros y grises oscuros */
+  --color-dark-primary: #0D0D0D;      /* Negro profundo */
+  --color-dark-secondary: #1A1A1A;    /* Negro carbón */
+  --color-medium: #2D2D2D;            /* Gris oscuro */
+  --color-accent: #3D5AFE;            /* Azul eléctrico (acento) */
+  --color-light: #4A4A4A;             /* Gris medio */
+  --color-background: #F5F5F5;        /* Gris muy claro para fondo */
+  --color-white: #FFFFFF;
+  
+  /* Colores funcionales */
+  --color-success: #00E676;           /* Verde neón */
+  --color-danger: #FF5252;            /* Rojo vibrante */
+  --color-warning: #FFC107;           /* Amarillo dorado */
+  --color-info: #3D5AFE;              /* Azul eléctrico */
+  
+  /* Sombras con negros */
+  --shadow-sm: 0 1px 2px 0 rgba(13, 13, 13, 0.15);
+  --shadow-md: 0 4px 6px -1px rgba(13, 13, 13, 0.2), 0 2px 4px -1px rgba(13, 13, 13, 0.15);
+  --shadow-lg: 0 10px 15px -3px rgba(13, 13, 13, 0.25), 0 4px 6px -2px rgba(13, 13, 13, 0.15);
+  --shadow-xl: 0 20px 25px -5px rgba(13, 13, 13, 0.3), 0 10px 10px -5px rgba(13, 13, 13, 0.2);
+  
+  /* Alias para compatibilidad con componentes de navegación */
+  --bg-primary: var(--color-medium);
+  --bg-secondary: var(--color-background);
+  --bg-card: var(--color-white);
+  --bg-hover: rgba(0, 0, 0, 0.05);
+  --text-primary: var(--color-dark-primary);
+  --text-secondary: var(--color-light);
+  --text-light: var(--color-white);
+}
+
+/* Reset y base */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.6;
+  color: var(--color-dark-primary);
+  background: var(--color-background);
+  overflow-x: hidden;
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-light);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-medium);
+  border-radius: 4px;
+
+  &:hover {
+    background: var(--color-dark-secondary);
+  }
+}
+
+/* Animaciones globales */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Utilidades */
+.container-fluid {
+  width: 100%;
+  padding-right: 1rem;
+  padding-left: 1rem;
+  margin-right: auto;
+  margin-left: auto;
+
+  @media (min-width: 768px) {
+    padding-right: 1.5rem;
+    padding-left: 1.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    max-width: 1280px;
+  }
+}
+
+/* Mejoras de accesibilidad */
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Optimizaciones de rendimiento */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Transiciones suaves */
+* {
+  transition-duration: 0.15s;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+

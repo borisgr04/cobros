@@ -1,0 +1,11 @@
+<!-- Sidebar Navigation (Desktop/Tablet) -->
+<app-sidebar-navigation />
+
+<!-- Main Content Area -->
+<main class="main-content" [class.sidebar-collapsed]="sidebarState() === 'collapsed'" [class.sidebar-expanded]="sidebarState() === 'expanded'">
+  <router-outlet />
+</main>
+
+<!-- Bottom Navigation (Mobile) -->
+<app-bottom-navigation />
+

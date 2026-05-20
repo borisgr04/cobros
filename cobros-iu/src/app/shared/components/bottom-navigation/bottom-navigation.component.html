@@ -1,0 +1,15 @@
+<nav class="bottom-nav">
+  <div class="bottom-nav-container">
+    @for (item of navItems; track item.path) {
+      <a 
+        [routerLink]="item.path" 
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: item.path === '/' }"
+        class="bottom-nav-item"
+        [attr.aria-label]="item.label">
+        <i class="bi" [ngClass]="item.icon"></i>
+        <span>{{ item.label }}</span>
+      </a>
+    }
+  </div>
+</nav>

@@ -1,0 +1,324 @@
+<div class="prestamos-container">
+  <!-- HEADER -->
+  <div class="prestamos-header">
+    <div class="header-content">
+      <div class="header-title">
+        <div class="icon-wrapper">
+          <i class="bi bi-cash-coin"></i>
+        </div>
+        <div>
+          <h1 class="title">Gestión de Préstamos</h1>
+          <p class="subtitle">Sistema de control de créditos y cobros</p>
+        </div>
+      </div>
+
+      <div class="header-stats">
+        <div class="stat-card">
+          <span class="stat-label">Activos</span>
+          <span class="stat-value">{{ estadisticas().totalActivos }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Prestado</span>
+          <span class="stat-value">{{ formatCurrency(estadisticas().totalPrestado) }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Por Cobrar</span>
+          <span class="stat-value">{{ formatCurrency(estadisticas().totalPorCobrar) }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Vencidos</span>
+          <span class="stat-value danger">{{ estadisticas().totalVencidos }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALERTAS -->
+  @if (mostrarAlerta()) {
+    <div class="alert-modern" [ngClass]="'alert-' + tipoAlerta()" role="alert">
+      <span class="alert-icon">
+        @if (tipoAlerta() === 'success') {
+          <i class="bi bi-check-circle-fill"></i>
+        } @else {
+          <i class="bi bi-exclamation-triangle-fill"></i>
+        }
+      </span>
+      <div class="alert-content">
+        <p class="alert-message">{{ mensajeAlerta() }}</p>
+      </div>
+      <button class="alert-close" (click)="cerrarAlerta()" aria-label="Cerrar">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+  }
+
+  <!-- FILTROS Y BÚSQUEDA -->
+  <div class="filters-section">
+    <!-- Búsqueda -->
+    <div class="search-wrapper">
+      <span class="search-icon"><i class="bi bi-search"></i></span>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Buscar por cliente o ID de préstamo..."
+        [value]="busqueda()"
+        (input)="busqueda.set($any($event.target).value)"
+      />
+      @if (busqueda()) {
+        <button class="clear-search" (click)="limpiarBusqueda()" aria-label="Limpiar búsqueda">
+          <i class="bi bi-x-circle-fill"></i>
+        </button>
+      }
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters-row">
+      <div class="filter-group">
+        <label class="filter-label">Estado:</label>
+        <select class="filter-select" [value]="filtroEstado()" (change)="filtroEstado.set($any($event.target).value)">
+          <option value="todos">Todos</option>
+          <option value="activo">Activos</option>
+          <option value="completado">Completados</option>
+          <option value="vencido">Vencidos</option>
+          <option value="mora">En Mora</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Frecuencia:</label>
+        <select class="filter-select" [value]="filtroFrecuencia()" (change)="filtroFrecuencia.set($any($event.target).value)">
+          <option value="todas">Todas</option>
+          <option value="diario">Diario</option>
+          <option value="semanal">Semanal</option>
+          <option value="quincenal">Quincenal</option>
+          <option value="mensual">Mensual</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Cliente:</label>
+        <select class="filter-select" [value]="filtroClienteId()" (change)="filtroClienteId.set($any($event.target).value)">
+          <option value="">Todos</option>
+          @for (cliente of clientes(); track cliente.id) {
+            <option [value]="cliente.id">{{ cliente.nombre }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Zona:</label>
+        <select class="filter-select" [value]="filtroZonaId()" (change)="filtroZonaId.set($any($event.target).value)">
+          <option value="">Todas</option>
+          @for (zona of zonas(); track zona.id) {
+            <option [value]="zona.id">{{ zona.nombre }}</option>
+          }
+        </select>
+      </div>
+
+      <button class="btn-clear-filters" (click)="limpiarFiltros()" title="Limpiar filtros">
+        <i class="bi bi-funnel"></i> Limpiar
+      </button>
+    </div>
+  </div>
+
+  <!-- BOTÓN NUEVO PRÉSTAMO -->
+  <div class="action-bar">
+    <button class="btn-add-prestamo" [disabled]="cargando()">
+      <i class="bi bi-plus-circle"></i>
+      <span class="btn-text">Nuevo Préstamo</span>
+    </button>
+  </div>
+
+  <!-- LISTA DE PRÉSTAMOS -->
+  <div class="prestamos-list">
+    @if (cargando()) {
+      <!-- Estado de carga -->
+      <div class="loading-state">
+        <div class="spinner-modern"></div>
+        <p>Cargando préstamos...</p>
+      </div>
+    } @else if (prestamosFiltrados().length === 0) {
+      <!-- Estado vacío -->
+      <div class="empty-state">
+        <i class="bi bi-inbox empty-icon"></i>
+        <h3>No hay préstamos</h3>
+        <p>
+          @if (busqueda() || filtroEstado() !== 'todos' || filtroFrecuencia() !== 'todas') {
+            No se encontraron préstamos con los filtros aplicados.
+          } @else {
+            Comienza agregando un nuevo préstamo para tus clientes.
+          }
+        </p>
+        @if (!busqueda() && filtroEstado() === 'todos' && filtroFrecuencia() === 'todas') {
+          <button class="btn-empty-action">
+            <i class="bi bi-plus-circle"></i>
+            Crear Primer Préstamo
+          </button>
+        } @else {
+          <button class="btn-empty-action" (click)="limpiarFiltros()">
+            <i class="bi bi-funnel-fill"></i>
+            Limpiar Filtros
+          </button>
+        }
+      </div>
+    } @else {
+      <!-- Grid de préstamos -->
+      <div class="prestamos-grid">
+        @for (prestamo of prestamosFiltrados(); track prestamo.id) {
+          <div class="prestamo-card">
+            <!-- Header de la card -->
+            <div class="card-header-info">
+              <div class="avatar">
+                {{ (prestamo.cliente?.nombre || 'S')[0].toUpperCase() }}
+              </div>
+              <div class="client-info">
+                <h3 class="client-name" [title]="prestamo.cliente?.nombre">
+                  {{ prestamo.cliente?.nombre || 'Cliente Desconocido' }}
+                  @if (prestamo.cliente && prestamo.cliente.zonaId) {
+                    <span class="zona-text">({{ getNombreZona(prestamo.cliente.zonaId) }})</span>
+                  }
+                </h3>
+                <div class="prestamo-meta">
+                  <span class="prestamo-id">{{ prestamo.id }}</span>
+                  <span class="separator">•</span>
+                  <span class="fecha-prestamo">
+                    <i class="bi bi-calendar3"></i> {{ formatDate(prestamo.fechaPrestamo) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Información financiera -->
+            <div class="card-financial">
+              <div class="financial-item">
+                <i class="bi bi-wallet2"></i>
+                <span class="label">Prestado:</span>
+                <span class="value">{{ formatCurrency(prestamo.valorPrestado) }}</span>
+              </div>
+              <div class="financial-item primary">
+                <i class="bi bi-currency-dollar"></i>
+                <span class="label">Total:</span>
+                <span class="value">{{ formatCurrency(prestamo.valorTotal) }}</span>
+              </div>
+              <div class="financial-item">
+                <i class="bi bi-graph-up-arrow"></i>
+                <span class="label">Interés:</span>
+                <span class="value">{{ formatCurrency(prestamo.interesProyectado) }}</span>
+              </div>
+            </div>
+
+            <!-- Progreso -->
+            <div class="card-progress">
+              <div class="progress-header">
+                <span class="progress-label success">
+                  <i class="bi bi-check-circle-fill"></i>
+                  Pagado: {{ formatCurrency(prestamo.estadisticas?.totalPagado || 0) }}
+                  ({{ prestamo.estadisticas?.porcentajePagado || 0 }}%)
+                </span>
+              </div>
+
+              <div class="progress-bar-container">
+                <div class="progress-bar">
+                  <div
+                    class="progress-fill"
+                    [ngClass]="getProgressBarClass(prestamo.estadisticas?.porcentajePagado || 0)"
+                    [style.width.%]="prestamo.estadisticas?.porcentajePagado || 0"
+                  >
+                    <span class="progress-text">{{ prestamo.estadisticas?.porcentajePagado || 0 }}%</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="progress-footer">
+                <span class="progress-label pending">
+                  <i class="bi bi-clock-history"></i>
+                  Pendiente: {{ formatCurrency(prestamo.estadisticas?.totalPorCobrar || 0) }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Información de cuotas -->
+            <div class="card-cuotas">
+              <div class="cuota-item">
+                <i class="bi bi-arrow-repeat"></i>
+                <span>Frecuencia:</span>
+                <span class="badge-frecuencia" [ngClass]="'badge-' + prestamo.frecuenciaPago">
+                  {{ getTextoFrecuencia(prestamo.frecuenciaPago) }}
+                </span>
+              </div>
+              <div class="cuota-item">
+                <i class="bi bi-bullseye"></i>
+                <span>Valor cuota:</span>
+                <strong>{{ formatCurrency(prestamo.valorCuota) }}</strong>
+              </div>
+              <div class="cuota-item">
+                <i class="bi bi-list-ol"></i>
+                <span>Cuotas:</span>
+                <strong>{{ prestamo.estadisticas?.cuotasPagadas || 0 }} / {{ prestamo.cantidadCuotas }}</strong>
+              </div>
+              <div class="cuota-item">
+                <i class="bi bi-alarm"></i>
+                <span>Próxima cuota:</span>
+                @if (prestamo.estadisticas && prestamo.estadisticas.proximaCuotaFecha) {
+                  <strong>{{ formatDate(prestamo.estadisticas.proximaCuotaFecha) }}</strong>
+                } @else {
+                  <strong>-</strong>
+                }
+              </div>
+              <div class="cuota-item">
+                <i class="bi bi-hourglass-split"></i>
+                <span>Días restantes:</span>
+                <strong [style.color]="getDiasRestantesColor(prestamo.estadisticas?.diasRestantes || 0)">
+                  {{ prestamo.estadisticas?.diasRestantes || 0 }}
+                </strong>
+              </div>
+            </div>
+
+            <!-- Badges de estado -->
+            <div class="card-badges">
+              @switch (prestamo.estadisticas?.estado) {
+                @case ('activo') {
+                  <span class="badge badge-activo">
+                    <i class="bi bi-circle-fill"></i> Activo
+                  </span>
+                }
+                @case ('completado') {
+                  <span class="badge badge-completado">
+                    <i class="bi bi-circle-fill"></i> Completado
+                  </span>
+                }
+                @case ('vencido') {
+                  <span class="badge badge-vencido">
+                    <i class="bi bi-circle-fill"></i> Vencido
+                  </span>
+                }
+                @case ('mora') {
+                  <span class="badge badge-mora">
+                    <i class="bi bi-circle-fill"></i> En Mora
+                  </span>
+                }
+              }
+            </div>
+
+            <!-- Acciones -->
+            <div class="card-actions">
+              <button class="btn-action btn-details" title="Ver detalles">
+                <i class="bi bi-eye"></i>
+                <span>Ver Detalles</span>
+              </button>
+              @if (prestamo.estadisticas?.estado !== 'completado') {
+                <button class="btn-action btn-pay" title="Registrar pago">
+                  <i class="bi bi-cash-stack"></i>
+                  <span>Registrar Pago</span>
+                </button>
+              }
+              <button class="btn-action btn-menu" title="Más opciones">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

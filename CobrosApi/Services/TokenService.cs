@@ -19,7 +19,7 @@ public class TokenService(IConfiguration config)
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var expires = DateTime.UtcNow.AddMinutes(minutes);
 
-        var claims = new[]
+        var claims = new[] 
         {
             new Claim(JwtRegisteredClaimNames.Sub,   usuario.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, usuario.Email),

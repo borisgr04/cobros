@@ -1,0 +1,244 @@
+<!-- CONTENEDOR PRINCIPAL DEL DASHBOARD -->
+<div class="dashboard-container">
+
+  <!-- LOADING STATE -->
+  @if (cargando()) {
+    <div class="loading-state">
+      <i class="fas fa-spinner fa-spin"></i>
+      <p>Cargando dashboard...</p>
+    </div>
+  }
+
+  <!-- DASHBOARD CONTENT -->
+  @if (!cargando()) {
+    
+    <!-- HEADER -->
+    <div class="dashboard-header">
+      <h1>📊 Dashboard</h1>
+      <p class="subtitle">Resumen general del sistema de cobros</p>
+    </div>
+
+    <!-- SECCIÓN: KPIs PRINCIPALES -->
+    <section class="kpis-section">
+      @for (kpi of kpis(); track kpi.titulo) {
+        <div class="kpi-card" 
+             [class]="'kpi-' + $index" 
+             [class.clickable]="kpi.ruta"
+             (click)="kpi.ruta ? navegar(kpi.ruta) : null"
+             [title]="kpi.ruta ? 'Click para ir a ' + kpi.titulo : ''">
+          <div class="kpi-icon">
+            <i [class]="kpi.icono"></i>
+          </div>
+          <div class="kpi-content">
+            <h3 class="kpi-titulo">{{ kpi.titulo }}</h3>
+            <p class="kpi-valor">{{ formatearValor(kpi.valor, kpi.formato) }}</p>
+            
+            @if (kpi.variacion) {
+              <span class="kpi-variacion" [class]="getClaseVariacion(kpi.variacionTipo)">
+                {{ getIconoVariacion(kpi.variacionTipo) }} {{ kpi.variacion }}%
+              </span>
+            }
+            
+            @if (kpi.subtitulo) {
+              <span class="kpi-subtitulo">{{ kpi.subtitulo }}</span>
+            }
+          </div>
+        </div>
+      }
+    </section>
+
+    <!-- LAYOUT DE 2 COLUMNAS -->
+    <div class="dashboard-grid">
+
+      <!-- COLUMNA IZQUIERDA -->
+      <div class="columna-izquierda">
+
+        <!-- ALERTAS Y NOTIFICACIONES -->
+        <section class="alertas-section">
+          <!-- Header con acordeón para móvil -->
+          <button class="alertas-header mobile-accordion" (click)="toggleAlertas()">
+            <h2 class="section-title">
+              <i class="fas fa-exclamation-triangle"></i>
+              Alertas y Notificaciones
+              @if (alertasCriticas() > 0) {
+                <span class="badge-critico">{{ alertasCriticas() }}</span>
+              }
+            </h2>
+            <i class="fas" [class.fa-chevron-down]="!alertasExpanded()" [class.fa-chevron-up]="alertasExpanded()"></i>
+          </button>
+
+          <div class="alertas-container" [class.expanded]="alertasExpanded()">
+            @for (alerta of alertas(); track $index) {
+              <div class="alerta-item" [class]="'alerta-' + alerta.tipo">
+                <span class="alerta-icono">{{ alerta.icono }}</span>
+                <div class="alerta-content">
+                  <p class="alerta-mensaje">{{ alerta.mensaje }}</p>
+                  @if (alerta.link) {
+                    <a (click)="navegar(alerta.link)" class="alerta-link">
+                      Ver detalles →
+                    </a>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (alertas().length === 0) {
+              <div class="empty-state">
+                <i class="fas fa-check-circle"></i>
+                <p>No hay alertas pendientes</p>
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- ACCIONES RÁPIDAS -->
+        <section class="acciones-section">
+          <h2 class="section-title">
+            <i class="fas fa-bolt"></i>
+            Acciones Rápidas
+          </h2>
+
+          <div class="acciones-grid">
+            <button class="accion-btn primary" (click)="navegar('/prestamos')">
+              <i class="bi bi-cash-coin"></i>
+              <span>Ver Préstamos</span>
+            </button>
+
+            <button class="accion-btn primary" (click)="navegar('/clientes')">
+              <i class="bi bi-people-fill"></i>
+              <span>Ver Clientes</span>
+            </button>
+
+            <button class="accion-btn primary" (click)="navegar('/zonas')">
+              <i class="bi bi-geo-alt-fill"></i>
+              <span>Ver Zonas</span>
+            </button>
+
+            <button class="accion-btn secondary" disabled title="Próximamente">
+              <i class="bi bi-file-earmark-bar-graph"></i>
+              <span>Reportes</span>
+            </button>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- COLUMNA DERECHA -->
+      <div class="columna-derecha">
+
+        <!-- RESUMEN POR ZONA -->
+        <section class="zonas-section">
+          <h2 class="section-title">
+            <i class="fas fa-map-marked-alt"></i>
+            Resumen por Zona
+          </h2>
+
+          <div class="tabla-zonas">
+            <table>
+              <thead>
+                <tr>
+                  <th>Zona</th>
+                  <th class="text-center">Clientes</th>
+                  <th class="text-center">Préstamos</th>
+                  <th class="text-right">Cartera</th>
+                  <th class="text-center">Estado</th>
+                  <th class="text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (zona of resumenZonas(); track zona.zona) {
+                  <tr>
+                    <td class="zona-nombre">{{ zona.zona }}</td>
+                    <td class="text-center">{{ zona.clientes }}</td>
+                    <td class="text-center">{{ zona.prestamos }}</td>
+                    <td class="zona-cartera text-right">
+                      ${{ zona.cartera.toLocaleString('es-CO') }}
+                    </td>
+                    <td class="text-center">
+                      <span class="badge-estado" [class]="getClaseEstadoZona(zona.estado)">
+                        {{ zona.estado }}
+                      </span>
+                    </td>
+                    <td class="text-center">
+                      <button 
+                        class="btn-ver-prestamos"
+                        (click)="verPrestamosZona(zona)"
+                        [disabled]="zona.prestamos === 0"
+                        title="Ver préstamos de {{ zona.zona }}">
+                        <i class="bi bi-eye-fill"></i>
+                        Ver Préstamos
+                      </button>
+                    </td>
+                  </tr>
+                }
+
+                @if (resumenZonas().length === 0) {
+                  <tr>
+                    <td colspan="6" class="empty-row">
+                      <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>No hay zonas configuradas</p>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+              @if (resumenZonas().length > 0) {
+                <tfoot>
+                  <tr class="total-row">
+                    <td><strong>TOTAL</strong></td>
+                    <td class="text-center">
+                      <strong>{{ totalesZonas().clientes }}</strong>
+                    </td>
+                    <td class="text-center">
+                      <strong>{{ totalesZonas().prestamos }}</strong>
+                    </td>
+                    <td class="zona-cartera text-right">
+                      <strong>${{ totalesZonas().cartera.toLocaleString('es-CO') }}</strong>
+                    </td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              }
+            </table>
+          </div>
+        </section>
+
+        <!-- ACTIVIDAD RECIENTE -->
+        <section class="actividad-section">
+          <h2 class="section-title">
+            <i class="fas fa-history"></i>
+            Actividad Reciente
+          </h2>
+
+          <div class="actividad-lista">
+            @for (actividad of actividadReciente(); track $index) {
+              <div class="actividad-item">
+                <div class="actividad-hora">
+                  🕐 {{ formatearFecha(actividad.hora) }} {{ formatearHora(actividad.hora) }}
+                </div>
+                <div class="actividad-content">
+                  <div class="actividad-icono">{{ actividad.icono }}</div>
+                  <div class="actividad-info">
+                    <p class="actividad-descripcion">{{ actividad.descripcion }}</p>
+                    <p class="actividad-detalles">{{ actividad.detalles }}</p>
+                  </div>
+                </div>
+              </div>
+            }
+
+            @if (actividadReciente().length === 0) {
+              <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <p>No hay actividad reciente</p>
+              </div>
+            }
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+  }
+</div>
