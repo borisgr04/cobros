@@ -18,4 +18,7 @@ public class Usuario
     public DateTime CreadoEn { get; set; } = DateTime.UtcNow;
 
     public DateTime UltimoAcceso { get; set; } = DateTime.UtcNow;
+
+    /// <summary>Solo los usuarios autorizados explícitamente pueden iniciar sesión.</summary>
+    public bool Autorizado { get; set; } = false;
 }

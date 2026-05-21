@@ -22,4 +22,25 @@
       </a>
     }
   </nav>
+
+  <!-- Usuario + Logout -->
+  <div class="sidebar-footer">
+    @if (user()) {
+      <div class="user-card">
+        @if (user()!.fotoUrl) {
+          <img [src]="user()!.fotoUrl" [alt]="user()!.nombre" class="user-avatar" referrerpolicy="no-referrer">
+        } @else {
+          <div class="user-avatar-fallback"><i class="bi bi-person-fill"></i></div>
+        }
+        <div class="user-info">
+          <span class="user-name">{{ user()!.nombre }}</span>
+          <span class="user-email">{{ user()!.email }}</span>
+        </div>
+      </div>
+    }
+    <button class="logout-btn" (click)="logout()" type="button" title="Cerrar sesión" aria-label="Cerrar sesión">
+      <i class="bi bi-box-arrow-right"></i>
+      <span class="nav-label">Cerrar sesión</span>
+    </button>
+  </div>
 </aside>

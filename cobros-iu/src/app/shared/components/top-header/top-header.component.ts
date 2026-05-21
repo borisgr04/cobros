@@ -1,5 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../../features/auth/services/auth.service';
 
 @Component({
   selector: 'app-top-header',
@@ -10,7 +11,12 @@ import { CommonModule } from '@angular/common';
 })
 export class TopHeaderComponent {
   @Input() title: string = '';
-  
-  // Contador de notificaciones (en una app real vendría de un servicio)
-  notificationCount = 3;
+  notificationCount = 0;
+
+  auth = inject(AuthService);
+  user = this.auth.currentUser;
+
+  logout(): void {
+    this.auth.logout();
+  }
 }

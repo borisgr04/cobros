@@ -2,19 +2,23 @@
   <h1 class="header-title">{{ title }}</h1>
   
   <div class="user-actions">
-    <button class="icon-button" type="button" aria-label="Notificaciones">
-      <i class="bi bi-bell"></i>
-      @if (notificationCount > 0) {
-        <span class="badge">{{ notificationCount }}</span>
-      }
-    </button>
-    
-    <button class="icon-button" type="button" aria-label="Configuración">
-      <i class="bi bi-gear"></i>
-    </button>
-    
-    <button class="icon-button" type="button" aria-label="Usuario">
-      <i class="bi bi-person-circle"></i>
+    <!-- Info del usuario autenticado -->
+    @if (user()) {
+      <div class="user-info">
+        @if (user()!.fotoUrl) {
+          <img [src]="user()!.fotoUrl" [alt]="user()!.nombre" class="user-avatar" referrerpolicy="no-referrer">
+        } @else {
+          <div class="user-avatar-fallback">
+            <i class="bi bi-person-fill"></i>
+          </div>
+        }
+        <span class="user-name">{{ user()!.nombre }}</span>
+      </div>
+    }
+
+    <!-- Botón cerrar sesión -->
+    <button class="icon-button logout-btn" type="button" (click)="logout()" aria-label="Cerrar sesión" title="Cerrar sesión">
+      <i class="bi bi-box-arrow-right"></i>
     </button>
   </div>
 </header>

@@ -12,34 +12,51 @@
 
     <!-- Error -->
     @if (error()) {
-      <div class="alert alert-danger d-flex align-items-center gap-2 mb-3" role="alert">
-        <i class="bi bi-exclamation-triangle-fill"></i>
+      <div class="alert-error" role="alert">
+        <i class="bi bi-exclamation-circle-fill"></i>
         <span>{{ error() }}</span>
       </div>
     }
 
-    <!-- Botón dev login -->
-    @if (isDevMode) {
-      <div class="dev-badge">
-        <i class="bi bi-code-slash"></i> Modo Desarrollo
-      </div>
-      <button
-        class="btn btn-primary w-100 login-btn"
-        [disabled]="loading()"
-        (click)="entrarComoDev()">
-        @if (loading()) {
-          <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-          Conectando...
-        } @else {
-          <i class="bi bi-box-arrow-in-right me-2"></i>
-          Entrar como desarrollador
-        }
-      </button>
-    }
-
     <!-- Botón Google -->
     @if (showGoogleLogin) {
-      <div id="googleBtnDiv" class="mb-2 d-flex justify-content-center"></div>
+      <div class="google-section">
+        <p class="login-hint">Inicia sesión con tu cuenta de Google</p>
+        <div id="googleBtnDiv" class="google-btn-container"></div>
+        @if (loading()) {
+          <div class="loading-overlay">
+            <span class="spinner-border spinner-border-sm" role="status"></span>
+            <span>Autenticando...</span>
+          </div>
+        }
+      </div>
     }
+
+    <!-- Separador -->
+    @if (showGoogleLogin && isDevMode) {
+      <div class="divider"><span>o</span></div>
+    }
+
+    <!-- Botón dev login -->
+    @if (isDevMode) {
+      <div class="dev-section">
+        <div class="dev-badge">
+          <i class="bi bi-code-slash"></i> Modo Desarrollo
+        </div>
+        <button
+          class="btn btn-primary w-100 login-btn"
+          [disabled]="loading()"
+          (click)="entrarComoDev()">
+          @if (loading()) {
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+            Conectando...
+          } @else {
+            <i class="bi bi-box-arrow-in-right me-2"></i>
+            Entrar como desarrollador
+          }
+        </button>
+      </div>
+    }
+
   </div>
 </div>

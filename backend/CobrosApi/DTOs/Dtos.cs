@@ -144,6 +144,24 @@ public class CuotaDto
     public string Estado { get; set; } = "pendiente"; // "pagada" | "pendiente"
 }
 
+// ─── USUARIOS (admin) ──────────────────────────────────────────────────────
+
+public class UsuarioDto
+{
+    public int Id { get; set; }
+    public string Email { get; set; } = string.Empty;
+    public string? Nombre { get; set; }
+    public string? FotoUrl { get; set; }
+    public bool Autorizado { get; set; }
+    public DateTime CreadoEn { get; set; }
+    public DateTime UltimoAcceso { get; set; }
+}
+
+public class ActualizarAutorizacionDto
+{
+    public bool Autorizado { get; set; }
+}
+
 // ─── AUTH ──────────────────────────────────────────────────────────────────
 
 public class GoogleAuthRequestDto

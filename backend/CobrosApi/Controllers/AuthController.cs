@@ -37,7 +37,8 @@ public class AuthController(CobrosDbContext db, TokenService tokenService, IConf
                 Email         = request.Email,
                 Nombre        = request.Nombre ?? request.Email,
                 CreadoEn      = DateTime.UtcNow,
-                UltimoAcceso  = DateTime.UtcNow
+                UltimoAcceso  = DateTime.UtcNow,
+                Autorizado    = true   // dev login siempre autorizado
             };
             db.Usuarios.Add(usuario);
         }
@@ -90,24 +91,28 @@ public class AuthController(CobrosDbContext db, TokenService tokenService, IConf
         var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Email == payload.Email);
         if (usuario is null)
         {
+            // El usuario no existe: lo registramos pero sin autorizar.
+            // Un admin debe autorizarlo manualmente en la BD.
             usuario = new Usuario
             {
                 Email = payload.Email,
                 Nombre = payload.Name,
                 FotoUrl = payload.Picture,
                 CreadoEn = DateTime.UtcNow,
-                UltimoAcceso = DateTime.UtcNow
+                UltimoAcceso = DateTime.UtcNow,
+                Autorizado = false
             };
             db.Usuarios.Add(usuario);
+            await db.SaveChangesAsync();
+            return Unauthorized(new ErrorDto { Error = "Tu cuenta no está autorizada. Contacta al administrador." });
         }
-        else
-        {
-            usuario.UltimoAcceso = DateTime.UtcNow;
-            if (!string.IsNullOrEmpty(payload.Name))
-                usuario.Nombre = payload.Name;
-            if (!string.IsNullOrEmpty(payload.Picture))
-                usuario.FotoUrl = payload.Picture;
-        }
+
+        if (!usuario.Autorizado)
+            return Unauthorized(new ErrorDto { Error = "Tu cuenta no está autorizada. Contacta al administrador." });
+
+        usuario.UltimoAcceso = DateTime.UtcNow;
+        if (!string.IsNullOrEmpty(payload.Name))   usuario.Nombre  = payload.Name;
+        if (!string.IsNullOrEmpty(payload.Picture)) usuario.FotoUrl = payload.Picture;
 
         await db.SaveChangesAsync();
 

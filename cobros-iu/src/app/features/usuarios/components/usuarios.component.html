@@ -1,0 +1,95 @@
+<app-top-header title="Gestión de Usuarios" />
+
+<div class="page-container">
+
+  @if (loading()) {
+    <div class="loading-state">
+      <span class="spinner-border" role="status"></span>
+      <span>Cargando usuarios...</span>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="alert-error" role="alert">
+      <i class="bi bi-exclamation-circle-fill"></i>
+      {{ error() }}
+    </div>
+  }
+
+  @if (!loading()) {
+    <div class="table-card">
+      <div class="table-header">
+        <h2 class="table-title">
+          <i class="bi bi-person-gear me-2"></i>Usuarios registrados
+        </h2>
+        <span class="badge-count">{{ usuarios().length }} usuarios</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Correo</th>
+              <th>Último acceso</th>
+              <th>Registrado</th>
+              <th class="text-center">Acceso</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (u of usuarios(); track u.id) {
+              <tr [class.authorized]="u.autorizado" [class.denied]="!u.autorizado">
+                <td class="user-cell">
+                  @if (u.fotoUrl) {
+                    <img [src]="u.fotoUrl" [alt]="u.nombre ?? u.email" class="user-avatar" referrerpolicy="no-referrer">
+                  } @else {
+                    <div class="user-avatar-fallback"><i class="bi bi-person-fill"></i></div>
+                  }
+                  <span class="user-name">{{ u.nombre ?? '—' }}</span>
+                </td>
+                <td class="email-cell">{{ u.email }}</td>
+                <td>{{ u.ultimoAcceso | date:'dd/MM/yy HH:mm' }}</td>
+                <td>{{ u.creadoEn | date:'dd/MM/yy' }}</td>
+                <td class="text-center action-cell">
+                  <button
+                    class="toggle-btn"
+                    [class.btn-authorize]="!u.autorizado"
+                    [class.btn-deny]="u.autorizado"
+                    [disabled]="saving() === u.id || deleting() === u.id"
+                    (click)="toggleAutorizacion(u)"
+                    [title]="u.autorizado ? 'Denegar acceso' : 'Autorizar acceso'">
+                    @if (saving() === u.id) {
+                      <span class="spinner-border spinner-border-sm"></span>
+                    } @else if (u.autorizado) {
+                      <i class="bi bi-shield-x"></i> Denegar
+                    } @else {
+                      <i class="bi bi-shield-check"></i> Autorizar
+                    }
+                  </button>
+                  <span class="status-badge" [class.badge-ok]="u.autorizado" [class.badge-denied]="!u.autorizado">
+                    {{ u.autorizado ? 'Autorizado' : 'Sin acceso' }}
+                  </span>
+                </td>
+                <td class="text-center">
+                  <button
+                    class="delete-btn"
+                    [disabled]="deleting() === u.id || saving() === u.id"
+                    (click)="eliminarUsuario(u)"
+                    title="Eliminar usuario">
+                    @if (deleting() === u.id) {
+                      <span class="spinner-border spinner-border-sm"></span>
+                    } @else {
+                      <i class="bi bi-trash3"></i>
+                    }
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+</div>
