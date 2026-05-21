@@ -1,4 +1,4 @@
-@if (!isPublicRoute()) {
+@if (showNav()) {
   <!-- Sidebar Navigation (Desktop/Tablet) -->
   <app-sidebar-navigation />
 }
@@ -6,13 +6,13 @@
 <!-- Main Content Area -->
 <main
   class="main-content"
-  [class.sidebar-collapsed]="!isPublicRoute() && sidebarState() === 'collapsed'"
-  [class.sidebar-expanded]="!isPublicRoute() && sidebarState() === 'expanded'"
-  [class.public-layout]="isPublicRoute()">
+  [class.sidebar-collapsed]="showNav() && sidebarState() === 'collapsed'"
+  [class.sidebar-expanded]="showNav() && sidebarState() === 'expanded'"
+  [class.public-layout]="!showNav()">
   <router-outlet />
 </main>
 
-@if (!isPublicRoute()) {
+@if (showNav()) {
   <!-- Bottom Navigation (Mobile) -->
   <app-bottom-navigation />
 }

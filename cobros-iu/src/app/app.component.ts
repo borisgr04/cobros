@@ -5,6 +5,7 @@ import { filter, map, startWith } from 'rxjs';
 import { SidebarNavigationComponent } from './shared/components/sidebar-navigation/sidebar-navigation.component';
 import { BottomNavigationComponent } from './shared/components/bottom-navigation/bottom-navigation.component';
 import { SidebarService } from './features/core/services/sidebar.service';
+import { AuthService } from './features/auth/services/auth.service';
 
 const PUBLIC_ROUTES = ['/consulta/'];
 
@@ -21,6 +22,7 @@ const PUBLIC_ROUTES = ['/consulta/'];
 export class AppComponent {
   private sidebarService = inject(SidebarService);
   private router = inject(Router);
+  private auth = inject(AuthService);
 
   title = 'cobros-app';
 
@@ -37,4 +39,6 @@ export class AppComponent {
   isPublicRoute = computed(() =>
     PUBLIC_ROUTES.some(p => (this.currentUrl() ?? '').startsWith(p))
   );
+
+  showNav = computed(() => this.auth.isAuthenticated() && !this.isPublicRoute());
 }
