@@ -7,8 +7,10 @@ import { AbstractClienteService } from '../../core/services/abstract-cliente.ser
 import {
   calcularEstadisticasPrestamo,
   generarProyeccionCuotas,
+  mapCuotasDesdeBackend,
   type EstadisticasPrestamo,
   type CuotaProyectada,
+  type CuotaDetalleDto,
   type EstadoPrestamo,
 } from '../utils/prestamo-calculations';
 
@@ -119,6 +121,13 @@ export class PrestamoService {
 
   generarProyeccion(prestamo: IPrestamo, pagos: IPago[]): CuotaProyectada[] {
     return generarProyeccionCuotas(prestamo, pagos);
+  }
+
+  /** Obtiene las cuotas con saldo del backend y las mapea a CuotaProyectada[] */
+  getCuotasDetalle(id: string): Observable<CuotaProyectada[]> {
+    return this.prestamoDataService.calcularCuotas(id).pipe(
+      map((cuotas: CuotaDetalleDto[]) => mapCuotasDesdeBackend(cuotas))
+    );
   }
 
   getEstadisticasGlobales(): Observable<{

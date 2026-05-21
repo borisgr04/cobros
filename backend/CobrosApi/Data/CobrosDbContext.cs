@@ -9,6 +9,8 @@ public class CobrosDbContext(DbContextOptions<CobrosDbContext> options) : DbCont
     public DbSet<Cliente> Clientes => Set<Cliente>();
     public DbSet<Prestamo> Prestamos => Set<Prestamo>();
     public DbSet<Pago> Pagos => Set<Pago>();
+    public DbSet<Cuota> Cuotas => Set<Cuota>();
+    public DbSet<AplicacionCuota> AplicacionesCuota => Set<AplicacionCuota>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -31,6 +33,16 @@ public class CobrosDbContext(DbContextOptions<CobrosDbContext> options) : DbCont
         // Índice en PrestamoId de Pago
         modelBuilder.Entity<Pago>()
             .HasIndex(p => p.PrestamoId);
+
+        // Índice en PrestamoId de Cuota
+        modelBuilder.Entity<Cuota>()
+            .HasIndex(c => c.PrestamoId);
+
+        // Índice en PagoId y CuotaId de AplicacionCuota
+        modelBuilder.Entity<AplicacionCuota>()
+            .HasIndex(a => a.PagoId);
+        modelBuilder.Entity<AplicacionCuota>()
+            .HasIndex(a => a.CuotaId);
 
         // Seed: Zonas
         modelBuilder.Entity<Zona>().HasData(

@@ -6,13 +6,26 @@ import type { FrecuenciaPago, IPrestamo, IPago } from '../../core/models';
 export type EstadoPrestamo = 'activo' | 'completado' | 'vencido' | 'mora';
 
 /**
+ * Interface que espeja el CuotaDetalleDto del backend
+ */
+export interface CuotaDetalleDto {
+  id: number;
+  numeroCuota: number;
+  fechaEsperada: string;
+  valorCuota: number;
+  saldoPagado: number;
+  estado: 'pendiente' | 'parcial' | 'pagada';
+}
+
+/**
  * Interface para cuota proyectada
  */
 export interface CuotaProyectada {
   numero: number;
   fechaEsperada: Date;
   valorEsperado: number;
-  estado: 'pagada' | 'pendiente';
+  estado: 'pagada' | 'parcial' | 'pendiente';
+  saldoPagado: number;
   fechaPago?: Date;
   valorPago?: number;
 }
@@ -208,6 +221,19 @@ export function determinarEstadoPrestamo(
 }
 
 /**
+ * Mapea CuotaDetalleDto[] del backend a CuotaProyectada[]
+ */
+export function mapCuotasDesdeBackend(cuotas: CuotaDetalleDto[]): CuotaProyectada[] {
+  return cuotas.map(c => ({
+    numero: c.numeroCuota,
+    fechaEsperada: new Date(c.fechaEsperada),
+    valorEsperado: c.valorCuota,
+    saldoPagado: c.saldoPagado,
+    estado: c.estado,
+  }));
+}
+
+/**
  * Genera la proyección completa de cuotas
  */
 export function generarProyeccionCuotas(
@@ -227,6 +253,7 @@ export function generarProyeccionCuotas(
       numero: i,
       fechaEsperada,
       valorEsperado: prestamo.valorCuota,
+      saldoPagado: pago ? prestamo.valorCuota : 0,
       estado: pago ? 'pagada' : 'pendiente',
       fechaPago: pago?.fechaPago,
       valorPago: pago?.valor,

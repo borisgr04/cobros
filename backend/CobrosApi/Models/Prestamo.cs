@@ -38,4 +38,5 @@ public class Prestamo
     public Cliente? Cliente { get; set; }
 
     public ICollection<Pago> Pagos { get; set; } = [];
+    public ICollection<Cuota> Cuotas { get; set; } = [];
 }

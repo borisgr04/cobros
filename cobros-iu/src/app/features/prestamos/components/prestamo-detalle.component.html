@@ -253,28 +253,22 @@
                   <table>
                     <thead>
                       <tr>
-                        <th>N°</th>
+                        <th>#</th>
                         <th>Fecha</th>
-                        <th>Valor Pagado</th>
-                        <th>Saldo</th>
-                        <th>Estado</th>
+                        <th>Valor Abonado</th>
+                        <th>Saldo Pendiente</th>
                       </tr>
                     </thead>
                     <tbody>
-                      @for (cuota of proyeccion(); track $index) {
-                        @if (cuota.estado === 'pagada') {
-                          <tr>
-                            <td><strong>{{ cuota.numero }}</strong></td>
-                            <td>{{ formatDate(cuota.fechaPago!) }}</td>
-                            <td class="monto">{{ formatCurrency(cuota.valorPago!) }}</td>
-                            <td class="monto">{{ formatCurrency(0) }}</td>
-                            <td>
-                              <span class="badge-pagado">
-                                <i class="bi bi-check-circle-fill"></i> Pagado
-                              </span>
-                            </td>
-                          </tr>
-                        }
+                      @for (pago of pagos(); track pago.id; let idx = $index) {
+                        <tr>
+                          <td><strong>{{ idx + 1 }}</strong></td>
+                          <td>{{ formatDate(pago.fechaPago) }}</td>
+                          <td class="monto">{{ formatCurrency(pago.valor) }}</td>
+                          <td class="monto">
+                            {{ formatCurrency(prestamo()!.valorTotal - calcularSaldoAcumulado(idx + 1)) }}
+                          </td>
+                        </tr>
                       }
                     </tbody>
                   </table>
@@ -298,28 +292,20 @@
                       <tr>
                         <th>N° Cuota</th>
                         <th>Fecha Esperada</th>
-                        <th>Valor Esperado</th>
-                        <th>Fecha Pago</th>
-                        <th>Valor Pagado</th>
+                        <th>Valor Cuota</th>
+                        <th>Saldo Pagado</th>
                         <th>Estado</th>
                       </tr>
                     </thead>
                     <tbody>
                       @for (cuota of proyeccion(); track $index) {
-                        <tr [class.fila-pagada]="cuota.estado === 'pagada'" [class.fila-pendiente]="cuota.estado === 'pendiente'">
+                        <tr [class.fila-pagada]="cuota.estado === 'pagada'" [class.fila-parcial]="cuota.estado === 'parcial'" [class.fila-pendiente]="cuota.estado === 'pendiente'">
                           <td><strong>{{ cuota.numero }}</strong></td>
                           <td>{{ formatDate(cuota.fechaEsperada) }}</td>
                           <td class="monto">{{ formatCurrency(cuota.valorEsperado) }}</td>
-                          <td>
-                            @if (cuota.estado === 'pagada') {
-                              {{ formatDate(cuota.fechaPago!) }}
-                            } @else {
-                              <span class="text-muted">—</span>
-                            }
-                          </td>
                           <td class="monto">
-                            @if (cuota.estado === 'pagada') {
-                              {{ formatCurrency(cuota.valorPago!) }}
+                            @if (cuota.saldoPagado > 0) {
+                              {{ formatCurrency(cuota.saldoPagado) }}
                             } @else {
                               <span class="text-muted">—</span>
                             }
@@ -328,6 +314,10 @@
                             @if (cuota.estado === 'pagada') {
                               <span class="badge-pagado">
                                 <i class="bi bi-check-circle-fill"></i> Pagado
+                              </span>
+                            } @else if (cuota.estado === 'parcial') {
+                              <span class="badge-parcial">
+                                <i class="bi bi-circle-half"></i> Parcial
                               </span>
                             } @else {
                               <span class="badge-pendiente">

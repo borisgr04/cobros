@@ -799,6 +799,14 @@
           }
         }
 
+        &.fila-parcial {
+          background: rgba(255, 243, 224, 0.4);
+
+          &:hover {
+            background: rgba(255, 243, 224, 0.6);
+          }
+        }
+
         &.fila-pendiente {
           &:hover {
             background: var(--bg-secondary);
@@ -839,6 +847,22 @@
   font-weight: 700;
   background: #FFF3E0;
   color: #F57C00;
+
+  i {
+    font-size: 0.625rem;
+  }
+}
+
+.badge-parcial {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #E3F2FD;
+  color: #1565C0;
 
   i {
     font-size: 0.625rem;

@@ -4,6 +4,8 @@ using CobrosApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace CobrosApi.Controllers;
 
@@ -83,9 +85,24 @@ public class PagosController(CobrosDbContext db) : ControllerBase
         if (!int.TryParse(input.PrestamoId, out int prestamoId))
             return BadRequest(new ErrorDto { Error = "PrestamoId inválido" });
 
-        var prestamoExiste = await db.Prestamos.AnyAsync(p => p.Id == prestamoId);
-        if (!prestamoExiste)
+        var prestamo = await db.Prestamos.AnyAsync(p => p.Id == prestamoId);
+        if (!prestamo)
             return BadRequest(new ErrorDto { Error = $"Préstamo {input.PrestamoId} no existe" });
+
+        // Cargar cuotas no completamente pagadas, ordenadas por NumeroCuota
+        var cuotas = await db.Cuotas
+            .Where(c => c.PrestamoId == prestamoId && c.SaldoPagado < c.ValorCuota)
+            .OrderBy(c => c.NumeroCuota)
+            .ToListAsync();
+
+        // Validar que el abono no supere el saldo pendiente total
+        var saldoPendiente = cuotas.Sum(c => c.ValorCuota - c.SaldoPagado);
+        if (cuotas.Count > 0 && input.Valor > saldoPendiente)
+            return BadRequest(new ErrorDto { Error = $"El abono (${input.Valor:N0}) supera el saldo pendiente (${saldoPendiente:N0})" });
+
+        using var tx = db.Database.IsInMemory()
+            ? null
+            : await db.Database.BeginTransactionAsync();
 
         var pago = new Pago
         {
@@ -94,7 +111,30 @@ public class PagosController(CobrosDbContext db) : ControllerBase
             FechaPago  = input.FechaPago
         };
         db.Pagos.Add(pago);
+        await db.SaveChangesAsync(); // necesitamos pago.Id para AplicacionCuota
+
+        // Distribuir el abono en cuotas pendientes/parciales
+        var restante = input.Valor;
+        foreach (var cuota in cuotas)
+        {
+            if (restante <= 0) break;
+
+            var espacio      = cuota.ValorCuota - cuota.SaldoPagado;
+            var valorAplicado = Math.Min(restante, espacio);
+
+            cuota.SaldoPagado += valorAplicado;
+            db.AplicacionesCuota.Add(new AplicacionCuota
+            {
+                PagoId        = pago.Id,
+                CuotaId       = cuota.Id,
+                ValorAplicado = valorAplicado
+            });
+
+            restante -= valorAplicado;
+        }
+
         await db.SaveChangesAsync();
+        if (tx is not null) await tx.CommitAsync();
 
         return CreatedAtAction(nameof(GetById), new { id = pago.Id }, ToDto(pago));
     }

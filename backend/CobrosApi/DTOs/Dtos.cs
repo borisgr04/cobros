@@ -225,3 +225,22 @@ public class TotalPagadoDto
     public string PrestamoId { get; set; } = string.Empty;
     public decimal TotalPagado { get; set; }
 }
+
+// ─── CUOTA ─────────────────────────────────────────────────────────────────
+
+public class CuotaDetalleDto
+{
+    public int Id { get; set; }
+    public int NumeroCuota { get; set; }
+    public DateTime FechaEsperada { get; set; }
+    public decimal ValorCuota { get; set; }
+    public decimal SaldoPagado { get; set; }
+    public string Estado { get; set; } = string.Empty; // "pendiente" | "parcial" | "pagada"
+}
+
+public class AplicacionCuotaDto
+{
+    public int CuotaId { get; set; }
+    public int NumeroCuota { get; set; }
+    public decimal ValorAplicado { get; set; }
+}

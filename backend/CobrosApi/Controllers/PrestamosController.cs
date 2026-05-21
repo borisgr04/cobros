@@ -77,20 +77,39 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
 
     // GET /api/prestamos/{id}/cuotas
     [HttpGet("{id:int}/cuotas")]
-    [ProducesResponseType(typeof(IEnumerable<CuotaDto>), 200)]
+    [ProducesResponseType(typeof(IEnumerable<CuotaDetalleDto>), 200)]
     [ProducesResponseType(typeof(ErrorDto), 404)]
     public async Task<IActionResult> GetCuotas(int id)
     {
+        var existeP = await db.Prestamos.AnyAsync(p => p.Id == id);
+        if (!existeP)
+            return NotFound(new ErrorDto { Error = $"Préstamo {id} no encontrado" });
+
+        // Leer de tabla Cuota si existen registros (prestamos nuevos)
+        var cuotasDb = await db.Cuotas
+            .AsNoTracking()
+            .Where(c => c.PrestamoId == id)
+            .OrderBy(c => c.NumeroCuota)
+            .ToListAsync();
+
+        if (cuotasDb.Count > 0)
+            return Ok(cuotasDb.Select(ToCuotaDetalleDto));
+
+        // Fallback: proyección calculada para préstamos anteriores al cambio
         var prestamo = await db.Prestamos
             .AsNoTracking()
             .Include(p => p.Pagos)
             .FirstOrDefaultAsync(p => p.Id == id);
 
-        if (prestamo is null)
-            return NotFound(new ErrorDto { Error = $"Préstamo {id} no encontrado" });
-
-        var cuotas = CalcularCuotas(prestamo);
-        return Ok(cuotas);
+        return Ok(CalcularCuotasFallback(prestamo!).Select(c => new CuotaDetalleDto
+        {
+            Id            = 0,
+            NumeroCuota   = c.NumeroCuota,
+            FechaEsperada = c.FechaEsperada,
+            ValorCuota    = c.ValorCuota,
+            SaldoPagado   = c.Estado == "pagada" ? c.ValorCuota : 0,
+            Estado        = c.Estado
+        }));
     }
 
     // POST /api/prestamos
@@ -122,6 +141,18 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
             ValorCuota        = input.ValorCuota
         };
         db.Prestamos.Add(prestamo);
+        await db.SaveChangesAsync();
+
+        // Generar registros Cuota para el préstamo recién creado
+        var cuotas = Enumerable.Range(1, prestamo.CantidadCuotas).Select(i => new Cuota
+        {
+            PrestamoId    = prestamo.Id,
+            NumeroCuota   = i,
+            FechaEsperada = CalcularFechaCuota(prestamo.FechaPrestamo, prestamo.FrecuenciaPago, i),
+            ValorCuota    = prestamo.ValorCuota,
+            SaldoPagado   = 0
+        });
+        db.Cuotas.AddRange(cuotas);
         await db.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetById), new { id = prestamo.Id }, ToDto(prestamo));
@@ -187,9 +218,22 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         return NoContent();
     }
 
-    // ─── Lógica de cálculo de cuotas ─────────────────────────────────────────
+    // ─── Helpers ──────────────────────────────────────────────────────────────
 
-    private static List<CuotaDto> CalcularCuotas(Prestamo prestamo)
+    private static CuotaDetalleDto ToCuotaDetalleDto(Cuota c) => new()
+    {
+        Id            = c.Id,
+        NumeroCuota   = c.NumeroCuota,
+        FechaEsperada = c.FechaEsperada,
+        ValorCuota    = c.ValorCuota,
+        SaldoPagado   = c.SaldoPagado,
+        Estado        = c.SaldoPagado >= c.ValorCuota ? "pagada"
+                      : c.SaldoPagado > 0             ? "parcial"
+                      :                                 "pendiente"
+    };
+
+    // Fallback para préstamos anteriores al cambio (sin registros en tabla Cuota)
+    private static List<CuotaDto> CalcularCuotasFallback(Prestamo prestamo)
     {
         var cuotas = new List<CuotaDto>();
         var totalPagado = prestamo.Pagos.Sum(p => p.Valor);
@@ -202,10 +246,10 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
 
             cuotas.Add(new CuotaDto
             {
-                NumeroCuota  = i,
+                NumeroCuota   = i,
                 FechaEsperada = fechaEsperada,
-                ValorCuota   = prestamo.ValorCuota,
-                Estado       = acumulado <= totalPagado ? "pagada" : "pendiente"
+                ValorCuota    = prestamo.ValorCuota,
+                Estado        = acumulado <= totalPagado ? "pagada" : "pendiente"
             });
         }
         return cuotas;

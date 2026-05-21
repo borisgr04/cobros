@@ -113,26 +113,28 @@ public class CalculosPrestamosTests(CobrosWebAppFactory factory)
     }
 
     [Fact]
-    public async Task Cuotas_PagoExcedente_TodasPagadas()
+    public async Task Cuotas_PagoExcedente_Retorna400()
     {
-        // Pago mayor al valorTotal → todas las cuotas deben ser "pagada"
+        // Pago mayor al saldo pendiente → debe rechazarse con 400
         _client.SetBearerToken();
         var zona     = await CrearZona();
         var cliente  = await CrearCliente(zona);
         var prestamo = await CrearPrestamo(cliente, 300, 300, 3, 100);
 
-        await RegistrarPago(prestamo, 9999);
+        var response = await _client.PostAsJsonAsync("/api/pagos", new
+        {
+            prestamoId = prestamo,
+            valor      = 9999,
+            fechaPago  = "2026-02-01"
+        });
 
-        var cuotas = await _client.GetFromJsonAsync<List<Dictionary<string, object>>>($"/api/prestamos/{prestamo}/cuotas");
-
-        Assert.NotNull(cuotas);
-        Assert.All(cuotas, c => Assert.Equal("pagada", c["estado"].ToString()));
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
-    public async Task Cuotas_PagoUnCentavoMenos_UltimaCuotaPendiente()
+    public async Task Cuotas_PagoUnCentavoMenos_UltimaCuotaParcial()
     {
-        // 2 cuotas de 100. Pago = 199.99 → acumulado 100 <= 199.99 (pagada), 200 > 199.99 (pendiente)
+        // 2 cuotas de 100. Pago = 199.99 → cuota 1 pagada (100), cuota 2 parcial (99.99)
         _client.SetBearerToken();
         var zona     = await CrearZona();
         var cliente  = await CrearCliente(zona);
@@ -142,8 +144,9 @@ public class CalculosPrestamosTests(CobrosWebAppFactory factory)
 
         var cuotas = await _client.GetFromJsonAsync<List<Dictionary<string, object>>>($"/api/prestamos/{prestamo}/cuotas");
 
-        Assert.Equal("pagada",    cuotas![0]["estado"].ToString());
-        Assert.Equal("pendiente", cuotas[1]["estado"].ToString());
+        Assert.Equal("pagada",  cuotas![0]["estado"].ToString());
+        Assert.Equal("parcial", cuotas[1]["estado"].ToString());
+        Assert.Equal("99.99",   cuotas[1]["saldoPagado"].ToString());
     }
 
     // ─── Fechas de cuotas por frecuencia ─────────────────────────────────────
@@ -289,5 +292,90 @@ public class CalculosPrestamosTests(CobrosWebAppFactory factory)
         Assert.NotNull(cuotas);
         for (int i = 0; i < cuotas.Count; i++)
             Assert.Equal((i + 1).ToString(), cuotas[i]["numeroCuota"].ToString());
+    }
+
+    // ─── Distribución de excedente en cuotas siguientes ──────────────────────
+
+    [Fact]
+    public async Task Pago_ExcedenteCuota_SeDistribuyeEnCuotasSiguientes()
+    {
+        // 3 cuotas de 20000. Pago de 55000 → cuota1:20000 (pagada), cuota2:20000 (pagada), cuota3:15000 (parcial)
+        _client.SetBearerToken();
+        var zona     = await CrearZona();
+        var cliente  = await CrearCliente(zona);
+        var prestamo = await CrearPrestamo(cliente, 60000, 60000, 3, 20000);
+
+        var response = await _client.PostAsJsonAsync("/api/pagos", new
+        {
+            prestamoId = prestamo,
+            valor      = 55000,
+            fechaPago  = "2026-02-01"
+        });
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+        var cuotas = await _client.GetFromJsonAsync<List<Dictionary<string, object>>>($"/api/prestamos/{prestamo}/cuotas");
+        Assert.NotNull(cuotas);
+        Assert.Equal("pagada",   cuotas[0]["estado"].ToString());
+        Assert.Equal("pagada",   cuotas[1]["estado"].ToString());
+        Assert.Equal("parcial",  cuotas[2]["estado"].ToString());
+        Assert.Equal("20000",    cuotas[0]["saldoPagado"].ToString());
+        Assert.Equal("20000",    cuotas[1]["saldoPagado"].ToString());
+        Assert.Equal("15000",    cuotas[2]["saldoPagado"].ToString());
+    }
+
+    [Fact]
+    public async Task Pago_AbonoDosVeces_AcumulaSaldoPagado()
+    {
+        // 3 cuotas de 100. Pago 1: 150 (cuota1 pagada, cuota2 parcial 50). Pago 2: 50 (cuota2 pagada)
+        _client.SetBearerToken();
+        var zona     = await CrearZona();
+        var cliente  = await CrearCliente(zona);
+        var prestamo = await CrearPrestamo(cliente, 300, 300, 3, 100);
+
+        await RegistrarPago(prestamo, 150, "2026-02-01");
+        await RegistrarPago(prestamo, 50,  "2026-02-15");
+
+        var cuotas = await _client.GetFromJsonAsync<List<Dictionary<string, object>>>($"/api/prestamos/{prestamo}/cuotas");
+        Assert.NotNull(cuotas);
+        Assert.Equal("pagada",   cuotas[0]["estado"].ToString());
+        Assert.Equal("pagada",   cuotas[1]["estado"].ToString());
+        Assert.Equal("pendiente", cuotas[2]["estado"].ToString());
+    }
+
+    [Fact]
+    public async Task Pago_AbonoPagarTodas_TodosEstadoPagada()
+    {
+        // 3 cuotas de 100. Pago exacto de 300 → todas pagadas
+        _client.SetBearerToken();
+        var zona     = await CrearZona();
+        var cliente  = await CrearCliente(zona);
+        var prestamo = await CrearPrestamo(cliente, 300, 300, 3, 100);
+
+        await RegistrarPago(prestamo, 300, "2026-02-01");
+
+        var cuotas = await _client.GetFromJsonAsync<List<Dictionary<string, object>>>($"/api/prestamos/{prestamo}/cuotas");
+        Assert.NotNull(cuotas);
+        Assert.All(cuotas, c => Assert.Equal("pagada", c["estado"].ToString()));
+    }
+
+    [Fact]
+    public async Task CrearPrestamo_GeneraCuotasEnTabla()
+    {
+        // Al crear prestamo, deben generarse N registros en tabla Cuota con SaldoPagado=0
+        _client.SetBearerToken();
+        var zona     = await CrearZona();
+        var cliente  = await CrearCliente(zona);
+        var prestamo = await CrearPrestamo(cliente, 500, 600, 6, 100);
+
+        var cuotas = await _client.GetFromJsonAsync<List<Dictionary<string, object>>>($"/api/prestamos/{prestamo}/cuotas");
+        Assert.NotNull(cuotas);
+        Assert.Equal(6, cuotas.Count);
+        Assert.All(cuotas, c =>
+        {
+            Assert.Equal("0", c["saldoPagado"].ToString());
+            Assert.Equal("pendiente", c["estado"].ToString());
+            Assert.NotEqual("0", c["id"].ToString()); // tiene Id real en DB
+        });
     }
 }

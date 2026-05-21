@@ -93,16 +93,23 @@ export class PrestamoDetalleComponent implements OnInit {
   }
 
   /**
-   * Carga la proyección de cuotas
+   * Carga la proyección de cuotas desde el backend
    */
   cargarProyeccion(): void {
-    const prestamo = this.prestamo();
-    const pagos = this.pagos();
-    if (!prestamo) return;
+    const id = this.prestamoId();
+    if (!id) return;
 
-    // generarProyeccion retorna un array directamente, no un Observable
-    const proyeccion = this.prestamoService.generarProyeccion(prestamo, pagos);
-    this.proyeccion.set(proyeccion);
+    this.prestamoService.getCuotasDetalle(id).subscribe({
+      next: (cuotas) => this.proyeccion.set(cuotas),
+      error: () => {
+        // Fallback: proyección local si el backend no responde
+        const prestamo = this.prestamo();
+        const pagos = this.pagos();
+        if (prestamo) {
+          this.proyeccion.set(this.prestamoService.generarProyeccion(prestamo, pagos));
+        }
+      }
+    });
   }
 
   /**
@@ -181,7 +188,12 @@ export class PrestamoDetalleComponent implements OnInit {
    * Obtiene el número total de pagos registrados
    */
   getTotalPagos(): number {
-    return this.proyeccion().filter(c => c.estado === 'pagada').length;
+    return this.pagos().length;
+  }
+
+  /** Suma los primeros N pagos para calcular el saldo acumulado pagado */
+  calcularSaldoAcumulado(n: number): number {
+    return this.pagos().slice(0, n).reduce((sum, p) => sum + p.valor, 0);
   }
 
   /**

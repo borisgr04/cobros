@@ -4,6 +4,7 @@ using CobrosApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -107,7 +108,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<CobrosDbContext>();
-    if (useInMemory)
+    if (db.Database.IsInMemory())
         db.Database.EnsureCreated();   // Crea schema + seed en InMemory
     else
         db.Database.Migrate();         // Aplica migraciones en PostgreSQL
