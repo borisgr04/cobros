@@ -34,20 +34,96 @@
                 <span class="spinner"></span>
                 Cargando clientes...
               </div>
-            } @else {
-              <select 
-                [(ngModel)]="clienteId" 
-                [ngModelOptions]="{updateOn: 'change'}"
-                [class.error]="errorCliente() && clienteId() === ''">
-                <option value="">Seleccione un cliente...</option>
-                @for (cliente of clientes(); track cliente.id) {
-                  <option [value]="cliente.id">
-                    {{ cliente.nombre }} ({{ cliente.identificacion }})
-                  </option>
-                }
-              </select>
+            } @else if (!mostrarFormNuevoCliente()) {
+              <div class="cliente-selector-row">
+                <select 
+                  [(ngModel)]="clienteId" 
+                  [ngModelOptions]="{updateOn: 'change'}"
+                  [class.error]="errorCliente() && clienteId() === ''">
+                  <option value="">Seleccione un cliente...</option>
+                  @for (cliente of clientes(); track cliente.id) {
+                    <option [value]="cliente.id">
+                      {{ cliente.nombre }} ({{ cliente.identificacion }})
+                    </option>
+                  }
+                </select>
+                <button type="button" class="btn-nuevo-cliente" (click)="abrirFormNuevoCliente()">
+                  <i class="bi bi-person-plus"></i>
+                  Nuevo
+                </button>
+              </div>
             }
-            @if (errorCliente() && clienteId() === '') {
+
+            @if (mostrarFormNuevoCliente()) {
+              <div class="form-nuevo-cliente">
+                <div class="form-nuevo-cliente__titulo">
+                  <i class="bi bi-person-plus-fill"></i>
+                  Nuevo cliente
+                </div>
+
+                <div class="campo-grupo">
+                  <div class="campo">
+                    <label>Nombre <span class="requerido">*</span></label>
+                    <input type="text" [(ngModel)]="nuevoNombre" [ngModelOptions]="{updateOn: 'change'}" placeholder="Nombre completo" />
+                  </div>
+                  <div class="campo">
+                    <label>Identificación <span class="requerido">*</span></label>
+                    <input type="text" [(ngModel)]="nuevoIdentificacion" [ngModelOptions]="{updateOn: 'change'}" placeholder="Cédula / NIT" />
+                  </div>
+                </div>
+
+                <div class="campo-grupo">
+                  <div class="campo">
+                    <label>Zona <span class="requerido">*</span></label>
+                    @if (zonas().length === 0) {
+                      <div class="form-nuevo-cliente__sin-zonas">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Sin zonas disponibles. Crea una zona primero.
+                      </div>
+                    } @else {
+                      <select [(ngModel)]="nuevoZonaId" [ngModelOptions]="{updateOn: 'change'}">
+                        <option value="">Seleccione una zona...</option>
+                        @for (zona of zonas(); track zona.id) {
+                          <option [value]="zona.id">{{ zona.nombre }}</option>
+                        }
+                      </select>
+                    }
+                  </div>
+                  <div class="campo">
+                    <label>Teléfono</label>
+                    <input type="text" [(ngModel)]="nuevoTelefono" [ngModelOptions]="{updateOn: 'change'}" placeholder="Opcional" />
+                  </div>
+                </div>
+
+                @if (errorNuevoCliente()) {
+                  <div class="form-nuevo-cliente__error">
+                    <i class="bi bi-exclamation-circle"></i>
+                    {{ errorNuevoCliente() }}
+                  </div>
+                }
+
+                <div class="form-nuevo-cliente__acciones">
+                  <button 
+                    type="button" 
+                    class="btn-guardar-cliente"
+                    [disabled]="guardandoCliente() || !nuevoNombre() || !nuevoIdentificacion() || !nuevoZonaId() || zonas().length === 0"
+                    (click)="guardarNuevoCliente()">
+                    @if (guardandoCliente()) {
+                      <span class="spinner-sm"></span>
+                      Guardando...
+                    } @else {
+                      <i class="bi bi-check-lg"></i>
+                      Guardar cliente
+                    }
+                  </button>
+                  <button type="button" class="btn-cancelar-cliente" (click)="cancelarFormNuevoCliente()">
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            }
+
+            @if (errorCliente() && clienteId() === '' && !mostrarFormNuevoCliente()) {
               <span class="mensaje-error">
                 <i class="bi bi-exclamation-circle"></i>
                 {{ errorCliente() }}

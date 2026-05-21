@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AbstractPrestamoService } from '../../../core/services/abstract-prestamo.service';
 import { AbstractClienteService } from '../../../core/services/abstract-cliente.service';
-import type { IPrestamo, ICliente, FrecuenciaPago } from '../../../core/models';
+import { AbstractZonaService } from '../../../core/services/abstract-zona.service';
+import type { IPrestamo, ICliente, IZona, FrecuenciaPago } from '../../../core/models';
 
 /**
  * Componente modal para registrar nuevos préstamos.
@@ -19,6 +20,7 @@ import type { IPrestamo, ICliente, FrecuenciaPago } from '../../../core/models';
 export class RegistroPrestamoModalComponent {
   private prestamoService = inject(AbstractPrestamoService);
   private clienteService = inject(AbstractClienteService);
+  private zonaService = inject(AbstractZonaService);
 
   // Outputs
   @Output() prestamoRegistrado = new EventEmitter<IPrestamo>();
@@ -35,6 +37,16 @@ export class RegistroPrestamoModalComponent {
   // Signals - Datos auxiliares
   clientes = signal<ICliente[]>([]);
   cargandoClientes = signal<boolean>(false);
+  zonas = signal<IZona[]>([]);
+
+  // Signals - Estado del mini-formulario de nuevo cliente
+  mostrarFormNuevoCliente = signal<boolean>(false);
+  nuevoNombre = signal<string>('');
+  nuevoIdentificacion = signal<string>('');
+  nuevoZonaId = signal<string>('');
+  nuevoTelefono = signal<string>('');
+  guardandoCliente = signal<boolean>(false);
+  errorNuevoCliente = signal<string>('');
 
   // Signals - Estado del modal
   visible = signal<boolean>(false);
@@ -252,6 +264,67 @@ export class RegistroPrestamoModalComponent {
   }
 
   /**
+   * Abre el mini-formulario inline para crear un nuevo cliente.
+   * Carga las zonas de forma lazy (solo cuando se necesita).
+   */
+  abrirFormNuevoCliente(): void {
+    this.errorNuevoCliente.set('');
+    this.nuevoNombre.set('');
+    this.nuevoIdentificacion.set('');
+    this.nuevoZonaId.set('');
+    this.nuevoTelefono.set('');
+    this.mostrarFormNuevoCliente.set(true);
+
+    if (this.zonas().length === 0) {
+      this.zonaService.getAll().subscribe({
+        next: (zonas) => this.zonas.set(zonas),
+        error: () => this.zonas.set([])
+      });
+    }
+  }
+
+  /**
+   * Cancela la creación del nuevo cliente y colapsa el formulario.
+   */
+  cancelarFormNuevoCliente(): void {
+    this.mostrarFormNuevoCliente.set(false);
+    this.errorNuevoCliente.set('');
+  }
+
+  /**
+   * Guarda el nuevo cliente via API, lo agrega al selector y lo auto-selecciona.
+   */
+  guardarNuevoCliente(): void {
+    if (!this.nuevoNombre() || !this.nuevoIdentificacion() || !this.nuevoZonaId()) return;
+
+    this.guardandoCliente.set(true);
+    this.errorNuevoCliente.set('');
+
+    const nuevoCliente: ICliente = {
+      id: '',
+      nombre: this.nuevoNombre().trim(),
+      identificacion: this.nuevoIdentificacion().trim(),
+      zonaId: this.nuevoZonaId(),
+      telefono: this.nuevoTelefono().trim() || undefined,
+      estado: 'activo'
+    } as ICliente;
+
+    this.clienteService.create(nuevoCliente).subscribe({
+      next: (clienteCreado) => {
+        this.clientes.update(list => [...list, clienteCreado]);
+        this.clienteId.set(clienteCreado.id);
+        this.mostrarFormNuevoCliente.set(false);
+        this.guardandoCliente.set(false);
+      },
+      error: (err) => {
+        const msg = err?.error?.error ?? err?.message ?? 'Error al crear cliente';
+        this.errorNuevoCliente.set(msg);
+        this.guardandoCliente.set(false);
+      }
+    });
+  }
+
+  /**
    * Cierra el modal y resetea el estado
    */
   cerrar(): void {
@@ -277,6 +350,8 @@ export class RegistroPrestamoModalComponent {
     this.valorTotal.set(0);
     this.frecuenciaPago.set('diario');
     this.error.set('');
+    this.mostrarFormNuevoCliente.set(false);
+    this.errorNuevoCliente.set('');
   }
 
   /**
