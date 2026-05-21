@@ -14,6 +14,7 @@
     <div class="state-center">
       <div class="spinner-ring"></div>
       <p>Cargando tu estado de cuenta…</p>
+      <p class="loading-hint">Si tarda más de lo normal, el servidor está iniciando. Esperá unos segundos.</p>
     </div>
   }
 
@@ -22,6 +23,9 @@
     <div class="state-center">
       <div class="error-icon"><i class="bi bi-exclamation-circle"></i></div>
       <p class="error-msg">{{ error() }}</p>
+      @if (error() !== 'Enlace inválido.' && error() !== 'No se encontró la consulta. Verificá el enlace.') {
+        <button class="btn-retry" (click)="cargar()">🔄 Reintentar</button>
+      }
     </div>
   }
 

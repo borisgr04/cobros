@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed, Output, EventEmitter, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { AbstractPagoService } from '../../../core/services/abstract-pago.service';
 import type { PrestamoConCliente } from '../../services/prestamo.service';
 import type { IPago } from '../../../core/models';
@@ -18,6 +19,7 @@ import type { IPago } from '../../../core/models';
 })
 export class RegistroPagoModalComponent {
   private pagoService = inject(AbstractPagoService);
+  private sanitizer = inject(DomSanitizer);
 
   // Outputs
   @Output() pagoRegistrado = new EventEmitter<IPago>();
@@ -81,7 +83,7 @@ export class RegistroPagoModalComponent {
   });
 
   // Computed: link de WhatsApp para notificar el pago
-  whatsappLink = computed((): string | null => {
+  whatsappLink = computed((): SafeUrl | null => {
     const p    = this.prestamo();
     const pago = this.pagoExitoso();
     if (!p || !pago || !p.cliente?.telefono) return null;
@@ -100,7 +102,8 @@ export class RegistroPagoModalComponent {
       : '';
 
     const msg = `✅ Hola ${nombre}, registramos tu pago de *${monto}* del ${fecha}.\nNuevo saldo: *${saldo}*.${linkConsulta}\n\n¡Gracias por tu puntualidad! 🙌`;
-    return `https://wa.me/${telefono}?text=${encodeURIComponent(msg)}`;
+    const url = `https://wa.me/${telefono}?text=${encodeURIComponent(msg)}`;
+    return this.sanitizer.bypassSecurityTrustUrl(url);
   });
 
   // Helper para usar Math en el template

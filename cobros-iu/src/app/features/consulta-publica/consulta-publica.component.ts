@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
+import { timeout, retry } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 interface PrestamoPublico {
@@ -36,7 +37,10 @@ export class ConsultaPublicaComponent implements OnInit {
   consulta  = signal<ConsultaPublica | null>(null);
   loading   = signal(true);
   error     = signal<string | null>(null);
+  retrying  = signal(false);
   fechaHoy  = new Date();
+
+  private llave = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -44,16 +48,28 @@ export class ConsultaPublicaComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const llave = this.route.snapshot.paramMap.get('llave');
-    if (!llave) { this.error.set('Enlace inválido.'); this.loading.set(false); return; }
+    this.llave = this.route.snapshot.paramMap.get('llave') ?? '';
+    if (!this.llave) { this.error.set('Enlace inválido.'); this.loading.set(false); return; }
+    this.cargar();
+  }
 
-    const url = `${environment.apiUrl}/api/consulta/${llave}`;
-    this.http.get<ConsultaPublica>(url).subscribe({
+  cargar(): void {
+    this.loading.set(true);
+    this.error.set(null);
+
+    const url = `${environment.apiUrl}/api/consulta/${this.llave}`;
+    this.http.get<ConsultaPublica>(url).pipe(
+      timeout(60000),
+      retry({ count: 2, delay: 3000 })
+    ).subscribe({
       next: (data) => { this.consulta.set(data); this.loading.set(false); },
       error: (err) => {
-        this.error.set(err.status === 404
-          ? 'No se encontró la consulta. Verificá el enlace.'
-          : 'Error al cargar la información. Intentá nuevamente.');
+        const msg = err.name === 'TimeoutError'
+          ? 'El servidor tardó demasiado en responder. Tocá "Reintentar".'
+          : err.status === 404
+            ? 'No se encontró la consulta. Verificá el enlace.'
+            : 'Error al cargar. Tocá "Reintentar".';
+        this.error.set(msg);
         this.loading.set(false);
       }
     });
