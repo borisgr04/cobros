@@ -680,23 +680,96 @@
 // ANIMACIONES
 // =============================================================================
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 @keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale(0.7); }
+  70%  { transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+// =============================================================================
+// PANTALLA DE ÉXITO + WHATSAPP
+// =============================================================================
+.pago-exitoso {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem 0 0.5rem;
+  text-align: center;
+  animation: slideDown 0.3s ease-out;
+}
+
+.pago-exitoso-icon {
+  font-size: 3.5rem;
+  color: #00C566;
+  animation: popIn 0.4s ease-out;
+  line-height: 1;
+}
+
+.pago-exitoso-titulo {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.pago-exitoso-detalle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.pago-exitoso-monto {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #00C566;
+}
+
+.pago-exitoso-saldo {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.btn-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #25D366;
+  color: white;
+  text-decoration: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.6rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  transition: all 0.2s ease;
+
+  i { font-size: 1.25rem; }
+
+  &:hover {
+    background: #1ebe5c;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(37, 211, 102, 0.4);
+    color: white;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+}
+
+.sin-telefono {
+  font-size: 0.82rem;
+  color: #999;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
 }
 
 @keyframes spin {

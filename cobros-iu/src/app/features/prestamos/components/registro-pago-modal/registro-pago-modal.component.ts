@@ -24,14 +24,16 @@ export class RegistroPagoModalComponent {
   @Output() modalCerrado = new EventEmitter<void>();
 
   // Signals de estado
-  prestamo = signal<PrestamoConCliente | null>(null);
-  modoLibre = signal<boolean>(false);
+  prestamo         = signal<PrestamoConCliente | null>(null);
+  modoLibre        = signal<boolean>(false);
   montoPersonalizado = signal<number>(0);
-  cantidadCuotas = signal<number>(1);
-  fechaPago = signal<Date>(new Date());
-  procesando = signal<boolean>(false);
-  error = signal<string>('');
-  visible = signal<boolean>(false);
+  cantidadCuotas   = signal<number>(1);
+  fechaPago        = signal<Date>(new Date());
+  procesando       = signal<boolean>(false);
+  error            = signal<string>('');
+  visible          = signal<boolean>(false);
+  pagoExitoso      = signal<IPago | null>(null);
+  saldoPostPago    = signal<number>(0);
 
   // Computed: saldo pendiente
   saldoPendiente = computed(() => {
@@ -76,6 +78,24 @@ export class RegistroPagoModalComponent {
   quickPills = computed(() => {
     const max = this.cuotasRestantes();
     return [1, 2, 3, 5, 7, 10].filter(n => n < max);
+  });
+
+  // Computed: link de WhatsApp para notificar el pago
+  whatsappLink = computed((): string | null => {
+    const p    = this.prestamo();
+    const pago = this.pagoExitoso();
+    if (!p || !pago || !p.cliente?.telefono) return null;
+
+    const telefono = p.cliente.telefono.replace(/\D/g, '');
+    if (!telefono) return null;
+
+    const nombre = p.cliente.nombre ?? 'cliente';
+    const monto  = this.formatCurrency(pago.valor);
+    const fecha  = this.formatDate(new Date(pago.fechaPago));
+    const saldo  = this.formatCurrency(this.saldoPostPago());
+
+    const msg = `✅ Hola ${nombre}, registramos tu pago de *${monto}* del ${fecha}.\nNuevo saldo: *${saldo}*.\n¡Gracias por tu puntualidad! 🙌`;
+    return `https://wa.me/${telefono}?text=${encodeURIComponent(msg)}`;
   });
 
   // Helper para usar Math en el template
@@ -192,12 +212,9 @@ export class RegistroPagoModalComponent {
       this.pagoService.create(nuevoPago).subscribe({
         next: (pagoRegistrado) => {
           this.procesando.set(false);
+          this.saldoPostPago.set(this.nuevoSaldo());
+          this.pagoExitoso.set(pagoRegistrado);
           this.pagoRegistrado.emit(pagoRegistrado);
-
-          // Cerrar modal después de 1 segundo
-          setTimeout(() => {
-            this.cerrar();
-          }, 1000);
         },
         error: (error) => {
           console.error('Error al registrar pago:', error);
@@ -218,6 +235,8 @@ export class RegistroPagoModalComponent {
     this.visible.set(false);
     this.modalCerrado.emit();
     this.prestamo.set(null);
+    this.pagoExitoso.set(null);
+    this.saldoPostPago.set(0);
     this.resetearFormulario();
   }
 
