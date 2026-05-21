@@ -1,0 +1,116 @@
+<div class="consulta-page">
+
+  <!-- HEADER -->
+  <header class="consulta-header">
+    <div class="header-brand">
+      <i class="bi bi-cash-coin"></i>
+      <span>Estado de Cuenta</span>
+    </div>
+    <span class="header-fecha">{{ fechaHoy | date:'dd/MM/yyyy' }}</span>
+  </header>
+
+  <!-- LOADING -->
+  @if (loading()) {
+    <div class="state-center">
+      <div class="spinner-ring"></div>
+      <p>Cargando tu estado de cuenta…</p>
+    </div>
+  }
+
+  <!-- ERROR -->
+  @if (error()) {
+    <div class="state-center">
+      <div class="error-icon"><i class="bi bi-exclamation-circle"></i></div>
+      <p class="error-msg">{{ error() }}</p>
+    </div>
+  }
+
+  <!-- CONTENIDO -->
+  @if (consulta()) {
+    <main class="consulta-body">
+
+      <!-- Saludo -->
+      <div class="saludo">
+        <p class="saludo-texto">Hola,</p>
+        <h1 class="saludo-nombre">{{ consulta()!.alias ?? consulta()!.nombre }}</h1>
+        @if (consulta()!.alias) {
+          <p class="saludo-sub">{{ consulta()!.nombre }}</p>
+        }
+      </div>
+
+      <!-- Resumen total -->
+      <div class="resumen-card">
+        <div class="resumen-item">
+          <span class="resumen-label">Saldo pendiente total</span>
+          <span class="resumen-valor saldo">{{ fmt(totalSaldo) }}</span>
+        </div>
+        <div class="resumen-divider"></div>
+        <div class="resumen-item">
+          <span class="resumen-label">Total pagado</span>
+          <span class="resumen-valor pagado">{{ fmt(totalPagado) }}</span>
+        </div>
+      </div>
+
+      <!-- Préstamos -->
+      @for (p of consulta()!.prestamos; track p.id) {
+        <div class="prestamo-card">
+          <div class="prestamo-header">
+            <span class="prestamo-id">#{{ p.id }}</span>
+            <span class="prestamo-freq">{{ capitalize(p.frecuenciaPago) }}</span>
+          </div>
+
+          <!-- Progreso -->
+          <div class="progress-section">
+            <div class="progress-labels">
+              <span>{{ p.cuotasPagadas }} de {{ p.cantidadCuotas }} cuotas</span>
+              <span>{{ progreso(p) }}%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="progreso(p)"></div>
+            </div>
+          </div>
+
+          <!-- Datos del préstamo -->
+          <div class="prestamo-grid">
+            <div class="dato">
+              <span class="dato-label">Valor cuota</span>
+              <span class="dato-valor">{{ fmt(p.valorCuota) }}</span>
+            </div>
+            <div class="dato">
+              <span class="dato-label">Saldo pendiente</span>
+              <span class="dato-valor highlight">{{ fmt(p.saldoPendiente) }}</span>
+            </div>
+            <div class="dato">
+              <span class="dato-label">Préstamo inicial</span>
+              <span class="dato-valor">{{ fmt(p.valorPrestado) }}</span>
+            </div>
+            <div class="dato">
+              <span class="dato-label">Último pago</span>
+              <span class="dato-valor">{{ fmtFecha(p.ultimoPago) }}</span>
+            </div>
+            <div class="dato">
+              <span class="dato-label">Fecha inicio</span>
+              <span class="dato-valor">{{ fmtFecha(p.fechaPrestamo) }}</span>
+            </div>
+            <div class="dato">
+              <span class="dato-label">Fecha final</span>
+              <span class="dato-valor">{{ fmtFecha(p.fechaFinal) }}</span>
+            </div>
+          </div>
+
+          @if (p.saldoPendiente === 0) {
+            <div class="badge-pagado"><i class="bi bi-check-circle-fill"></i> Préstamo cancelado</div>
+          }
+        </div>
+      }
+
+      <!-- Footer -->
+      <footer class="consulta-footer">
+        <p>Esta información es de carácter informativo.</p>
+        <p>Consultado el {{ fechaHoy | date:'dd/MM/yyyy HH:mm' }}</p>
+      </footer>
+
+    </main>
+  }
+
+</div>

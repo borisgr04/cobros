@@ -1,0 +1,255 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+.consulta-page {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #0f0f1a 0%, #1a1a2e 60%, #16213e 100%);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: #f0f0f0;
+}
+
+// ── HEADER ──────────────────────────────────────────────────────────────────
+.consulta-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #4ade80;
+
+  i { font-size: 1.3rem; }
+}
+
+.header-fecha {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.45);
+}
+
+// ── ESTADOS CENTRADOS ────────────────────────────────────────────────────────
+.state-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 4rem 2rem;
+  color: rgba(255,255,255,0.6);
+
+  p { font-size: 0.95rem; text-align: center; }
+}
+
+.spinner-ring {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(74,222,128,0.2);
+  border-top-color: #4ade80;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.error-icon {
+  font-size: 3rem;
+  color: #f87171;
+}
+
+.error-msg { color: #fca5a5; font-size: 0.95rem; }
+
+// ── BODY ────────────────────────────────────────────────────────────────────
+.consulta-body {
+  padding: 1.5rem 1rem 3rem;
+  max-width: 500px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+// ── SALUDO ──────────────────────────────────────────────────────────────────
+.saludo {
+  padding: 0.5rem 0.25rem;
+}
+
+.saludo-texto {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 0.15rem;
+}
+
+.saludo-nombre {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.saludo-sub {
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.4);
+  margin-top: 0.2rem;
+}
+
+// ── RESUMEN CARD ─────────────────────────────────────────────────────────────
+.resumen-card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.resumen-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.resumen-label {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.resumen-valor {
+  font-size: 1.2rem;
+  font-weight: 800;
+
+  &.saldo  { color: #f87171; }
+  &.pagado { color: #4ade80; }
+}
+
+.resumen-divider {
+  width: 1px;
+  height: 40px;
+  background: rgba(255,255,255,0.12);
+  flex-shrink: 0;
+}
+
+// ── PRÉSTAMO CARD ────────────────────────────────────────────────────────────
+.prestamo-card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.prestamo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.prestamo-id {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.5);
+}
+
+.prestamo-freq {
+  font-size: 0.72rem;
+  background: rgba(74,222,128,0.15);
+  color: #4ade80;
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  font-weight: 600;
+}
+
+// ── PROGRESS ─────────────────────────────────────────────────────────────────
+.progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.55);
+}
+
+.progress-bar {
+  height: 8px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4ade80, #22c55e);
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+
+// ── GRID DATOS ───────────────────────────────────────────────────────────────
+.prestamo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 1rem;
+}
+
+.dato {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.dato-label {
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dato-valor {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+
+  &.highlight { color: #f87171; font-size: 1rem; }
+}
+
+// ── BADGE PAGADO ──────────────────────────────────────────────────────────────
+.badge-pagado {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: rgba(74,222,128,0.12);
+  color: #4ade80;
+  border-radius: 0.6rem;
+  padding: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+// ── FOOTER ───────────────────────────────────────────────────────────────────
+.consulta-footer {
+  text-align: center;
+  padding-top: 0.5rem;
+
+  p {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.25);
+    line-height: 1.6;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

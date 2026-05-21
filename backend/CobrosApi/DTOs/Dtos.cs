@@ -144,6 +144,31 @@ public class CuotaDto
     public string Estado { get; set; } = "pendiente"; // "pagada" | "pendiente"
 }
 
+// ─── CONSULTA PÚBLICA ──────────────────────────────────────────────────────
+
+public class ConsultaPublicaDto
+{
+    public string Nombre { get; set; } = string.Empty;
+    public string? Alias { get; set; }
+    public List<PrestamoPublicoDto> Prestamos { get; set; } = [];
+}
+
+public class PrestamoPublicoDto
+{
+    public int Id { get; set; }
+    public DateTime FechaPrestamo { get; set; }
+    public DateTime FechaFinal { get; set; }
+    public decimal ValorPrestado { get; set; }
+    public decimal ValorTotal { get; set; }
+    public decimal ValorCuota { get; set; }
+    public string FrecuenciaPago { get; set; } = string.Empty;
+    public int CantidadCuotas { get; set; }
+    public int CuotasPagadas { get; set; }
+    public decimal TotalPagado { get; set; }
+    public decimal SaldoPendiente { get; set; }
+    public DateTime? UltimoPago { get; set; }
+}
+
 // ─── USUARIOS (admin) ──────────────────────────────────────────────────────
 
 public class UsuarioDto

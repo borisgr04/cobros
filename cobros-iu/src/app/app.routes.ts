@@ -47,6 +47,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/usuarios/components/usuarios.component').then(m => m.UsuariosComponent)
   },
   {
+    path: 'consulta/:llave',
+    loadComponent: () => import('./features/consulta-publica/consulta-publica.component').then(m => m.ConsultaPublicaComponent)
+  },
+  {
     path: '**',
     redirectTo: ''
   }

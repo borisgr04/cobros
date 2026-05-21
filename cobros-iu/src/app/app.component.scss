@@ -39,3 +39,10 @@
     margin-left: 220px;
   }
 }
+
+/* Public routes: sin sidebar ni margen */
+.main-content.public-layout {
+  margin-left: 0 !important;
+  padding-bottom: 0 !important;
+  min-height: unset;
+}

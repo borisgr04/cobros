@@ -94,7 +94,12 @@ export class RegistroPagoModalComponent {
     const fecha  = this.formatDate(new Date(pago.fechaPago));
     const saldo  = this.formatCurrency(this.saldoPostPago());
 
-    const msg = `✅ Hola ${nombre}, registramos tu pago de *${monto}* del ${fecha}.\nNuevo saldo: *${saldo}*.\n¡Gracias por tu puntualidad! 🙌`;
+    const clave = p.cliente.llave || p.cliente.id;
+    const linkConsulta = clave
+      ? `\n\n🔗 Consultá tu saldo aquí: ${window.location.origin}/consulta/${clave}`
+      : '';
+
+    const msg = `✅ Hola ${nombre}, registramos tu pago de *${monto}* del ${fecha}.\nNuevo saldo: *${saldo}*.${linkConsulta}\n\n¡Gracias por tu puntualidad! 🙌`;
     return `https://wa.me/${telefono}?text=${encodeURIComponent(msg)}`;
   });
 
