@@ -96,7 +96,7 @@ export class RegistroPagoModalComponent {
 
     const clave = p.cliente.llave || p.cliente.id;
     const linkConsulta = clave
-      ? `\n\n🔗 Consultá tu saldo aquí: ${window.location.origin}/consulta/${clave}`
+      ? `\n\n🔗 Consultá tu saldo:\n${window.location.origin}/consulta/${clave}`
       : '';
 
     const msg = `✅ Hola ${nombre}, registramos tu pago de *${monto}* del ${fecha}.\nNuevo saldo: *${saldo}*.${linkConsulta}\n\n¡Gracias por tu puntualidad! 🙌`;
