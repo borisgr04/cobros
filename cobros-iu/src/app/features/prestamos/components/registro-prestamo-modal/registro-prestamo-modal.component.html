@@ -167,14 +167,16 @@
 
             <div class="campo">
               <label>
-                Fecha Final
-                <span class="requerido">*</span>
+                Fecha Final (calculada)
               </label>
-              <input 
-                type="date" 
-                [value]="fechaFinal() ? (fechaFinal() | date:'yyyy-MM-dd') : ''"
-                (change)="onFechaFinalChange($any($event.target).value)"
-                [class.error]="errorFechaFinal()">
+              <div class="campo-derivado" [class.error]="errorFechaFinal()">
+                @if (fechaFinal()) {
+                  <i class="bi bi-calendar-check"></i>
+                  {{ formatDate(fechaFinal()!) }}
+                } @else {
+                  <span class="placeholder-derivado">Se calculará al ingresar cantidad y frecuencia</span>
+                }
+              </div>
               @if (errorFechaFinal()) {
                 <span class="mensaje-error">
                   <i class="bi bi-exclamation-circle"></i>
@@ -206,15 +208,74 @@
 
             <div class="campo">
               <label>
-                Valor Total a Pagar
+                Valor Interés
                 <span class="requerido">*</span>
               </label>
               <input class="input-moneda"
-                [(appMoneda)]="valorTotal"
+                [(appMoneda)]="valorInteres"
                 [class.error]="errorValores()"
                 placeholder="$ 0">
             </div>
           </div>
+
+          <div class="campo-grupo">
+            <div class="campo">
+              <label>
+                Valor de Cuota
+                <span class="requerido">*</span>
+              </label>
+              <input class="input-moneda"
+                [(appMoneda)]="valorCuota"
+                [class.error]="errorValores()"
+                placeholder="$ 0">
+            </div>
+
+            <div class="campo">
+              <label>
+                Cantidad de Períodos
+                <span class="requerido">*</span>
+              </label>
+              <input
+                type="number"
+                [(ngModel)]="cantidadCuotas"
+                [ngModelOptions]="{updateOn: 'change'}"
+                [class.error]="errorCuotas()"
+                (focus)="$any($event.target).select()"
+                min="1"
+                placeholder="Ej: 12">
+              @if (errorCuotas()) {
+                <span class="mensaje-error">
+                  <i class="bi bi-exclamation-circle"></i>
+                  {{ errorCuotas() }}
+                </span>
+              }
+            </div>
+          </div>
+
+          <!-- Resumen derivado: Total y fecha final -->
+          @if (valorTotal() > 0 || fechaFinal()) {
+            <div class="resumen-derivado">
+              @if (valorTotal() > 0) {
+                <div class="derivado-item">
+                  <span class="derivado-label">Total a pagar:</span>
+                  <span class="derivado-valor">{{ formatCurrency(valorTotal()) }}</span>
+                </div>
+              }
+              @if (fechaFinal()) {
+                <div class="derivado-item">
+                  <span class="derivado-label">Fecha final:</span>
+                  <span class="derivado-valor">{{ formatDate(fechaFinal()!) }}</span>
+                </div>
+              }
+            </div>
+          }
+
+          @if (descuadreCuotas()) {
+            <div class="alerta alerta-advertencia">
+              <i class="bi bi-exclamation-triangle"></i>
+              <span>Cuota × cantidad ({{ formatCurrency(valorCuota() * cantidadCuotas()) }}) difiere del total ({{ formatCurrency(valorTotal()) }})</span>
+            </div>
+          }
 
           @if (errorValores()) {
             <span class="mensaje-error">
@@ -224,23 +285,6 @@
           }
         </div>
 
-        <!-- SECCIÓN: Interés Calculado -->
-        @if (interesProyectado() !== 0) {
-          <div class="seccion">
-            <div class="interes-panel" [class.positivo]="interesProyectado() > 0">
-              <div class="interes-label">
-                <i class="bi bi-calculator"></i>
-                Interés Proyectado
-              </div>
-              <div class="interes-valor">
-                {{ formatCurrency(interesProyectado()) }}
-                @if (interesProyectado() > 0) {
-                  <i class="bi bi-check-circle-fill"></i>
-                }
-              </div>
-            </div>
-          </div>
-        }
 
         <!-- SECCIÓN: Frecuencia de Pago -->
         <div class="seccion">

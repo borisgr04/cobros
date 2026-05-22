@@ -67,6 +67,7 @@
                 <input class="stepper-mini-input"
                        type="number"
                        [value]="cantidadCuotas()"
+                       (focus)="$any($event.target).select()"
                        (input)="setCuotasDesdeTeclado($any($event.target).value)"
                        min="1"
                        [max]="cuotasRestantes()">

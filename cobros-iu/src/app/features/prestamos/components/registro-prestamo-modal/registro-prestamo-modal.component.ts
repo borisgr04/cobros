@@ -30,9 +30,10 @@ export class RegistroPrestamoModalComponent {
   // Signals - Datos del formulario
   clienteId = signal<string>('');
   fechaPrestamo = signal<Date>(new Date());
-  fechaFinal = signal<Date | null>(null);
   valorPrestado = signal<number>(0);
-  valorTotal = signal<number>(0);
+  valorInteres = signal<number>(0);
+  valorCuota = signal<number>(0);
+  cantidadCuotas = signal<number>(0);
   frecuenciaPago = signal<FrecuenciaPago>('diario');
 
   // Signals - Datos auxiliares
@@ -62,21 +63,20 @@ export class RegistroPrestamoModalComponent {
   error = signal<string>('');
   exito = signal<boolean>(false);
 
-  // Computed: Interés proyectado
-  interesProyectado = computed(() => {
-    return this.valorTotal() - this.valorPrestado();
-  });
+  // Computed: Valor total derivado
+  valorTotal = computed(() => this.valorPrestado() + this.valorInteres());
 
-  // Computed: Cantidad de cuotas
-  cantidadCuotas = computed(() => {
-    return this.calcularCantidadCuotas();
-  });
+  // Computed: Fecha final derivada
+  fechaFinal = computed(() => this.calcularFechaFinal(
+    this.fechaPrestamo(), this.cantidadCuotas(), this.frecuenciaPago()
+  ));
 
-  // Computed: Valor de cada cuota
-  valorCuota = computed(() => {
+  // Computed: Descuadre entre cuota × cantidad vs valorTotal
+  descuadreCuotas = computed(() => {
+    const c = this.cantidadCuotas();
+    const cuota = this.valorCuota();
     const total = this.valorTotal();
-    const cuotas = this.cantidadCuotas();
-    return cuotas > 0 ? Math.round(total / cuotas) : 0;
+    return c > 0 && cuota > 0 && total > 0 && (cuota * c) !== total;
   });
 
   // Computed: Validación de cliente
@@ -88,43 +88,36 @@ export class RegistroPrestamoModalComponent {
   errorFechaFinal = computed(() => {
     const inicio = this.fechaPrestamo();
     const fin = this.fechaFinal();
-
-    if (!fin) return 'La fecha final es obligatoria';
+    if (!fin) return 'No se pudo calcular la fecha final';
     if (fin <= inicio) return 'La fecha final debe ser posterior a la fecha de préstamo';
-
     return '';
   });
 
   // Computed: Validación de valores
   errorValores = computed(() => {
     const prestado = this.valorPrestado();
-    const total = this.valorTotal();
-
+    const interes = this.valorInteres();
+    const cuota = this.valorCuota();
     if (prestado <= 0) return 'El valor prestado debe ser mayor a $0';
-    if (total <= 0) return 'El valor total debe ser mayor a $0';
-    if (total < prestado) return 'El valor total no puede ser menor al valor prestado';
-
+    if (interes < 0) return 'El valor del interés no puede ser negativo';
+    if (cuota <= 0) return 'El valor de la cuota debe ser mayor a $0';
     return '';
   });
 
   // Computed: Validación de cuotas
   errorCuotas = computed(() => {
     const cuotas = this.cantidadCuotas();
-    return cuotas <= 0 ? 'Configure las fechas y frecuencia correctamente' : '';
+    return cuotas <= 0 ? 'La cantidad de períodos debe ser mayor a 0' : '';
   });
 
   // Computed: Validación completa del formulario
   esFormularioValido = computed(() => {
     return (
       this.clienteId().length > 0 &&
-      this.fechaPrestamo() !== null &&
-      this.fechaFinal() !== null &&
-      this.fechaFinal()! > this.fechaPrestamo() &&
-      this.valorPrestado() > 0 &&
-      this.valorTotal() > 0 &&
-      this.valorTotal() >= this.valorPrestado() &&
-      this.frecuenciaPago().length > 0 &&
-      this.cantidadCuotas() > 0
+      !this.errorFechaFinal() &&
+      !this.errorValores() &&
+      this.cantidadCuotas() > 0 &&
+      this.frecuenciaPago().length > 0
     );
   });
 
@@ -177,33 +170,20 @@ export class RegistroPrestamoModalComponent {
   }
 
   /**
-   * Calcula la cantidad de cuotas según fechas y frecuencia
+   * Calcula la fecha final a partir de fecha inicio, cantidad de períodos y frecuencia
    */
-  calcularCantidadCuotas(): number {
-    const inicio = this.fechaPrestamo();
-    const fin = this.fechaFinal();
-    const frecuencia = this.frecuenciaPago();
-
-    if (!inicio || !fin || !frecuencia) return 0;
-
-    const diasTotales = Math.ceil(
-      (fin.getTime() - inicio.getTime()) / (1000 * 60 * 60 * 24)
-    );
-
-    if (diasTotales <= 0) return 0;
-
+  calcularFechaFinal(inicio: Date, cantidad: number, frecuencia: FrecuenciaPago): Date | null {
+    if (!inicio || cantidad <= 0 || !frecuencia) return null;
+    const ms = inicio.getTime();
+    let dias: number;
     switch (frecuencia) {
-      case 'diario':
-        return diasTotales;
-      case 'semanal':
-        return Math.ceil(diasTotales / 7);
-      case 'quincenal':
-        return Math.ceil(diasTotales / 15);
-      case 'mensual':
-        return Math.ceil(diasTotales / 30);
-      default:
-        return 0;
+      case 'diario':    dias = cantidad; break;
+      case 'semanal':   dias = cantidad * 7; break;
+      case 'quincenal': dias = cantidad * 15; break;
+      case 'mensual':   dias = cantidad * 30; break;
+      default: return null;
     }
+    return new Date(ms + dias * 24 * 60 * 60 * 1000);
   }
 
   /**
@@ -219,15 +199,6 @@ export class RegistroPrestamoModalComponent {
   onFechaPrestamoChange(value: string): void {
     if (value) {
       this.fechaPrestamo.set(new Date(value));
-    }
-  }
-
-  /**
-   * Handler para cambio de fecha final
-   */
-  onFechaFinalChange(value: string): void {
-    if (value) {
-      this.fechaFinal.set(new Date(value));
     }
   }
 
@@ -249,7 +220,7 @@ export class RegistroPrestamoModalComponent {
       fechaFinal: this.fechaFinal()!,
       valorPrestado: this.valorPrestado(),
       valorTotal: this.valorTotal(),
-      interesProyectado: this.interesProyectado(),
+      interesProyectado: this.valorInteres(),
       frecuenciaPago: this.frecuenciaPago(),
       cantidadCuotas: this.cantidadCuotas(),
       valorCuota: this.valorCuota()
@@ -362,9 +333,10 @@ export class RegistroPrestamoModalComponent {
   resetearFormulario(): void {
     this.clienteId.set('');
     this.fechaPrestamo.set(new Date());
-    this.fechaFinal.set(null);
     this.valorPrestado.set(0);
-    this.valorTotal.set(0);
+    this.valorInteres.set(0);
+    this.valorCuota.set(0);
+    this.cantidadCuotas.set(0);
     this.frecuenciaPago.set('diario');
     this.error.set('');
     this.mostrarFormNuevoCliente.set(false);
