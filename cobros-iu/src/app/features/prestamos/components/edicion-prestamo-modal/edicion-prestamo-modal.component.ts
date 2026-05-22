@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, Output, EventEmitter } from '@angular/core';
+import { Component, inject, signal, computed, Output, EventEmitter, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MonedaInputDirective } from '../../../../shared/directives';
@@ -274,6 +274,11 @@ export class EdicionPrestamoModalComponent {
       this.procesando.set(false);
       this.error.set('');
     }, 300);
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.visible()) this.cerrar();
   }
 
   /**

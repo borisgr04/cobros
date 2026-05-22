@@ -380,12 +380,12 @@
             <div class="card-actions">
               <button
                 class="btn-action btn-view"
-                (click)="nuevoPrestamoCliente(cliente)"
+                (click)="nuevoPrestamo(cliente)"
                 [disabled]="cargando()"
-                title="Ver préstamos del cliente"
+                title="Nuevo préstamo para este cliente"
               >
                 <i class="bi bi-cash-coin"></i>
-                <span>Préstamos</span>
+                <span>Nuevo Préstamo</span>
               </button>
               <button
                 class="btn-action btn-edit"
@@ -412,3 +412,7 @@
     }
   </div>
 </div>
+
+<app-registro-prestamo-modal
+  (prestamoRegistrado)="cargarClientes()"
+></app-registro-prestamo-modal>

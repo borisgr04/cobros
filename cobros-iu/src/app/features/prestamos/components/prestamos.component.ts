@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject, viewChild } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, viewChild, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -134,13 +134,6 @@ export class PrestamosComponent implements OnInit {
         console.log('Cliente desde URL:', params['cliente']);
         // Establecer el filtro de cliente
         this.filtroClienteId.set(params['cliente']);
-      }
-      // Solo abrir modal si viene con parámetro "nuevo" explícito
-      if (params['nuevo'] === 'true' && params['cliente']) {
-        // Usar setTimeout para abrir el modal después de que los datos estén cargados
-        setTimeout(() => {
-          this.abrirModalPrestamo(params['cliente']);
-        }, 1000);
       }
     });
     
@@ -384,6 +377,11 @@ export class PrestamosComponent implements OnInit {
     this.mostrarModalFiltros.set(false);
   }
 
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.mostrarModalFiltros()) this.cerrarModalFiltros();
+  }
+
   /**
    * Verifica si hay filtros activos (diferentes a los valores por defecto)
    */
@@ -433,13 +431,10 @@ export class PrestamosComponent implements OnInit {
   }
 
   /**
-   * Abre el modal para registrar un nuevo préstamo
+   * Abre el modal para registrar un nuevo préstamo para el cliente dado
    */
-  abrirModalPrestamo(clienteIdPreseleccionado?: string): void {
-    const modal = this.modalPrestamo();
-    if (modal) {
-      modal.abrir(clienteIdPreseleccionado);
-    }
+  abrirModalPrestamo(cliente: import('../../core/models').ICliente): void {
+    this.modalPrestamo()?.abrir(cliente);
   }
 
   /**

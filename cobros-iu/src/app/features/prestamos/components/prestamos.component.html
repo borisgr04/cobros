@@ -12,10 +12,6 @@
         </div>
       </div>
 
-      <button class="btn-nuevo-prestamo" (click)="abrirModalPrestamo()">
-        <i class="bi bi-plus-circle-fill"></i>
-        <span>Nuevo</span>
-      </button>
     </div>
   </div>
 
@@ -84,7 +80,7 @@
 
   <!-- MODAL DE FILTROS -->
   @if (mostrarModalFiltros()) {
-    <div class="modal-overlay" (click)="cerrarModalFiltros()">
+    <div class="modal-overlay">
       <div class="modal-filtros" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h2>
@@ -336,6 +332,15 @@
                   title="Registrar pago">
                   <i class="bi bi-cash-stack"></i>
                   <span>Pagar</span>
+                </button>
+              }
+              @if (prestamo.cliente) {
+                <button
+                  class="btn-simple btn-new-prestamo"
+                  (click)="abrirModalPrestamo(prestamo.cliente!)"
+                  title="Registrar otro préstamo para este cliente">
+                  <i class="bi bi-plus-circle"></i>
+                  <span>Otro préstamo</span>
                 </button>
               }
             </div>

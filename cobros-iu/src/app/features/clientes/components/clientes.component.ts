@@ -1,10 +1,11 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, viewChild, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import type { ICliente, IZona } from '../../core/models';
 import { AbstractClienteService } from '../../core/services/abstract-cliente.service';
 import { AbstractZonaService } from '../../core/services/abstract-zona.service';
+import { RegistroPrestamoModalComponent } from '../../prestamos/components/registro-prestamo-modal/registro-prestamo-modal.component';
 
 /**
  * Componente principal para la gestión de clientes.
@@ -13,11 +14,12 @@ import { AbstractZonaService } from '../../core/services/abstract-zona.service';
 @Component({
   selector: 'app-clientes',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RegistroPrestamoModalComponent],
   templateUrl: './clientes.component.html',
   styleUrl: './clientes.component.scss'
 })
 export class ClientesComponent implements OnInit {
+  modalPrestamo = viewChild(RegistroPrestamoModalComponent);
   /**
    * Lista de clientes cargados desde el servicio
    */
@@ -181,26 +183,15 @@ export class ClientesComponent implements OnInit {
   }
 
   /**
-   * Navega a la vista de préstamos para crear un nuevo préstamo para el cliente
+   * Abre el modal de registro de préstamo con el cliente dado
    */
-  nuevoPrestamoCliente(cliente: ICliente): void {
-    this.router.navigate(['/prestamos'], {
-      queryParams: { 
-        cliente: cliente.id
-      }
-    });
+  nuevoPrestamo(cliente: ICliente): void {
+    this.modalPrestamo()?.abrir(cliente);
   }
 
-  /**
-   * Navega a la vista de préstamos y abre el modal de creación con cliente preseleccionado
-   */
-  crearPrestamoConClientePreseleccionado(cliente: ICliente): void {
-    this.router.navigate(['/prestamos'], {
-      queryParams: { 
-        cliente: cliente.id,
-        nuevo: 'true'
-      }
-    });
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.mostrarFormulario()) this.cancelarFormulario();
   }
 
   /**

@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, Output, EventEmitter, Input } from '@angular/core';
+import { Component, inject, signal, computed, Output, EventEmitter, Input, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MonedaInputDirective } from '../../../../shared/directives';
@@ -260,13 +260,9 @@ export class RegistroPagoModalComponent {
     this.resetearFormulario();
   }
 
-  /**
-   * Maneja el click en el overlay
-   */
-  cerrarConOverlay(event: MouseEvent): void {
-    if ((event.target as HTMLElement).classList.contains('modal-overlay')) {
-      this.cerrar();
-    }
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.visible()) this.cerrar();
   }
 
   /**

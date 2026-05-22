@@ -157,6 +157,28 @@
   gap: 2rem;
 }
 
+// Banda de cliente preseleccionado (solo lectura)
+.cliente-preseleccionado-band {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-secondary);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--border-radius);
+  margin-bottom: 0.25rem;
+
+  i { font-size: 1.5rem; color: var(--color-primary); flex-shrink: 0; }
+
+  .cliente-band-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+  .cliente-band-nombre { font-weight: 700; font-size: 1rem; color: var(--text-primary); }
+  .cliente-band-detalle { font-size: 0.8rem; color: var(--text-secondary); }
+}
+
 // Sección
 .seccion {
   display: flex;

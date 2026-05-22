@@ -1,11 +1,9 @@
-import { Component, inject, signal, computed, Output, EventEmitter } from '@angular/core';
+import { Component, inject, signal, computed, Output, EventEmitter, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MonedaInputDirective } from '../../../../shared/directives';
 import { AbstractPrestamoService } from '../../../core/services/abstract-prestamo.service';
-import { AbstractClienteService } from '../../../core/services/abstract-cliente.service';
-import { AbstractZonaService } from '../../../core/services/abstract-zona.service';
-import type { IPrestamo, ICliente, IZona, FrecuenciaPago } from '../../../core/models';
+import type { IPrestamo, ICliente, FrecuenciaPago } from '../../../core/models';
 
 /**
  * Componente modal para registrar nuevos préstamos.
@@ -20,15 +18,15 @@ import type { IPrestamo, ICliente, IZona, FrecuenciaPago } from '../../../core/m
 })
 export class RegistroPrestamoModalComponent {
   private prestamoService = inject(AbstractPrestamoService);
-  private clienteService = inject(AbstractClienteService);
-  private zonaService = inject(AbstractZonaService);
 
   // Outputs
   @Output() prestamoRegistrado = new EventEmitter<IPrestamo>();
   @Output() modalCerrado = new EventEmitter<void>();
 
+  // Cliente que llega siempre desde el contexto externo
+  clienteActual = signal<ICliente | null>(null);
+
   // Signals - Datos del formulario
-  clienteId = signal<string>('');
   fechaPrestamo = signal<Date>(new Date());
   valorPrestado = signal<number>(0);
   valorInteres = signal<number>(0);
@@ -48,27 +46,6 @@ export class RegistroPrestamoModalComponent {
     const n = this.cantidadCuotas();
     if (n <= 0) return 0;
     return this.valorTotal() - (n - 1) * this.valorCuota();
-  });
-
-  // Signals - Datos auxiliares
-  clientes = signal<ICliente[]>([]);
-  cargandoClientes = signal<boolean>(false);
-  zonas = signal<IZona[]>([]);
-
-  // Signals - Estado del mini-formulario de nuevo cliente
-  mostrarFormNuevoCliente = signal<boolean>(false);
-  nuevoNombre = signal<string>('');
-  nuevoAlias = signal<string>('');
-  nuevoIdentificacion = signal<string>('');
-  nuevoZonaId = signal<string>('');
-  nuevoTelefono = signal<string>('');
-  guardandoCliente = signal<boolean>(false);
-  errorNuevoCliente = signal<string>('');
-
-  // Computed: Validación cédula en tiempo real
-  cedulaDuplicada = computed(() => {
-    const id = this.nuevoIdentificacion().trim();
-    return id.length > 0 && this.clientes().some(c => c.identificacion?.trim() === id);
   });
 
   // Signals - Estado del modal
@@ -91,10 +68,8 @@ export class RegistroPrestamoModalComponent {
     return n > 0 && this.valorUltimaCuota() !== this.valorCuota();
   });
 
-  // Computed: Validación de cliente
-  errorCliente = computed(() => {
-    return this.clienteId().length === 0 ? 'Debe seleccionar un cliente' : '';
-  });
+  // Computed: Validación de cliente — siempre válido (viene garantizado)
+  errorCliente = computed(() => '');
 
   // Computed: Validación de fecha final
   errorFechaFinal = computed(() => {
@@ -125,8 +100,7 @@ export class RegistroPrestamoModalComponent {
   // Computed: Validación completa del formulario
   esFormularioValido = computed(() => {
     return (
-      this.clienteId().length > 0 &&
-      !this.errorCliente() &&
+      this.clienteActual() !== null &&
       !this.errorValores() &&
       !this.errorCuotas() &&
       !this.errorFechaFinal() &&
@@ -146,40 +120,12 @@ export class RegistroPrestamoModalComponent {
   ];
 
   /**
-   * Abre el modal y carga la lista de clientes
+   * Abre el modal con un cliente ya determinado
    */
-  /**
-   * Abre el modal para registrar un nuevo préstamo
-   * @param clienteIdPreseleccionado - ID del cliente para preseleccionar (opcional)
-   */
-  abrir(clienteIdPreseleccionado?: string): void {
+  abrir(cliente: ICliente): void {
+    this.clienteActual.set(cliente);
     this.visible.set(true);
-    this.cargarClientes();
     this.resetearFormulario();
-    
-    // Preseleccionar cliente si se proporciona
-    if (clienteIdPreseleccionado) {
-      this.clienteId.set(clienteIdPreseleccionado);
-    }
-  }
-
-  /**
-   * Carga todos los clientes activos
-   */
-  cargarClientes(): void {
-    this.cargandoClientes.set(true);
-    this.clienteService.getAll().subscribe({
-      next: (clientes) => {
-        // Filtrar solo clientes activos
-        const activos = clientes.filter(c => c.estado === 'activo');
-        this.clientes.set(activos);
-        this.cargandoClientes.set(false);
-      },
-      error: (err) => {
-        this.error.set('Error al cargar clientes: ' + err.message);
-        this.cargandoClientes.set(false);
-      }
-    });
   }
 
   /**
@@ -228,7 +174,7 @@ export class RegistroPrestamoModalComponent {
     this.error.set('');
 
     const nuevoPrestamo: Omit<IPrestamo, 'id'> = {
-      clienteId: this.clienteId(),
+      clienteId: this.clienteActual()!.id,
       fechaPrestamo: this.fechaPrestamo(),
       fechaFinal: this.fechaFinal()!,
       valorPrestado: this.valorPrestado(),
@@ -259,71 +205,7 @@ export class RegistroPrestamoModalComponent {
    * Abre el mini-formulario inline para crear un nuevo cliente.
    * Carga las zonas de forma lazy (solo cuando se necesita).
    */
-  abrirFormNuevoCliente(): void {
-    this.errorNuevoCliente.set('');
-    this.nuevoNombre.set('');
-    this.nuevoAlias.set('');
-    this.nuevoIdentificacion.set('');
-    this.nuevoZonaId.set('');
-    this.nuevoTelefono.set('');
-    this.mostrarFormNuevoCliente.set(true);
-
-    if (this.zonas().length === 0) {
-      this.zonaService.getAll().subscribe({
-        next: (zonas) => this.zonas.set(zonas),
-        error: () => this.zonas.set([])
-      });
-    }
-  }
-
-  /**
-   * Cancela la creación del nuevo cliente y colapsa el formulario.
-   */
-  cancelarFormNuevoCliente(): void {
-    this.mostrarFormNuevoCliente.set(false);
-    this.errorNuevoCliente.set('');
-    this.nuevoAlias.set('');
-  }
-
-  /**
-   * Guarda el nuevo cliente via API, lo agrega al selector y lo auto-selecciona.
-   */
-  guardarNuevoCliente(): void {
-    if (!this.nuevoNombre() || !this.nuevoIdentificacion() || !this.nuevoZonaId()) return;
-
-    this.guardandoCliente.set(true);
-    this.errorNuevoCliente.set('');
-
-    if (!this.nuevoTelefono().trim()) {
-      this.errorNuevoCliente.set('El teléfono es obligatorio');
-      this.guardandoCliente.set(false);
-      return;
-    }
-
-    const nuevoCliente: ICliente = {
-      id: '',
-      nombre: this.nuevoNombre().trim(),
-      alias: this.nuevoAlias().trim() || undefined,
-      identificacion: this.nuevoIdentificacion().trim(),
-      zonaId: this.nuevoZonaId(),
-      telefono: this.nuevoTelefono().trim() || undefined,
-      estado: 'activo'
-    } as ICliente;
-
-    this.clienteService.create(nuevoCliente).subscribe({
-      next: (clienteCreado) => {
-        this.clientes.update(list => [...list, clienteCreado]);
-        this.clienteId.set(clienteCreado.id);
-        this.mostrarFormNuevoCliente.set(false);
-        this.guardandoCliente.set(false);
-      },
-      error: (err) => {
-        const msg = err?.error?.error ?? err?.message ?? 'Error al crear cliente';
-        this.errorNuevoCliente.set(msg);
-        this.guardandoCliente.set(false);
-      }
-    });
-  }
+  abrirFormNuevoCliente(): void {}
 
   /**
    * Cierra el modal y resetea el estado
@@ -331,8 +213,8 @@ export class RegistroPrestamoModalComponent {
   cerrar(): void {
     this.visible.set(false);
     this.modalCerrado.emit();
-
     setTimeout(() => {
+      this.clienteActual.set(null);
       this.resetearFormulario();
       this.exito.set(false);
       this.procesando.set(false);
@@ -340,20 +222,21 @@ export class RegistroPrestamoModalComponent {
     }, 300);
   }
 
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.visible()) this.cerrar();
+  }
+
   /**
    * Resetea el formulario a valores por defecto
    */
   resetearFormulario(): void {
-    this.clienteId.set('');
     this.fechaPrestamo.set(new Date());
     this.valorPrestado.set(0);
     this.valorInteres.set(0);
     this.valorCuota.set(0);
     this.frecuenciaPago.set('diario');
     this.error.set('');
-    this.mostrarFormNuevoCliente.set(false);
-    this.errorNuevoCliente.set('');
-    this.nuevoAlias.set('');
   }
 
   /**
