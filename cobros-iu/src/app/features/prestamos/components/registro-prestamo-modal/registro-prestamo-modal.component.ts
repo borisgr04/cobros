@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MonedaInputDirective } from '../../../../shared/directives';
 import { AbstractPrestamoService } from '../../../core/services/abstract-prestamo.service';
 import { AbstractClienteService } from '../../../core/services/abstract-cliente.service';
 import { AbstractZonaService } from '../../../core/services/abstract-zona.service';
@@ -13,7 +14,7 @@ import type { IPrestamo, ICliente, IZona, FrecuenciaPago } from '../../../core/m
 @Component({
   selector: 'app-registro-prestamo-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MonedaInputDirective],
   templateUrl: './registro-prestamo-modal.component.html',
   styleUrl: './registro-prestamo-modal.component.scss',
 })
@@ -48,17 +49,6 @@ export class RegistroPrestamoModalComponent {
   nuevoTelefono = signal<string>('');
   guardandoCliente = signal<boolean>(false);
   errorNuevoCliente = signal<string>('');
-
-  // Computed: Formato de moneda
-  valorPrestadoFormateado = computed(() => {
-    const v = this.valorPrestado();
-    return v > 0 ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(v) : '';
-  });
-
-  valorTotalFormateado = computed(() => {
-    const v = this.valorTotal();
-    return v > 0 ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(v) : '';
-  });
 
   // Computed: Validación cédula en tiempo real
   cedulaDuplicada = computed(() => {

@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MonedaInputDirective } from '../../../../shared/directives';
 import { AbstractPrestamoService } from '../../../core/services/abstract-prestamo.service';
 import { AbstractClienteService } from '../../../core/services/abstract-cliente.service';
 import type { IPrestamo, ICliente, FrecuenciaPago } from '../../../core/models';
@@ -13,7 +14,7 @@ import type { PrestamoConCliente } from '../../services';
 @Component({
   selector: 'app-edicion-prestamo-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MonedaInputDirective],
   templateUrl: './edicion-prestamo-modal.component.html',
   styleUrl: './edicion-prestamo-modal.component.scss',
 })

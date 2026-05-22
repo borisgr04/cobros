@@ -117,14 +117,10 @@
               </label>
 
               <div class="monto-libre-row" [class.has-error]="error()">
-                <span class="monto-libre-prefix">$</span>
-                <input class="monto-libre-input"
-                       type="number"
-                       placeholder="Ej: 750"
-                       [value]="montoPersonalizado() || null"
-                       (input)="actualizarMontoLibre($any($event.target).value)"
-                       min="1"
-                       [max]="saldoPendiente()">
+                  <input class="monto-libre-input"
+                       [(appMoneda)]="montoPersonalizado"
+                       (blur)="validarMontoLibre()"
+                       placeholder="$ 0">
                 <button class="monto-libre-clear"
                         type="button"
                         (click)="montoPersonalizado.set(0); error.set('')">

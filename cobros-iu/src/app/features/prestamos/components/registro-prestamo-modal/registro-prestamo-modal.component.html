@@ -198,20 +198,10 @@
                 Valor Prestado
                 <span class="requerido">*</span>
               </label>
-              <div class="input-moneda-wrapper">
-                <span class="prefijo-moneda">$</span>
-                <input 
-                  type="number" 
-                  class="input-moneda"
-                  [(ngModel)]="valorPrestado"
-                  [ngModelOptions]="{updateOn: 'change'}"
-                  [class.error]="errorValores()"
-                  placeholder="0"
-                  min="1">
-              </div>
-              @if (valorPrestadoFormateado()) {
-                <span class="input-moneda-preview">{{ valorPrestadoFormateado() }}</span>
-              }
+              <input class="input-moneda"
+                [(appMoneda)]="valorPrestado"
+                [class.error]="errorValores()"
+                placeholder="$ 0">
             </div>
 
             <div class="campo">
@@ -219,20 +209,10 @@
                 Valor Total a Pagar
                 <span class="requerido">*</span>
               </label>
-              <div class="input-moneda-wrapper">
-                <span class="prefijo-moneda">$</span>
-                <input 
-                  type="number" 
-                  class="input-moneda"
-                  [(ngModel)]="valorTotal"
-                  [ngModelOptions]="{updateOn: 'change'}"
-                  [class.error]="errorValores()"
-                  placeholder="0"
-                  min="1">
-              </div>
-              @if (valorTotalFormateado()) {
-                <span class="input-moneda-preview">{{ valorTotalFormateado() }}</span>
-              }
+              <input class="input-moneda"
+                [(appMoneda)]="valorTotal"
+                [class.error]="errorValores()"
+                placeholder="$ 0">
             </div>
           </div>
 

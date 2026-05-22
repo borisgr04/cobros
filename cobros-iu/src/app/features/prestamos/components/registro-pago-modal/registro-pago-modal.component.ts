@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed, Output, EventEmitter, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MonedaInputDirective } from '../../../../shared/directives';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { AbstractPagoService } from '../../../core/services/abstract-pago.service';
 import type { PrestamoConCliente } from '../../services/prestamo.service';
@@ -13,7 +14,7 @@ import type { IPago } from '../../../core/models';
 @Component({
   selector: 'app-registro-pago-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MonedaInputDirective],
   templateUrl: './registro-pago-modal.component.html',
   styleUrl: './registro-pago-modal.component.scss',
 })
@@ -169,6 +170,17 @@ export class RegistroPagoModalComponent {
       this.montoPersonalizado.set(0);
     }
     this.error.set('');
+  }
+
+  validarMontoLibre(): void {
+    let m = this.montoPersonalizado();
+    const saldo = this.saldoPendiente();
+    if (m > saldo) { m = saldo; this.montoPersonalizado.set(m); }
+    if (m <= 0) {
+      this.error.set('El monto debe ser mayor a $0');
+    } else {
+      this.error.set('');
+    }
   }
 
   actualizarMontoLibre(value: string): void {
