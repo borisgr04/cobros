@@ -33,8 +33,22 @@ export class RegistroPrestamoModalComponent {
   valorPrestado = signal<number>(0);
   valorInteres = signal<number>(0);
   valorCuota = signal<number>(0);
-  cantidadCuotas = signal<number>(0);
   frecuenciaPago = signal<FrecuenciaPago>('diario');
+
+  // Computed: Cantidad de cuotas derivada de total ÷ cuota
+  cantidadCuotas = computed(() => {
+    const total = this.valorTotal();
+    const cuota = this.valorCuota();
+    if (cuota <= 0 || total <= 0 || cuota > total) return 0;
+    return Math.ceil(total / cuota);
+  });
+
+  // Computed: Valor de la última cuota (puede diferir si no divide exacto)
+  valorUltimaCuota = computed(() => {
+    const n = this.cantidadCuotas();
+    if (n <= 0) return 0;
+    return this.valorTotal() - (n - 1) * this.valorCuota();
+  });
 
   // Signals - Datos auxiliares
   clientes = signal<ICliente[]>([]);
@@ -71,12 +85,10 @@ export class RegistroPrestamoModalComponent {
     this.fechaPrestamo(), this.cantidadCuotas(), this.frecuenciaPago()
   ));
 
-  // Computed: Descuadre entre cuota × cantidad vs valorTotal
-  descuadreCuotas = computed(() => {
-    const c = this.cantidadCuotas();
-    const cuota = this.valorCuota();
-    const total = this.valorTotal();
-    return c > 0 && cuota > 0 && total > 0 && (cuota * c) !== total;
+  // Computed: Último pago con valor diferente (no divide exacto)
+  descuadreExacto = computed(() => {
+    const n = this.cantidadCuotas();
+    return n > 0 && this.valorUltimaCuota() !== this.valorCuota();
   });
 
   // Computed: Validación de cliente
@@ -101,22 +113,23 @@ export class RegistroPrestamoModalComponent {
     if (prestado <= 0) return 'El valor prestado debe ser mayor a $0';
     if (interes < 0) return 'El valor del interés no puede ser negativo';
     if (cuota <= 0) return 'El valor de la cuota debe ser mayor a $0';
+    if (cuota > this.valorTotal()) return 'La cuota no puede ser mayor al total a pagar';
     return '';
   });
 
   // Computed: Validación de cuotas
   errorCuotas = computed(() => {
-    const cuotas = this.cantidadCuotas();
-    return cuotas <= 0 ? 'La cantidad de períodos debe ser mayor a 0' : '';
+    return this.cantidadCuotas() <= 0 ? 'Ingrese valor prestado, interés y cuota para calcular los períodos' : '';
   });
 
   // Computed: Validación completa del formulario
   esFormularioValido = computed(() => {
     return (
       this.clienteId().length > 0 &&
-      !this.errorFechaFinal() &&
+      !this.errorCliente() &&
       !this.errorValores() &&
-      this.cantidadCuotas() > 0 &&
+      !this.errorCuotas() &&
+      !this.errorFechaFinal() &&
       this.frecuenciaPago().length > 0
     );
   });
@@ -336,7 +349,6 @@ export class RegistroPrestamoModalComponent {
     this.valorPrestado.set(0);
     this.valorInteres.set(0);
     this.valorCuota.set(0);
-    this.cantidadCuotas.set(0);
     this.frecuenciaPago.set('diario');
     this.error.set('');
     this.mostrarFormNuevoCliente.set(false);

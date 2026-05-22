@@ -15,17 +15,18 @@ export class MonedaInputDirective implements OnInit {
     maximumFractionDigits: 0,
   });
 
-  constructor(private el: ElementRef<HTMLInputElement>) {}
-
-  ngOnInit(): void {
-    this.el.nativeElement.type = 'text';
-    this.el.nativeElement.autocomplete = 'off';
+  constructor(private el: ElementRef<HTMLInputElement>) {
     effect(() => {
       const v = this.appMoneda();
       if (document.activeElement !== this.el.nativeElement) {
         this.el.nativeElement.value = v > 0 ? this.formatter.format(v) : '';
       }
     });
+  }
+
+  ngOnInit(): void {
+    this.el.nativeElement.type = 'text';
+    this.el.nativeElement.autocomplete = 'off';
   }
 
   @HostListener('focus')

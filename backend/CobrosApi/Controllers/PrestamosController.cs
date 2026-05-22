@@ -149,7 +149,9 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
             PrestamoId    = prestamo.Id,
             NumeroCuota   = i,
             FechaEsperada = CalcularFechaCuota(prestamo.FechaPrestamo, prestamo.FrecuenciaPago, i),
-            ValorCuota    = prestamo.ValorCuota,
+            ValorCuota    = (i == prestamo.CantidadCuotas)
+                                ? prestamo.ValorTotal - (prestamo.CantidadCuotas - 1) * prestamo.ValorCuota
+                                : prestamo.ValorCuota,
             SaldoPagado   = 0
         });
         db.Cuotas.AddRange(cuotas);

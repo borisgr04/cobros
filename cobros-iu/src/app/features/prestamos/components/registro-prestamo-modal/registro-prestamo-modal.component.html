@@ -149,39 +149,32 @@
         <div class="seccion">
           <div class="seccion-titulo">
             <i class="bi bi-calendar-range"></i>
-            Fechas del Préstamo
+            Plan de Pago
           </div>
           
-          <div class="campo-grupo">
-            <div class="campo">
-              <label>
-                Fecha de Préstamo
-                <span class="requerido">*</span>
-              </label>
-              <input 
-                type="date" 
-                [value]="fechaPrestamo() | date:'yyyy-MM-dd'"
-                [max]="fechaMaxima"
-                (change)="onFechaPrestamoChange($any($event.target).value)">
-            </div>
+          <div class="campo">
+            <label>
+              Fecha de Préstamo
+              <span class="requerido">*</span>
+            </label>
+            <input 
+              type="date" 
+              [value]="fechaPrestamo() | date:'yyyy-MM-dd'"
+              [max]="fechaMaxima"
+              (change)="onFechaPrestamoChange($any($event.target).value)">
+          </div>
 
-            <div class="campo">
-              <label>
-                Fecha Final (calculada)
-              </label>
-              <div class="campo-derivado" [class.error]="errorFechaFinal()">
-                @if (fechaFinal()) {
-                  <i class="bi bi-calendar-check"></i>
-                  {{ formatDate(fechaFinal()!) }}
-                } @else {
-                  <span class="placeholder-derivado">Se calculará al ingresar cantidad y frecuencia</span>
-                }
-              </div>
-              @if (errorFechaFinal()) {
-                <span class="mensaje-error">
-                  <i class="bi bi-exclamation-circle"></i>
-                  {{ errorFechaFinal() }}
-                </span>
+          <div class="campo">
+            <label>Frecuencia de Pago <span class="requerido">*</span></label>
+            <div class="frecuencia-segmented">
+              @for (frec of frecuencias; track frec.value) {
+                <button
+                  type="button"
+                  class="frecuencia-seg-btn"
+                  [class.selected]="frecuenciaPago() === frec.value"
+                  (click)="seleccionarFrecuencia(frec.value)">
+                  {{ frec.label }}
+                </button>
               }
             </div>
           </div>
@@ -218,63 +211,55 @@
             </div>
           </div>
 
-          <div class="campo-grupo">
-            <div class="campo">
-              <label>
-                Valor de Cuota
-                <span class="requerido">*</span>
-              </label>
-              <input class="input-moneda"
-                [(appMoneda)]="valorCuota"
-                [class.error]="errorValores()"
-                placeholder="$ 0">
+          <!-- Total derivado -->
+          @if (valorTotal() > 0) {
+            <div class="resumen-derivado">
+              <div class="derivado-item">
+                <span class="derivado-label">Total a pagar:</span>
+                <span class="derivado-valor">{{ formatCurrency(valorTotal()) }}</span>
+              </div>
             </div>
+          }
 
-            <div class="campo">
-              <label>
-                Cantidad de Períodos
-                <span class="requerido">*</span>
-              </label>
-              <input
-                type="number"
-                [(ngModel)]="cantidadCuotas"
-                [ngModelOptions]="{updateOn: 'change'}"
-                [class.error]="errorCuotas()"
-                (focus)="$any($event.target).select()"
-                min="1"
-                placeholder="Ej: 12">
-              @if (errorCuotas()) {
-                <span class="mensaje-error">
-                  <i class="bi bi-exclamation-circle"></i>
-                  {{ errorCuotas() }}
-                </span>
-              }
-            </div>
+          <div class="campo">
+            <label>
+              Valor de Cuota
+              <span class="requerido">*</span>
+            </label>
+            <input class="input-moneda"
+              [(appMoneda)]="valorCuota"
+              [class.error]="errorValores()"
+              placeholder="$ 0">
           </div>
 
-          <!-- Resumen derivado: Total y fecha final -->
-          @if (valorTotal() > 0 || fechaFinal()) {
+          <!-- Resultado derivado: cuotas + fecha final -->
+          @if (cantidadCuotas() > 0) {
             <div class="resumen-derivado">
-              @if (valorTotal() > 0) {
-                <div class="derivado-item">
-                  <span class="derivado-label">Total a pagar:</span>
-                  <span class="derivado-valor">{{ formatCurrency(valorTotal()) }}</span>
+              @if (descuadreExacto()) {
+                <div class="derivado-item derivado-advertencia">
+                  <i class="bi bi-exclamation-triangle"></i>
+                  <span>{{ cantidadCuotas() }} pagos · el último de {{ formatCurrency(valorUltimaCuota()) }}</span>
+                </div>
+              } @else {
+                <div class="derivado-item derivado-ok">
+                  <i class="bi bi-check-circle"></i>
+                  <span>{{ cantidadCuotas() }} pagos de {{ formatCurrency(valorCuota()) }}</span>
                 </div>
               }
               @if (fechaFinal()) {
                 <div class="derivado-item">
-                  <span class="derivado-label">Fecha final:</span>
+                  <span class="derivado-label">Hasta:</span>
                   <span class="derivado-valor">{{ formatDate(fechaFinal()!) }}</span>
                 </div>
               }
             </div>
           }
 
-          @if (descuadreCuotas()) {
-            <div class="alerta alerta-advertencia">
-              <i class="bi bi-exclamation-triangle"></i>
-              <span>Cuota × cantidad ({{ formatCurrency(valorCuota() * cantidadCuotas()) }}) difiere del total ({{ formatCurrency(valorTotal()) }})</span>
-            </div>
+          @if (errorCuotas()) {
+            <span class="mensaje-error">
+              <i class="bi bi-exclamation-circle"></i>
+              {{ errorCuotas() }}
+            </span>
           }
 
           @if (errorValores()) {
@@ -284,74 +269,6 @@
             </span>
           }
         </div>
-
-
-        <!-- SECCIÓN: Frecuencia de Pago -->
-        <div class="seccion">
-          <div class="seccion-titulo">
-            <i class="bi bi-arrow-repeat"></i>
-            Frecuencia de Pago
-            <span class="requerido">*</span>
-          </div>
-          
-          <div class="frecuencia-opciones">
-            @for (frec of frecuencias; track frec.value) {
-              <div 
-                class="frecuencia-card"
-                [class.selected]="frecuenciaPago() === frec.value"
-                (click)="seleccionarFrecuencia(frec.value)">
-                <i class="bi" [class]="frec.icon"></i>
-                <div class="frecuencia-label">{{ frec.label }}</div>
-              </div>
-            }
-          </div>
-        </div>
-
-        <!-- SECCIÓN: Resumen de Cuotas -->
-        @if (cantidadCuotas() > 0 && valorCuota() > 0) {
-          <div class="seccion">
-            <div class="resumen-panel">
-              <div class="resumen-item">
-                <div class="resumen-label">
-                  <i class="bi bi-calendar-check"></i>
-                  Cantidad de Cuotas
-                </div>
-                <div class="resumen-valor destacado">
-                  {{ cantidadCuotas() }}
-                </div>
-              </div>
-
-              <div class="resumen-item">
-                <div class="resumen-label">
-                  <i class="bi bi-cash-coin"></i>
-                  Valor por Cuota
-                </div>
-                <div class="resumen-valor destacado">
-                  {{ formatCurrency(valorCuota()) }}
-                </div>
-              </div>
-
-              @if (fechaPrestamo() && fechaFinal()) {
-                <div class="resumen-item">
-                  <div class="resumen-label">
-                    <i class="bi bi-calendar-event"></i>
-                    Período
-                  </div>
-                  <div class="resumen-valor">
-                    {{ formatDate(fechaPrestamo()) }} - {{ formatDate(fechaFinal()!) }}
-                  </div>
-                </div>
-              }
-            </div>
-          </div>
-        }
-
-        @if (errorCuotas()) {
-          <div class="mensaje-error">
-            <i class="bi bi-exclamation-circle"></i>
-            {{ errorCuotas() }}
-          </div>
-        }
 
         <!-- Alertas -->
         @if (error()) {
