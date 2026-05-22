@@ -1,3 +1,12 @@
+### Requirement: Filtro de cliente activo tras crear un préstamo
+Tras registrar un nuevo préstamo exitosamente, el sistema SHALL establecer automáticamente el filtro de cliente al cliente del préstamo recién creado, mostrando únicamente sus préstamos en la lista.
+
+#### Scenario: Filtro se establece al cliente del préstamo creado
+- **WHEN** se crea un préstamo exitosamente para cualquier cliente
+- **THEN** el filtro de cliente se establece al cliente de ese préstamo
+- **AND** la lista muestra únicamente los préstamos de ese cliente
+- **AND** el chip de filtro activo muestra el nombre del cliente
+
 ### Requirement: Filtro de cliente visible con opción de limpieza
 Cuando el filtro de cliente está activo en Gestión de Préstamos, el sistema SHALL mostrar un chip visible con el nombre del cliente filtrado y un botón "×" para eliminar el filtro, independientemente de cómo se activó el filtro (URL, modal de filtros, o navegación desde clientes).
 
