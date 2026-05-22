@@ -76,6 +76,10 @@ public class ClientesController(CobrosDbContext db) : ControllerBase
         if (!zonaExiste)
             return BadRequest(new ErrorDto { Error = $"Zona {input.ZonaId} no existe" });
 
+        var identificacionExiste = await db.Clientes.AnyAsync(c => c.Identificacion == input.Identificacion);
+        if (identificacionExiste)
+            return BadRequest(new ErrorDto { Error = "Ya existe un cliente con esta identificación" });
+
         var cliente = new Cliente
         {
             Nombre         = input.Nombre,
@@ -114,6 +118,10 @@ public class ClientesController(CobrosDbContext db) : ControllerBase
         var zonaExiste = await db.Zonas.AnyAsync(z => z.Id == zonaId);
         if (!zonaExiste)
             return BadRequest(new ErrorDto { Error = $"Zona {input.ZonaId} no existe" });
+
+        var identificacionExiste = await db.Clientes.AnyAsync(c => c.Identificacion == input.Identificacion && c.Id != id);
+        if (identificacionExiste)
+            return BadRequest(new ErrorDto { Error = "Ya existe un cliente con esta identificación" });
 
         cliente.Nombre         = input.Nombre;
         cliente.Alias          = input.Alias;

@@ -68,6 +68,20 @@
     </button>
   </div>
 
+  <!-- CHIP DE FILTRO ACTIVO POR CLIENTE -->
+  @if (filtroClienteId()) {
+    <div class="chip-filtro-cliente">
+      <i class="bi bi-person-fill chip-filtro-cliente__icono"></i>
+      <span class="chip-filtro-cliente__nombre">{{ nombreClienteFiltrado() }}</span>
+      <button
+        class="chip-filtro-cliente__limpiar"
+        (click)="limpiarFiltroCliente()"
+        aria-label="Eliminar filtro de cliente">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+  }
+
   <!-- MODAL DE FILTROS -->
   @if (mostrarModalFiltros()) {
     <div class="modal-overlay" (click)="cerrarModalFiltros()">

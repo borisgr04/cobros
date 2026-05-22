@@ -115,6 +115,13 @@ export class PrestamosComponent implements OnInit {
     };
   });
 
+  // Computed: nombre del cliente cuyo filtro está activo
+  nombreClienteFiltrado = computed(() => {
+    const id = this.filtroClienteId();
+    if (!id) return '';
+    return this.clientes().find(c => c.id === id)?.nombre ?? 'Cliente';
+  });
+
   ngOnInit(): void {
     // Leer parámetros de la URL y guardarlos temporalmente
     this.route.queryParams.subscribe(params => {
@@ -179,6 +186,13 @@ export class PrestamosComponent implements OnInit {
       next: (zonas) => this.zonas.set(zonas),
       error: (error) => console.error('Error al cargar zonas:', error)
     });
+  }
+
+  /**
+   * Limpia el filtro de cliente activo
+   */
+  limpiarFiltroCliente(): void {
+    this.filtroClienteId.set('');
   }
 
   /**
@@ -432,6 +446,9 @@ export class PrestamosComponent implements OnInit {
    * Maneja el evento de préstamo registrado exitosamente
    */
   onPrestamoRegistrado(prestamo: IPrestamo): void {
+    // Fijar el filtro al cliente del préstamo recién creado para que sea visible
+    this.filtroClienteId.set(prestamo.clienteId);
+
     // Recargar datos
     this.cargarDatos();
 

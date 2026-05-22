@@ -103,6 +103,19 @@
           </button>
         </div>
         <div class="form-body">
+        @if (mensaje()) {
+          <div class="alert-modern alert-{{ mensaje()!.tipo }}" role="alert">
+            <div class="alert-icon">
+              <i class="bi bi-{{ mensaje()!.tipo === 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill' }}"></i>
+            </div>
+            <div class="alert-content">
+              <p class="alert-message">{{ mensaje()!.texto }}</p>
+            </div>
+            <button type="button" class="alert-close" (click)="mensaje.set(null)">
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+        }
         <form (ngSubmit)="guardarCliente()" class="modern-form">
           <!-- Nombre -->
           <div class="form-group">
@@ -196,7 +209,7 @@
             <div class="form-group">
               <label for="telefono" class="form-label">
                 <i class="bi bi-telephone"></i>
-                Teléfono
+                Teléfono <span class="required">*</span>
               </label>
               <input
                 type="tel"
@@ -204,6 +217,7 @@
                 id="telefono"
                 [(ngModel)]="formulario.telefono"
                 name="telefono"
+                required
                 placeholder="Ej: 555-0101"
               >
             </div>

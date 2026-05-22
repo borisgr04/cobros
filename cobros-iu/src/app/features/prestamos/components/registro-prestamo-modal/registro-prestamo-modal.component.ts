@@ -42,11 +42,29 @@ export class RegistroPrestamoModalComponent {
   // Signals - Estado del mini-formulario de nuevo cliente
   mostrarFormNuevoCliente = signal<boolean>(false);
   nuevoNombre = signal<string>('');
+  nuevoAlias = signal<string>('');
   nuevoIdentificacion = signal<string>('');
   nuevoZonaId = signal<string>('');
   nuevoTelefono = signal<string>('');
   guardandoCliente = signal<boolean>(false);
   errorNuevoCliente = signal<string>('');
+
+  // Computed: Formato de moneda
+  valorPrestadoFormateado = computed(() => {
+    const v = this.valorPrestado();
+    return v > 0 ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(v) : '';
+  });
+
+  valorTotalFormateado = computed(() => {
+    const v = this.valorTotal();
+    return v > 0 ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(v) : '';
+  });
+
+  // Computed: Validación cédula en tiempo real
+  cedulaDuplicada = computed(() => {
+    const id = this.nuevoIdentificacion().trim();
+    return id.length > 0 && this.clientes().some(c => c.identificacion?.trim() === id);
+  });
 
   // Signals - Estado del modal
   visible = signal<boolean>(false);
@@ -270,6 +288,7 @@ export class RegistroPrestamoModalComponent {
   abrirFormNuevoCliente(): void {
     this.errorNuevoCliente.set('');
     this.nuevoNombre.set('');
+    this.nuevoAlias.set('');
     this.nuevoIdentificacion.set('');
     this.nuevoZonaId.set('');
     this.nuevoTelefono.set('');
@@ -289,6 +308,7 @@ export class RegistroPrestamoModalComponent {
   cancelarFormNuevoCliente(): void {
     this.mostrarFormNuevoCliente.set(false);
     this.errorNuevoCliente.set('');
+    this.nuevoAlias.set('');
   }
 
   /**
@@ -300,9 +320,16 @@ export class RegistroPrestamoModalComponent {
     this.guardandoCliente.set(true);
     this.errorNuevoCliente.set('');
 
+    if (!this.nuevoTelefono().trim()) {
+      this.errorNuevoCliente.set('El teléfono es obligatorio');
+      this.guardandoCliente.set(false);
+      return;
+    }
+
     const nuevoCliente: ICliente = {
       id: '',
       nombre: this.nuevoNombre().trim(),
+      alias: this.nuevoAlias().trim() || undefined,
       identificacion: this.nuevoIdentificacion().trim(),
       zonaId: this.nuevoZonaId(),
       telefono: this.nuevoTelefono().trim() || undefined,
@@ -352,6 +379,7 @@ export class RegistroPrestamoModalComponent {
     this.error.set('');
     this.mostrarFormNuevoCliente.set(false);
     this.errorNuevoCliente.set('');
+    this.nuevoAlias.set('');
   }
 
   /**

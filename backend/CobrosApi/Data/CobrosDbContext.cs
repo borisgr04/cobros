@@ -26,6 +26,11 @@ public class CobrosDbContext(DbContextOptions<CobrosDbContext> options) : DbCont
         modelBuilder.Entity<Cliente>()
             .HasIndex(c => c.ZonaId);
 
+        // Índice único en Identificacion de Cliente
+        modelBuilder.Entity<Cliente>()
+            .HasIndex(c => c.Identificacion)
+            .IsUnique();
+
         // Índice en ClienteId de Prestamo
         modelBuilder.Entity<Prestamo>()
             .HasIndex(p => p.ClienteId);

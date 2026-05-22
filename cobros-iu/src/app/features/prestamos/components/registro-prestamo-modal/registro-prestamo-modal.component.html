@@ -67,8 +67,21 @@
                     <input type="text" [(ngModel)]="nuevoNombre" [ngModelOptions]="{updateOn: 'change'}" placeholder="Nombre completo" />
                   </div>
                   <div class="campo">
+                    <label>Alias</label>
+                    <input type="text" [(ngModel)]="nuevoAlias" [ngModelOptions]="{updateOn: 'change'}" placeholder="Apodo (opcional)" />
+                  </div>
+                </div>
+
+                <div class="campo-grupo">
+                  <div class="campo">
                     <label>Identificación <span class="requerido">*</span></label>
-                    <input type="text" [(ngModel)]="nuevoIdentificacion" [ngModelOptions]="{updateOn: 'change'}" placeholder="Cédula / NIT" />
+                    <input type="text" [(ngModel)]="nuevoIdentificacion" [ngModelOptions]="{updateOn: 'change'}" placeholder="Cédula / NIT" [class.input-error]="cedulaDuplicada()" />
+                    @if (cedulaDuplicada()) {
+                      <span class="hint-error">
+                        <i class="bi bi-exclamation-circle"></i>
+                        Ya existe un cliente con esta identificación
+                      </span>
+                    }
                   </div>
                 </div>
 
@@ -90,8 +103,8 @@
                     }
                   </div>
                   <div class="campo">
-                    <label>Teléfono</label>
-                    <input type="text" [(ngModel)]="nuevoTelefono" [ngModelOptions]="{updateOn: 'change'}" placeholder="Opcional" />
+                    <label>Teléfono <span class="requerido">*</span></label>
+                    <input type="text" [(ngModel)]="nuevoTelefono" [ngModelOptions]="{updateOn: 'change'}" placeholder="Número de teléfono" />
                   </div>
                 </div>
 
@@ -106,7 +119,7 @@
                   <button 
                     type="button" 
                     class="btn-guardar-cliente"
-                    [disabled]="guardandoCliente() || !nuevoNombre() || !nuevoIdentificacion() || !nuevoZonaId() || zonas().length === 0"
+                    [disabled]="guardandoCliente() || !nuevoNombre() || !nuevoIdentificacion() || !nuevoZonaId() || zonas().length === 0 || cedulaDuplicada() || !nuevoTelefono()"
                     (click)="guardarNuevoCliente()">
                     @if (guardandoCliente()) {
                       <span class="spinner-sm"></span>
@@ -196,6 +209,9 @@
                   placeholder="0"
                   min="1">
               </div>
+              @if (valorPrestadoFormateado()) {
+                <span class="input-moneda-preview">{{ valorPrestadoFormateado() }}</span>
+              }
             </div>
 
             <div class="campo">
@@ -214,6 +230,9 @@
                   placeholder="0"
                   min="1">
               </div>
+              @if (valorTotalFormateado()) {
+                <span class="input-moneda-preview">{{ valorTotalFormateado() }}</span>
+              }
             </div>
           </div>
 

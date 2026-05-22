@@ -796,3 +796,31 @@
     }
   }
 }
+
+// Preview de moneda bajo inputs numericos
+.input-moneda-preview {
+  display: block;
+  font-size: 0.75rem;
+  color: #1a56db;
+  margin-top: 0.25rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+// Hint de error para c\u00e9dula duplicada
+.hint-error {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #e02424;
+  margin-top: 0.25rem;
+
+  i { font-size: 0.75rem; }
+}
+
+// Input con error
+.input-error {
+  border-color: #e02424 !important;
+  background-color: #fff5f5;
+}

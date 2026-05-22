@@ -22,7 +22,7 @@
 
 ## 4. Verificación
 
-- [ ] 4.1 Flujo happy path: abrir modal → clic "+ Nuevo cliente" → completar campos → guardar → cliente aparece seleccionado en el select
-- [ ] 4.2 Flujo cancelar: abrir mini-form → cancelar → select visible sin cambios
-- [ ] 4.3 Flujo error: crear cliente con identificación duplicada → mensaje de error visible, formulario permanece abierto
-- [ ] 4.4 Sin zonas: si la API retorna lista vacía de zonas, guardar está deshabilitado con mensaje
+- [x] 4.1 Flujo happy path: abrir modal → clic "+ Nuevo cliente" → completar campos → guardar → cliente aparece seleccionado en el select
+- [x] 4.2 Flujo cancelar: abrir mini-form → cancelar → select visible sin cambios
+- [x] 4.3 Flujo error: crear cliente con identificación duplicada → mensaje de error visible, formulario permanece abierto
+- [x] 4.4 Sin zonas: si la API retorna lista vacía de zonas, guardar está deshabilitado con mensaje

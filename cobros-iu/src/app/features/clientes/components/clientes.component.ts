@@ -284,8 +284,22 @@ export class ClientesComponent implements OnInit {
       this.mostrarMensaje('error', 'La identificación es obligatoria');
       return false;
     }
+    // Verificar identificación duplicada contra la lista en memoria
+    const identificacion = this.formulario.identificacion.trim();
+    const duplicado = this.clientes().some(c =>
+      c.identificacion?.trim() === identificacion &&
+      c.id !== this.formulario.id
+    );
+    if (duplicado) {
+      this.mostrarMensaje('error', 'Ya existe un cliente con esta identificación');
+      return false;
+    }
     if (!this.formulario.zonaId?.trim()) {
       this.mostrarMensaje('error', 'La zona es obligatoria');
+      return false;
+    }
+    if (!this.formulario.telefono?.trim()) {
+      this.mostrarMensaje('error', 'El teléfono es obligatorio');
       return false;
     }
     return true;
