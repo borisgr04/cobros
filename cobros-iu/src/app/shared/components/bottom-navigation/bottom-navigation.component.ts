@@ -19,7 +19,6 @@ export class BottomNavigationComponent {
   // Items de navegación (mismos que sidebar)
   navItems: NavItem[] = [
     { path: '/', label: 'Inicio', icon: 'bi-house-fill' },
-    { path: '/prestamos', label: 'Préstamos', icon: 'bi-cash-coin' },
     { path: '/clientes', label: 'Clientes', icon: 'bi-people-fill' },
     { path: '/zonas', label: 'Zonas', icon: 'bi-geo-alt-fill' },
     { path: '/reportes', label: 'Reportes', icon: 'bi-file-earmark-bar-graph-fill' },

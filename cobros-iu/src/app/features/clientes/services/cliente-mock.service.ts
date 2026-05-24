@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, delay, throwError } from 'rxjs';
-import type { ICliente } from '../../core/models';
+import type { ICliente, IClienteConPrestamosActivos } from '../../core/models';
 import { AbstractClienteService } from '../../core/services/abstract-cliente.service';
 
 /**
@@ -162,5 +162,18 @@ export class ClienteMockService implements AbstractClienteService {
   getByZona(zonaId: string): Observable<ICliente[]> {
     const clientesPorZona = this.clientes.filter(c => c.zonaId === zonaId);
     return of([...clientesPorZona]).pipe(delay(this.MOCK_DELAY));
+  }
+
+  /**
+   * Obtiene un cliente con sus préstamos activos (mock: siempre retorna sin préstamos activos).
+   * @param id - Identificador del cliente
+   * @returns Observable con el cliente y lista vacía de préstamos activos
+   */
+  getConPrestamosActivos(id: string): Observable<IClienteConPrestamosActivos> {
+    const cliente = this.clientes.find(c => c.id === id);
+    if (cliente) {
+      return of({ ...cliente, prestamosActivos: [] }).pipe(delay(this.MOCK_DELAY));
+    }
+    return throwError(() => new Error('Cliente no encontrado')).pipe(delay(this.MOCK_DELAY));
   }
 }

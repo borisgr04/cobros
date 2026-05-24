@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import type { ICliente } from '../models';
+import type { ICliente, IClienteConPrestamosActivos } from '../models';
 import { BaseService } from './base.service';
 import { AbstractClienteService } from './abstract-cliente.service';
 
@@ -70,11 +70,20 @@ export class ClienteService extends BaseService<ICliente> implements AbstractCli
   }
 
   /**
-   * Obtiene todos los clientes asociados a una zona específica.
+   * Obtiene clientes por zona.
    * @param zonaId - Identificador de la zona
    * @returns Observable con array de clientes de la zona
    */
   getByZona(zonaId: string): Observable<ICliente[]> {
     return this.http.get<ICliente[]>(`${this.apiUrl}/zona/${zonaId}`);
+  }
+
+  /**
+   * Obtiene un cliente con sus préstamos activos en una sola llamada.
+   * @param id - Identificador del cliente
+   * @returns Observable con el cliente y sus préstamos activos
+   */
+  getConPrestamosActivos(id: string): Observable<IClienteConPrestamosActivos> {
+    return this.http.get<IClienteConPrestamosActivos>(`${this.apiUrl}/${id}/con-prestamos-activos`);
   }
 }

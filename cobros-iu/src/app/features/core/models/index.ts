@@ -7,7 +7,7 @@
  */
 
 // Re-exportación de interfaces de modelos
-export type { ICliente } from './cliente.model';
+export type { ICliente, IClienteConPrestamosActivos } from './cliente.model';
 export type { IZona } from './zona.model';
 export type { IPrestamo } from './prestamo.model';
 export type { IPago } from './pago.model';

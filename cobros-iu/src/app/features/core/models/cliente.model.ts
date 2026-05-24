@@ -1,4 +1,5 @@
 import type { Estado } from './types';
+import type { IPrestamo } from './prestamo.model';
 
 /**
  * Representa a un cliente dentro del dominio de gestión de préstamos.
@@ -25,4 +26,14 @@ export interface ICliente {
   llave?: string;
   /** Estado del cliente dentro del sistema (opcional) */
   estado?: Estado;
+  /** Indica si el cliente alguna vez tuvo préstamos (usado para ocultar el botón Eliminar) */
+  tienePrestamos?: boolean;
+}
+
+/**
+ * Cliente con sus préstamos activos, devuelto por el endpoint combinado.
+ * Activo = suma de pagos < valor total del préstamo.
+ */
+export interface IClienteConPrestamosActivos extends ICliente {
+  prestamosActivos: IPrestamo[];
 }
