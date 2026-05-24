@@ -81,15 +81,15 @@
 
             <div class="campo">
               <label>Frecuencia de Pago <span class="requerido">*</span></label>
-              <div class="frecuencia-opciones">
+              <div class="frecuencia-segmented">
                 @for (frec of frecuencias; track frec.value) {
-                  <div 
-                    class="frecuencia-card"
+                  <button
+                    type="button"
+                    class="frecuencia-seg-btn"
                     [class.selected]="frecuenciaPago() === frec.value"
                     (click)="seleccionarFrecuencia(frec.value)">
-                    <i class="bi {{ frec.icon }}"></i>
-                    <span>{{ frec.label }}</span>
-                  </div>
+                    {{ frec.label }}
+                  </button>
                 }
               </div>
             </div>
