@@ -478,6 +478,15 @@
 
             <div class="card-actions">
               <button
+                class="btn-action btn-nuevo-prestamo"
+                (click)="nuevoPrestamo(cliente)"
+                [disabled]="cargando()"
+                title="Nuevo préstamo"
+              >
+                <i class="bi bi-plus-circle"></i>
+                <span>Préstamo</span>
+              </button>
+              <button
                 class="btn-action btn-edit"
                 (click)="editarCliente(cliente)"
                 [disabled]="cargando()"
@@ -486,15 +495,17 @@
                 <i class="bi bi-pencil"></i>
                 <span>Editar</span>
               </button>
-              <button
-                class="btn-action btn-delete"
-                (click)="eliminarCliente(cliente)"
-                [disabled]="cargando()"
-                title="Eliminar cliente"
-              >
-                <i class="bi bi-trash"></i>
-                <span>Eliminar</span>
-              </button>
+              @if (!cliente.tienePrestamos) {
+                <button
+                  class="btn-action btn-delete"
+                  (click)="eliminarCliente(cliente)"
+                  [disabled]="cargando()"
+                  title="Eliminar cliente"
+                >
+                  <i class="bi bi-trash"></i>
+                  <span>Eliminar</span>
+                </button>
+              }
             </div>
           </div>
         }

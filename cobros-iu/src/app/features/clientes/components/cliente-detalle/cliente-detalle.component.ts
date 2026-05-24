@@ -10,7 +10,7 @@ import { RegistroPagoModalComponent } from '../../../prestamos/components/regist
 
 /**
  * Vista de detalle de un cliente: muestra datos completos del cliente
- * y la lista de sus préstamos con acciones.
+ * y la lista de sus préstamos activos con acciones.
  */
 @Component({
   selector: 'app-cliente-detalle',
@@ -50,11 +50,11 @@ export class ClienteDetalleComponent implements OnInit {
 
   cargarCliente(id: string): void {
     this.cargando.set(true);
-    this.clienteService.getById(id).subscribe({
-      next: (cliente) => {
-        this.cliente.set(cliente);
+    this.clienteService.getConPrestamosActivos(id).subscribe({
+      next: (resultado) => {
+        this.cliente.set(resultado);
         this.cargando.set(false);
-        this.cargarPrestamos(id);
+        this.cargarEstadisticasPrestamos(resultado.prestamosActivos);
       },
       error: (err) => {
         console.error('Error al cargar cliente:', err);
@@ -64,11 +64,11 @@ export class ClienteDetalleComponent implements OnInit {
     });
   }
 
-  cargarPrestamos(clienteId: string): void {
+  cargarEstadisticasPrestamos(prestamos: { id: string }[]): void {
     this.cargandoPrestamos.set(true);
-    this.prestamoService.getPrestamosConDatosByCliente(clienteId).subscribe({
-      next: (prestamos) => {
-        this.prestamos.set(prestamos);
+    this.prestamoService.getPrestamosConDatosDesde(prestamos as any).subscribe({
+      next: (p) => {
+        this.prestamos.set(p);
         this.cargandoPrestamos.set(false);
       },
       error: (err) => {
@@ -97,12 +97,12 @@ export class ClienteDetalleComponent implements OnInit {
 
   onPrestamoRegistrado(): void {
     const id = this.cliente()?.id;
-    if (id) this.cargarPrestamos(id);
+    if (id) this.cargarCliente(id);
   }
 
   onPagoRegistrado(): void {
     const id = this.cliente()?.id;
-    if (id) this.cargarPrestamos(id);
+    if (id) this.cargarCliente(id);
   }
 
   @HostListener('document:keydown.escape')

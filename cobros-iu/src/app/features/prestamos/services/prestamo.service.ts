@@ -122,6 +122,25 @@ export class PrestamoService {
     );
   }
 
+  /**
+   * Calcula estadísticas de una lista de préstamos ya obtenidos del backend.
+   * Útil cuando los préstamos ya llegan en un DTO combinado (evita una llamada extra).
+   */
+  getPrestamosConDatosDesde(prestamos: IPrestamo[]): Observable<PrestamoConCliente[]> {
+    if (prestamos.length === 0) return of([]);
+    return forkJoin(
+      prestamos.map(raw =>
+        this.pagoService.getByPrestamo(raw.id).pipe(
+          map(pagos => {
+            const prestamo = this.parsePrestamo(raw);
+            const estadisticas = calcularEstadisticasPrestamo(prestamo, pagos);
+            return { ...prestamo, estadisticas } as PrestamoConCliente;
+          })
+        )
+      )
+    );
+  }
+
   getAllPagos(): Observable<IPago[]> {
     return this.pagoService.getAll();
   }

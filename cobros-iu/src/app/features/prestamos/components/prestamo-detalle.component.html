@@ -224,14 +224,14 @@
                   <i class="bi bi-pencil"></i>
                   Editar Préstamo
                 </button>
-                <button 
-                  class="btn-accion btn-eliminar" 
-                  [disabled]="!puedeEliminarPrestamo()"
-                  [title]="!puedeEliminarPrestamo() ? 'No se puede eliminar un préstamo con pagos registrados' : 'Eliminar préstamo'"
-                  (click)="eliminarPrestamo()">
-                  <i class="bi bi-trash"></i>
-                  Eliminar
-                </button>
+                @if (puedeEliminarPrestamo()) {
+                  <button 
+                    class="btn-accion btn-eliminar" 
+                    (click)="eliminarPrestamo()">
+                    <i class="bi bi-trash"></i>
+                    Eliminar
+                  </button>
+                }
                 <button class="btn-accion btn-imprimir">
                   <i class="bi bi-printer"></i>
                   Imprimir
