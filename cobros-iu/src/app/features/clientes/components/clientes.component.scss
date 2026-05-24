@@ -867,13 +867,12 @@ select.form-input {
 
 .card-actions {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 0.75rem;
   padding-top: 0.5rem;
   border-top: 1px solid var(--border-color);
 
   @media (max-width: 767px) {
-    grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
   }
 }
@@ -896,16 +895,8 @@ select.form-input {
 
   @media (max-width: 767px) {
     padding: 0.5rem 0.75rem;
-    font-size: 0.75rem;
-    gap: 0.25rem;
-    
-    span {
-      display: none;
-    }
-    
-    i {
-      font-size: 1rem;
-    }
+    font-size: 0.8rem;
+    gap: 0.35rem;
   }
 
   &:disabled {
@@ -1025,6 +1016,331 @@ select.form-input {
   &:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
+  }
+}
+
+// ==========================================
+// BOTÓN NOMBRE CLIENTE (enlace a detalle)
+// ==========================================
+.btn-client-name {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  color: var(--accent-color);
+  cursor: pointer;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: var(--transition);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  display: block;
+
+  &:hover {
+    text-decoration-color: var(--accent-color);
+    color: var(--primary-dark);
+  }
+}
+
+// ==========================================
+// ACORDEÓN DE PRÉSTAMOS EN LA TARJETA
+// ==========================================
+.card-prestamos {
+  border-top: 1px solid var(--border-color);
+  padding-top: 0.75rem;
+}
+
+.btn-toggle-prestamos {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.6rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: var(--transition);
+
+  .toggle-label {
+    flex: 1;
+    text-align: left;
+  }
+
+  .toggle-icon {
+    color: var(--accent-color);
+    font-size: 1rem;
+  }
+
+  .toggle-arrow {
+    color: var(--text-tertiary);
+    font-size: 0.9rem;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover:not(:disabled) {
+    background: var(--bg-tertiary);
+    border-color: var(--primary-color);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.prestamos-acordeon {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  animation: slideDown 0.2s ease;
+}
+
+.prestamos-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.spinner-mini {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--bg-tertiary);
+  border-top-color: var(--accent-color);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+.prestamos-empty {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  color: var(--text-tertiary);
+  font-size: 0.875rem;
+
+  i {
+    font-size: 1rem;
+  }
+}
+
+// Item compacto de préstamo
+.prestamo-mini {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+}
+
+.prestamo-mini-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.prestamo-mini-estado {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.badge-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+
+  i {
+    font-size: 0.55rem;
+  }
+
+  &.activo {
+    background: #E8F5E9;
+    color: var(--success-color);
+  }
+  &.mora {
+    background: #FFF8E1;
+    color: var(--warning-color);
+  }
+  &.vencido {
+    background: #FFEBEE;
+    color: var(--danger-color);
+  }
+  &.completado {
+    background: #E3F2FD;
+    color: #1565C0;
+  }
+}
+
+.prestamo-mini-freq {
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+  background: var(--bg-tertiary);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+
+.prestamo-mini-montos {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+
+  .saldo-label {
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .saldo-value {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+}
+
+.prestamo-mini-progreso {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.progress-bar-mini {
+  flex: 1;
+  height: 5px;
+  background: var(--bg-tertiary);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.progress-fill-mini {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.4s ease;
+
+  &.complete { background: var(--success-color); }
+  &.high     { background: #4CAF50; }
+  &.medium   { background: var(--warning-color); }
+  &.low      { background: var(--danger-color); }
+}
+
+.progress-pct {
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  min-width: 2.5rem;
+  text-align: right;
+}
+
+// Botones de acción dentro del ítem de préstamo
+.prestamo-mini-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+
+  @media (max-width: 480px) {
+    justify-content: flex-end;
+  }
+}
+
+.btn-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: var(--transition);
+  white-space: nowrap;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  i {
+    font-size: 0.85rem;
+  }
+}
+
+.btn-mini-detail {
+  background: var(--bg-primary);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+
+  &:hover:not(:disabled) {
+    background: var(--primary-color);
+    color: white;
+  }
+}
+
+.btn-mini-pay {
+  background: var(--success-color);
+  border-color: var(--success-color);
+  color: white;
+
+  &:hover:not(:disabled) {
+    background: #00C853;
+    border-color: #00C853;
+  }
+}
+
+// Botón "Nuevo Préstamo" dentro del acordeón
+.btn-nuevo-prestamo-inline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.875rem;
+  background: none;
+  border: 1px dashed var(--accent-color);
+  border-radius: var(--radius-md);
+  color: var(--accent-color);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-top: 0.25rem;
+
+  &:hover:not(:disabled) {
+    background: rgba(61, 90, 254, 0.06);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
