@@ -22,8 +22,8 @@
       @for (zona of zonas(); track zona.zonaId) {
         <div 
           class="minimal-card" 
-          [class.clickable]="zona.prestamos > 0"
-          (click)="verPrestamosZona(zona)">
+          [class.clickable]="zona.clientes > 0"
+          (click)="verClientesZona(zona)">
           
           <!-- Header de la tarjeta -->
           <div class="minimal-header">
