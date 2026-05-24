@@ -37,3 +37,22 @@ export interface ICliente {
 export interface IClienteConPrestamosActivos extends ICliente {
   prestamosActivos: IPrestamo[];
 }
+
+/**
+ * Préstamo con totales de pago calculados server-side.
+ * Devuelto por GET /api/clientes/con-prestamos.
+ */
+export interface IPrestamoConPagos extends IPrestamo {
+  /** Total de pagos registrados para este préstamo */
+  totalPagado: number;
+  /** Saldo pendiente (valorTotal - totalPagado) */
+  saldoPendiente: number;
+}
+
+/**
+ * Cliente con todos sus préstamos e información de pagos consolidada.
+ * Devuelto por GET /api/clientes/con-prestamos.
+ */
+export interface IClienteConPrestamos extends ICliente {
+  prestamos: IPrestamoConPagos[];
+}

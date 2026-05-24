@@ -1,11 +1,17 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, combineLatest, forkJoin, map, of, switchMap } from 'rxjs';
-import type { IPrestamo, IPago, ICliente } from '../../core/models';
+import type { IPrestamo, IPago, ICliente, IClienteConPrestamos } from '../../core/models';
 import { AbstractPrestamoService } from '../../core/services/abstract-prestamo.service';
 import { AbstractPagoService } from '../../core/services/abstract-pago.service';
 import { AbstractClienteService } from '../../core/services/abstract-cliente.service';
 import {
   calcularEstadisticasPrestamo,
+  calcularPorcentajePagado,
+  calcularProximaCuotaFecha,
+  calcularProximaCuotaValor,
+  calcularDiasTranscurridos,
+  calcularDiasRestantes,
+  determinarEstadoPrestamo,
   generarProyeccionCuotas,
   mapCuotasDesdeBackend,
   type EstadisticasPrestamo,
@@ -173,27 +179,36 @@ export class PrestamoService {
   }
 
   /**
-   * Carga todos los préstamos y pagos en paralelo y los indexa por clienteId.
-   * Permite pre-poblar la caché de la vista de clientes en una sola ida al servidor (2 llamadas).
+   * Construye la caché de préstamos por clienteId a partir de la respuesta consolidada
+   * del endpoint GET /api/clientes/con-prestamos. No realiza ninguna llamada HTTP adicional.
    */
-  getAllPrestamosIndexadosPorCliente(): Observable<Record<string, PrestamoConCliente[]>> {
-    return combineLatest([
-      this.prestamoDataService.getAll(),
-      this.pagoService.getAll(),
-    ]).pipe(
-      map(([prestamos, pagos]) => {
-        const cache: Record<string, PrestamoConCliente[]> = {};
-        for (const raw of prestamos) {
-          const prestamo = this.parsePrestamo(raw);
-          const pagosPrestamo = pagos.filter(pg => pg.prestamoId === prestamo.id);
-          const estadisticas = calcularEstadisticasPrestamo(prestamo, pagosPrestamo);
-          const item: PrestamoConCliente = { ...prestamo, estadisticas };
-          if (!cache[prestamo.clienteId]) cache[prestamo.clienteId] = [];
-          cache[prestamo.clienteId].push(item);
-        }
-        return cache;
-      })
-    );
+  buildCacheDesdeClientesConsolidados(clientes: IClienteConPrestamos[]): Record<string, PrestamoConCliente[]> {
+    const cache: Record<string, PrestamoConCliente[]> = {};
+    for (const cliente of clientes) {
+      cache[cliente.id] = cliente.prestamos.map(raw => {
+        const prestamo = this.parsePrestamo(raw);
+        const cuotasPagadas = prestamo.valorCuota > 0
+          ? Math.round(raw.totalPagado / prestamo.valorCuota)
+          : 0;
+        const cuotasPendientes = Math.max(0, prestamo.cantidadCuotas - cuotasPagadas);
+        const proximaCuotaFecha = calcularProximaCuotaFecha(prestamo.fechaPrestamo, prestamo.frecuenciaPago, cuotasPagadas);
+        const estadisticas: EstadisticasPrestamo = {
+          totalPrestado: prestamo.valorPrestado,
+          totalPorCobrar: raw.saldoPendiente,
+          totalPagado: raw.totalPagado,
+          porcentajePagado: calcularPorcentajePagado(prestamo.valorTotal, raw.totalPagado),
+          cuotasPagadas,
+          cuotasPendientes,
+          diasTranscurridos: calcularDiasTranscurridos(prestamo.fechaPrestamo),
+          diasRestantes: calcularDiasRestantes(prestamo.fechaFinal),
+          proximaCuotaFecha,
+          proximaCuotaValor: calcularProximaCuotaValor(prestamo.valorCuota, raw.saldoPendiente),
+          estado: determinarEstadoPrestamo(prestamo.fechaFinal, raw.saldoPendiente, proximaCuotaFecha),
+        };
+        return { ...prestamo, estadisticas } as PrestamoConCliente;
+      });
+    }
+    return cache;
   }
 
   getEstadisticasGlobales(): Observable<{

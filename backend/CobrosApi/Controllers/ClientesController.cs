@@ -54,6 +54,54 @@ public class ClientesController(CobrosDbContext db) : ControllerBase
         return Ok(data.Select(x => ToDto(x.Cliente, x.TienePrestamos)));
     }
 
+    // GET /api/clientes/con-prestamos
+    [HttpGet("con-prestamos")]
+    [ProducesResponseType(typeof(IEnumerable<ClienteConPrestamosDto>), 200)]
+    public async Task<IActionResult> GetAllConPrestamos()
+    {
+        var clientes = await db.Clientes
+            .AsNoTracking()
+            .Include(c => c.Prestamos)
+                .ThenInclude(p => p.Pagos)
+            .ToListAsync();
+
+        var result = clientes.Select(c => new ClienteConPrestamosDto
+        {
+            Id             = c.Id.ToString(),
+            Nombre         = c.Nombre,
+            Alias          = c.Alias,
+            Identificacion = c.Identificacion,
+            Direccion      = c.Direccion,
+            ZonaId         = c.ZonaId.ToString(),
+            Telefono       = c.Telefono,
+            CuentaBancaria = c.CuentaBancaria,
+            Llave          = c.Llave,
+            Estado         = c.Estado,
+            TienePrestamos = c.Prestamos.Count > 0,
+            Prestamos      = c.Prestamos.Select(p =>
+            {
+                var totalPagado = p.Pagos.Sum(pg => pg.Valor);
+                return new PrestamoConPagosDto
+                {
+                    Id                = p.Id.ToString(),
+                    ClienteId         = p.ClienteId.ToString(),
+                    FechaPrestamo     = p.FechaPrestamo,
+                    FechaFinal        = p.FechaFinal,
+                    ValorPrestado     = p.ValorPrestado,
+                    ValorTotal        = p.ValorTotal,
+                    InteresProyectado = p.InteresProyectado,
+                    FrecuenciaPago    = p.FrecuenciaPago,
+                    CantidadCuotas    = p.CantidadCuotas,
+                    ValorCuota        = p.ValorCuota,
+                    TotalPagado       = totalPagado,
+                    SaldoPendiente    = Math.Max(0, p.ValorTotal - totalPagado)
+                };
+            }).ToList()
+        });
+
+        return Ok(result);
+    }
+
     // GET /api/clientes/zona/{zonaId}
     [HttpGet("zona/{zonaId:int}")]
     [ProducesResponseType(typeof(IEnumerable<ClienteDto>), 200)]

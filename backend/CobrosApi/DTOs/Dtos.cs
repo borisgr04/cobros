@@ -53,6 +53,19 @@ public class ClienteConPrestamosActivosDto
     public List<PrestamoDto> PrestamosActivos { get; set; } = [];
 }
 
+/// <summary>Préstamo con totales de pago calculados server-side.</summary>
+public class PrestamoConPagosDto : PrestamoDto
+{
+    public decimal TotalPagado { get; set; }
+    public decimal SaldoPendiente { get; set; }
+}
+
+/// <summary>Cliente con todos sus préstamos e información de pagos. Devuelto por GET /api/clientes/con-prestamos.</summary>
+public class ClienteConPrestamosDto : ClienteDto
+{
+    public List<PrestamoConPagosDto> Prestamos { get; set; } = [];
+}
+
 public class ClienteInputDto
 {
     [Required, MaxLength(200)]

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import type { ICliente, IClienteConPrestamosActivos } from '../models';
+import type { ICliente, IClienteConPrestamosActivos, IClienteConPrestamos } from '../models';
 import { BaseService } from './base.service';
 import { AbstractClienteService } from './abstract-cliente.service';
 
@@ -85,5 +85,13 @@ export class ClienteService extends BaseService<ICliente> implements AbstractCli
    */
   getConPrestamosActivos(id: string): Observable<IClienteConPrestamosActivos> {
     return this.http.get<IClienteConPrestamosActivos>(`${this.apiUrl}/${id}/con-prestamos-activos`);
+  }
+
+  /**
+   * Obtiene todos los clientes con sus préstamos y totales de pago en una sola llamada.
+   * @returns Observable con array de clientes con préstamos consolidados
+   */
+  getAllConPrestamos(): Observable<IClienteConPrestamos[]> {
+    return this.http.get<IClienteConPrestamos[]>(`${this.apiUrl}/con-prestamos`);
   }
 }

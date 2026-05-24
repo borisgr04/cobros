@@ -2,7 +2,6 @@ import { Component, OnInit, signal, computed, viewChild, HostListener } from '@a
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { forkJoin } from 'rxjs';
 import type { ICliente, IZona } from '../../core/models';
 import { AbstractClienteService } from '../../core/services/abstract-cliente.service';
 import { AbstractZonaService } from '../../core/services/abstract-zona.service';
@@ -144,19 +143,16 @@ export class ClientesComponent implements OnInit {
   }
 
   /**
-   * Carga todos los clientes junto con sus préstamos y pagos en paralelo.
+   * Carga todos los clientes junto con sus préstamos y pagos en una única llamada consolidada.
    * Pre-pobla la caché de préstamos y expande todos los clientes por defecto.
    */
   cargarClientes(): void {
     this.cargando.set(true);
-    forkJoin([
-      this.clienteService.getAll(),
-      this.prestamoService.getAllPrestamosIndexadosPorCliente(),
-    ]).subscribe({
-      next: ([clientes, prestamosCache]) => {
-        this.clientes.set(clientes);
-        this.prestamosCache.set(prestamosCache);
-        this.expandidosIds.set(clientes.map(c => c.id));
+    this.clienteService.getAllConPrestamos().subscribe({
+      next: (data) => {
+        this.clientes.set(data.map(c => ({ ...c } as ICliente)));
+        this.prestamosCache.set(this.prestamoService.buildCacheDesdeClientesConsolidados(data));
+        this.expandidosIds.set(data.map(c => c.id));
         this.cargando.set(false);
       },
       error: (error) => {
