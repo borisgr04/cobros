@@ -80,11 +80,6 @@ export class ClientesComponent implements OnInit {
   cargandoPrestamosIds = signal<string[]>([]);
 
   /**
-   * IDs de clientes con el acordeón de préstamos expandido
-   */
-  expandidosIds = signal<string[]>([]);
-
-  /**
    * Modelo del formulario para crear/editar cliente
    */
   formulario: ICliente = this.getFormularioVacio();
@@ -152,7 +147,6 @@ export class ClientesComponent implements OnInit {
       next: (data) => {
         this.clientes.set(data.map(c => ({ ...c } as ICliente)));
         this.prestamosCache.set(this.prestamoService.buildCacheDesdeClientesConsolidados(data));
-        this.expandidosIds.set(data.map(c => c.id));
         this.cargando.set(false);
       },
       error: (error) => {
@@ -213,22 +207,6 @@ export class ClientesComponent implements OnInit {
   }
 
   /**
-   * Alterna la visibilidad del acordeón de préstamos de un cliente.
-   * Si los préstamos no están en caché, los carga del servidor.
-   */
-  togglePrestamos(clienteId: string): void {
-    const expandidos = this.expandidosIds();
-    if (expandidos.includes(clienteId)) {
-      this.expandidosIds.set(expandidos.filter(id => id !== clienteId));
-    } else {
-      this.expandidosIds.set([...expandidos, clienteId]);
-      if (this.prestamosCache()[clienteId] === undefined) {
-        this.cargarPrestamosCliente(clienteId);
-      }
-    }
-  }
-
-  /**
    * Carga los préstamos de un cliente desde el servidor y los guarda en caché.
    */
   cargarPrestamosCliente(clienteId: string): void {
@@ -243,11 +221,6 @@ export class ClientesComponent implements OnInit {
         this.cargandoPrestamosIds.set(this.cargandoPrestamosIds().filter(id => id !== clienteId));
       }
     });
-  }
-
-  /** Retorna true si el acordeón de préstamos del cliente está expandido. */
-  estaExpandido(clienteId: string): boolean {
-    return this.expandidosIds().includes(clienteId);
   }
 
   /** Retorna true si los préstamos del cliente están siendo cargados. */
