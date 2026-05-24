@@ -6,6 +6,9 @@ import type { ICliente, IZona } from '../../core/models';
 import { AbstractClienteService } from '../../core/services/abstract-cliente.service';
 import { AbstractZonaService } from '../../core/services/abstract-zona.service';
 import { RegistroPrestamoModalComponent } from '../../prestamos/components/registro-prestamo-modal/registro-prestamo-modal.component';
+import { RegistroPagoModalComponent } from '../../prestamos/components/registro-pago-modal/registro-pago-modal.component';
+import { PrestamoService, type PrestamoConCliente } from '../../prestamos/services/prestamo.service';
+import type { FrecuenciaPago } from '../../core/models';
 
 /**
  * Componente principal para la gestión de clientes.
@@ -14,12 +17,13 @@ import { RegistroPrestamoModalComponent } from '../../prestamos/components/regis
 @Component({
   selector: 'app-clientes',
   standalone: true,
-  imports: [CommonModule, FormsModule, RegistroPrestamoModalComponent],
+  imports: [CommonModule, FormsModule, RegistroPrestamoModalComponent, RegistroPagoModalComponent],
   templateUrl: './clientes.component.html',
   styleUrl: './clientes.component.scss'
 })
 export class ClientesComponent implements OnInit {
   modalPrestamo = viewChild(RegistroPrestamoModalComponent);
+  modalPago = viewChild(RegistroPagoModalComponent);
   /**
    * Lista de clientes cargados desde el servicio
    */
@@ -66,6 +70,21 @@ export class ClientesComponent implements OnInit {
   terminoBusqueda = signal<string>('');
 
   /**
+   * Cache de préstamos por cliente (cargados bajo demanda)
+   */
+  prestamosCache = signal<Record<string, PrestamoConCliente[]>>({});
+
+  /**
+   * IDs de clientes cuyos préstamos están siendo cargados
+   */
+  cargandoPrestamosIds = signal<string[]>([]);
+
+  /**
+   * IDs de clientes con el acordeón de préstamos expandido
+   */
+  expandidosIds = signal<string[]>([]);
+
+  /**
    * Modelo del formulario para crear/editar cliente
    */
   formulario: ICliente = this.getFormularioVacio();
@@ -106,6 +125,7 @@ export class ClientesComponent implements OnInit {
   constructor(
     private clienteService: AbstractClienteService,
     private zonaService: AbstractZonaService,
+    private prestamoService: PrestamoService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
@@ -131,6 +151,9 @@ export class ClientesComponent implements OnInit {
       next: (data) => {
         this.clientes.set(data);
         this.cargando.set(false);
+        // Limpiar la caché de préstamos para que se recarguen con datos frescos
+        this.prestamosCache.set({});
+        this.expandidosIds.set([]);
       },
       error: (error) => {
         this.mostrarMensaje('error', 'Error al cargar clientes: ' + error.message);
@@ -187,6 +210,114 @@ export class ClientesComponent implements OnInit {
    */
   nuevoPrestamo(cliente: ICliente): void {
     this.modalPrestamo()?.abrir(cliente);
+  }
+
+  /**
+   * Alterna la visibilidad del acordeón de préstamos de un cliente.
+   * Si los préstamos no están en caché, los carga del servidor.
+   */
+  togglePrestamos(clienteId: string): void {
+    const expandidos = this.expandidosIds();
+    if (expandidos.includes(clienteId)) {
+      this.expandidosIds.set(expandidos.filter(id => id !== clienteId));
+    } else {
+      this.expandidosIds.set([...expandidos, clienteId]);
+      if (this.prestamosCache()[clienteId] === undefined) {
+        this.cargarPrestamosCliente(clienteId);
+      }
+    }
+  }
+
+  /**
+   * Carga los préstamos de un cliente desde el servidor y los guarda en caché.
+   */
+  cargarPrestamosCliente(clienteId: string): void {
+    this.cargandoPrestamosIds.set([...this.cargandoPrestamosIds(), clienteId]);
+    this.prestamoService.getPrestamosConDatosByCliente(clienteId).subscribe({
+      next: (prestamos) => {
+        this.prestamosCache.set({ ...this.prestamosCache(), [clienteId]: prestamos });
+        this.cargandoPrestamosIds.set(this.cargandoPrestamosIds().filter(id => id !== clienteId));
+      },
+      error: (err) => {
+        console.error('Error al cargar préstamos del cliente:', err);
+        this.cargandoPrestamosIds.set(this.cargandoPrestamosIds().filter(id => id !== clienteId));
+      }
+    });
+  }
+
+  /** Retorna true si el acordeón de préstamos del cliente está expandido. */
+  estaExpandido(clienteId: string): boolean {
+    return this.expandidosIds().includes(clienteId);
+  }
+
+  /** Retorna true si los préstamos del cliente están siendo cargados. */
+  estaCargandoPrestamos(clienteId: string): boolean {
+    return this.cargandoPrestamosIds().includes(clienteId);
+  }
+
+  /** Retorna los préstamos cacheados del cliente. */
+  getPrestamosCliente(clienteId: string): PrestamoConCliente[] {
+    return this.prestamosCache()[clienteId] || [];
+  }
+
+  /**
+   * Navega a la vista de detalle del préstamo.
+   */
+  verDetallePrestamo(prestamoId: string): void {
+    this.router.navigate(['/prestamos', prestamoId]);
+  }
+
+  /**
+   * Abre el modal de pago para un préstamo.
+   */
+  abrirPago(prestamo: PrestamoConCliente): void {
+    this.modalPago()?.abrir(prestamo);
+  }
+
+  /**
+   * Navega a la vista de detalle del cliente.
+   */
+  verDetalleCliente(clienteId: string): void {
+    this.router.navigate(['/clientes', clienteId]);
+  }
+
+  /**
+   * Texto amigable para la frecuencia de pago.
+   */
+  getTextoFrecuencia(frecuencia: FrecuenciaPago): string {
+    const textos: Record<FrecuenciaPago, string> = {
+      diario: 'Diario',
+      semanal: 'Semanal',
+      quincenal: 'Quincenal',
+      mensual: 'Mensual',
+    };
+    return textos[frecuencia] ?? frecuencia;
+  }
+
+  /**
+   * Clase CSS para la barra de progreso según porcentaje.
+   */
+  getProgressBarClass(porcentaje: number): string {
+    if (porcentaje >= 100) return 'complete';
+    if (porcentaje >= 50) return 'high';
+    if (porcentaje >= 25) return 'medium';
+    return 'low';
+  }
+
+  /**
+   * Formatea un número como moneda compacta.
+   */
+  formatCurrency(value: number): string {
+    if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
+    if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
+    return `$${value.toFixed(0)}`;
+  }
+
+  /**
+   * Recarga los préstamos de un cliente en caché (tras registrar nuevo préstamo o pago).
+   */
+  recargarPrestamosCliente(clienteId: string): void {
+    this.cargarPrestamosCliente(clienteId);
   }
 
   @HostListener('document:keydown.escape')

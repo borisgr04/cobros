@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, combineLatest, map } from 'rxjs';
+import { Observable, combineLatest, forkJoin, map, of, switchMap } from 'rxjs';
 import type { IPrestamo, IPago, ICliente } from '../../core/models';
 import { AbstractPrestamoService } from '../../core/services/abstract-prestamo.service';
 import { AbstractPagoService } from '../../core/services/abstract-pago.service';
@@ -97,6 +97,29 @@ export class PrestamoService {
 
   getPrestamosByCliente(clienteId: string): Observable<IPrestamo[]> {
     return this.prestamoDataService.getByCliente(clienteId);
+  }
+
+  /**
+   * Obtiene los préstamos de un cliente con estadísticas calculadas.
+   * Carga solo los datos del cliente indicado (lazy / bajo demanda).
+   */
+  getPrestamosConDatosByCliente(clienteId: string): Observable<PrestamoConCliente[]> {
+    return this.prestamoDataService.getByCliente(clienteId).pipe(
+      switchMap(rawPrestamos => {
+        if (rawPrestamos.length === 0) return of([]);
+        return forkJoin(
+          rawPrestamos.map(raw =>
+            this.pagoService.getByPrestamo(raw.id).pipe(
+              map(pagos => {
+                const prestamo = this.parsePrestamo(raw);
+                const estadisticas = calcularEstadisticasPrestamo(prestamo, pagos);
+                return { ...prestamo, estadisticas } as PrestamoConCliente;
+              })
+            )
+          )
+        );
+      })
+    );
   }
 
   getAllPagos(): Observable<IPago[]> {
