@@ -57,11 +57,11 @@ export class HomeComponent implements OnInit {
   }
 
   /**
-   * Navega a la vista de préstamos filtrados por zona
+   * Navega a la vista de clientes filtrados por zona
    */
-  verPrestamosZona(zona: ResumenZona): void {
-    if (zona.prestamos > 0) {
-      this.router.navigate(['/prestamos'], { 
+  verClientesZona(zona: ResumenZona): void {
+    if (zona.clientes > 0) {
+      this.router.navigate(['/clientes'], { 
         queryParams: { zona: zona.zonaId } 
       });
     }
