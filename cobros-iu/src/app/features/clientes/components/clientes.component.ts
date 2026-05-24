@@ -143,17 +143,17 @@ export class ClientesComponent implements OnInit {
   }
 
   /**
-   * Carga todos los clientes desde el servicio
+   * Carga todos los clientes junto con sus préstamos y pagos en una única llamada consolidada.
+   * Pre-pobla la caché de préstamos y expande todos los clientes por defecto.
    */
   cargarClientes(): void {
     this.cargando.set(true);
-    this.clienteService.getAll().subscribe({
+    this.clienteService.getAllConPrestamos().subscribe({
       next: (data) => {
-        this.clientes.set(data);
+        this.clientes.set(data.map(c => ({ ...c } as ICliente)));
+        this.prestamosCache.set(this.prestamoService.buildCacheDesdeClientesConsolidados(data));
+        this.expandidosIds.set(data.map(c => c.id));
         this.cargando.set(false);
-        // Limpiar la caché de préstamos para que se recarguen con datos frescos
-        this.prestamosCache.set({});
-        this.expandidosIds.set([]);
       },
       error: (error) => {
         this.mostrarMensaje('error', 'Error al cargar clientes: ' + error.message);
