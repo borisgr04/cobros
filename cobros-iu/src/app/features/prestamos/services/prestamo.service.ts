@@ -172,6 +172,30 @@ export class PrestamoService {
     );
   }
 
+  /**
+   * Carga todos los préstamos y pagos en paralelo y los indexa por clienteId.
+   * Permite pre-poblar la caché de la vista de clientes en una sola ida al servidor (2 llamadas).
+   */
+  getAllPrestamosIndexadosPorCliente(): Observable<Record<string, PrestamoConCliente[]>> {
+    return combineLatest([
+      this.prestamoDataService.getAll(),
+      this.pagoService.getAll(),
+    ]).pipe(
+      map(([prestamos, pagos]) => {
+        const cache: Record<string, PrestamoConCliente[]> = {};
+        for (const raw of prestamos) {
+          const prestamo = this.parsePrestamo(raw);
+          const pagosPrestamo = pagos.filter(pg => pg.prestamoId === prestamo.id);
+          const estadisticas = calcularEstadisticasPrestamo(prestamo, pagosPrestamo);
+          const item: PrestamoConCliente = { ...prestamo, estadisticas };
+          if (!cache[prestamo.clienteId]) cache[prestamo.clienteId] = [];
+          cache[prestamo.clienteId].push(item);
+        }
+        return cache;
+      })
+    );
+  }
+
   getEstadisticasGlobales(): Observable<{
     totalActivos: number;
     totalPrestado: number;
