@@ -131,8 +131,9 @@ export class PrestamoService {
   /**
    * Calcula estadísticas de una lista de préstamos ya obtenidos del backend.
    * Útil cuando los préstamos ya llegan en un DTO combinado (evita una llamada extra).
+   * @param cliente Cliente al que pertenecen los préstamos; si se provee, se incluye en cada PrestamoConCliente.
    */
-  getPrestamosConDatosDesde(prestamos: IPrestamo[]): Observable<PrestamoConCliente[]> {
+  getPrestamosConDatosDesde(prestamos: IPrestamo[], cliente?: ICliente): Observable<PrestamoConCliente[]> {
     if (prestamos.length === 0) return of([]);
     return forkJoin(
       prestamos.map(raw =>
@@ -140,7 +141,7 @@ export class PrestamoService {
           map(pagos => {
             const prestamo = this.parsePrestamo(raw);
             const estadisticas = calcularEstadisticasPrestamo(prestamo, pagos);
-            return { ...prestamo, estadisticas } as PrestamoConCliente;
+            return { ...prestamo, cliente, estadisticas } as PrestamoConCliente;
           })
         )
       )
@@ -205,7 +206,8 @@ export class PrestamoService {
           proximaCuotaValor: calcularProximaCuotaValor(prestamo.valorCuota, raw.saldoPendiente),
           estado: determinarEstadoPrestamo(prestamo.fechaFinal, raw.saldoPendiente, proximaCuotaFecha),
         };
-        return { ...prestamo, estadisticas } as PrestamoConCliente;
+        const { prestamos: _prestamos, ...clienteData } = cliente;
+        return { ...prestamo, cliente: clienteData as ICliente, estadisticas } as PrestamoConCliente;
       });
     }
     return cache;

@@ -66,7 +66,7 @@ export class ClienteDetalleComponent implements OnInit {
 
   cargarEstadisticasPrestamos(prestamos: { id: string }[]): void {
     this.cargandoPrestamos.set(true);
-    this.prestamoService.getPrestamosConDatosDesde(prestamos as any).subscribe({
+    this.prestamoService.getPrestamosConDatosDesde(prestamos as any, this.cliente() ?? undefined).subscribe({
       next: (p) => {
         this.prestamos.set(p);
         this.cargandoPrestamos.set(false);
