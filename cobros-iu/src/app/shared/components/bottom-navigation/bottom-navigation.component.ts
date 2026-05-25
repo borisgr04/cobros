@@ -30,7 +30,8 @@ export class BottomNavigationComponent {
     { path: '/clientes', label: 'Clientes', icon: 'bi-people-fill' },
     { path: '/zonas', label: 'Zonas', icon: 'bi-geo-alt-fill' },
     { path: '/reportes', label: 'Reportes', icon: 'bi-file-earmark-bar-graph-fill' },
-    { path: '/dashboard', label: 'Tablero', icon: 'bi-grid-1x2-fill' }
+    { path: '/dashboard', label: 'Tablero', icon: 'bi-grid-1x2-fill' },
+    { path: '/usuarios', label: 'Usuarios', icon: 'bi-person-gear' }
   ];
 
   constructor() {
