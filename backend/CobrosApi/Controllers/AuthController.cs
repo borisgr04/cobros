@@ -334,7 +334,7 @@ public class AuthController(
             // Cliente envió IDs explícitos — usarlos directamente
             foreach (var idBase64 in request.CredentialIds)
             {
-                try { allowedCredentials.Add(new PublicKeyCredentialDescriptor(Convert.FromBase64String(idBase64))); }
+                try { allowedCredentials.Add(new PublicKeyCredentialDescriptor(DecodeBase64Url(idBase64))); }
                 catch { /* skip invalid */ }
             }
         }
