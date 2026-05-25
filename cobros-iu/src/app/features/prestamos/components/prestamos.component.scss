@@ -987,6 +987,17 @@
       box-shadow: var(--shadow-md);
     }
   }
+
+  &.btn-edit {
+    background: var(--info-color);
+    color: white;
+
+    &:hover:not(:disabled) {
+      background: #304FFE;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+  }
 }
 
 // ==========================================

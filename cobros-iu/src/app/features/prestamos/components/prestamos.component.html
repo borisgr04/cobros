@@ -334,6 +334,15 @@
                   <span>Pagar</span>
                 </button>
               }
+              @if ((prestamo.estadisticas?.cuotasPagadas ?? 0) === 0) {
+                <button
+                  class="btn-simple btn-edit"
+                  (click)="editarPrestamo(prestamo)"
+                  title="Editar préstamo">
+                  <i class="bi bi-pencil"></i>
+                  <span>Editar</span>
+                </button>
+              }
               @if (prestamo.cliente) {
                 <button
                   class="btn-simple btn-new-prestamo"
@@ -362,3 +371,9 @@
   (prestamoRegistrado)="onPrestamoRegistrado($event)"
   (modalCerrado)="cargarDatos()">
 </app-registro-prestamo-modal>
+
+<!-- MODAL DE EDICIÓN DE PRÉSTAMO -->
+<app-edicion-prestamo-modal
+  (prestamoActualizado)="onPrestamoActualizado($event)"
+  (modalCerrado)="cargarDatos()">
+</app-edicion-prestamo-modal>
