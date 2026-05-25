@@ -26,121 +26,60 @@
             </div>
           </div>
 
-          <!-- Resumen del Préstamo -->
-          <div class="prestamo-resumen">
-            <div class="resumen-item">
-              <span class="label">Total Préstamo:</span>
-              <span class="value">{{ formatCurrency(prestamo()!.valorTotal) }}</span>
-            </div>
-            <div class="resumen-item destacado">
-              <span class="label">Saldo Pendiente:</span>
-              <span class="value primary">{{ formatCurrency(saldoPendiente()) }}</span>
-            </div>
-            <div class="resumen-item">
-              <span class="label">Cuotas Pagadas:</span>
-              <span class="value">{{ prestamo()!.estadisticas?.cuotasPagadas || 0 }} / {{ prestamo()!.cantidadCuotas }}</span>
-            </div>
-            <div class="resumen-item">
-              <span class="label">Valor por Cuota:</span>
-              <span class="value">{{ formatCurrency(prestamo()!.valorCuota) }}</span>
-            </div>
+          <!-- Resumen del Préstamo (colapsable) -->
+          <div class="resumen-toggle" (click)="toggleResumen()">
+            <span class="resumen-toggle-label">
+              <i class="bi bi-info-circle"></i>
+              Detalles del préstamo
+            </span>
+            <i class="bi resumen-toggle-icon"
+               [class.bi-chevron-down]="resumenColapsado()"
+               [class.bi-chevron-up]="!resumenColapsado()"></i>
           </div>
 
-          <!-- Tipo de Pago — Stepper A2 -->
-          @if (!modoLibre()) {
-            <!-- MODO CUOTAS -->
-            <div class="stepper-section">
-              <div class="stepper-label-row">
-                <label class="campo-label">¿Cuántas cuotas vas a cobrar?</label>
-                <button class="modo-libre-link" type="button" (click)="toggleModoLibre()">
-                  <i class="bi bi-pencil-square"></i>
-                  Monto libre
-                </button>
+          @if (!resumenColapsado()) {
+            <div class="prestamo-resumen">
+              <div class="resumen-item">
+                <span class="label">Total Préstamo:</span>
+                <span class="value">{{ formatCurrency(prestamo()!.valorTotal) }}</span>
               </div>
-
-              <!-- Stepper [−] [num] [+] -->
-              <div class="stepper-mini-row">
-                <button class="stepper-mini-btn"
-                        type="button"
-                        (click)="cambiarCuotas(-1)"
-                        [disabled]="cantidadCuotas() <= 1">−</button>
-                <input class="stepper-mini-input"
-                       type="number"
-                       [value]="cantidadCuotas()"
-                       (focus)="$any($event.target).select()"
-                       (input)="setCuotasDesdeTeclado($any($event.target).value)"
-                       min="1"
-                       [max]="cuotasRestantes()">
-                <button class="stepper-mini-btn"
-                        type="button"
-                        (click)="cambiarCuotas(1)"
-                        [disabled]="esTodas()">+</button>
+              <div class="resumen-item destacado">
+                <span class="label">Saldo Pendiente:</span>
+                <span class="value primary">{{ formatCurrency(saldoPendiente()) }}</span>
               </div>
-              <p class="stepper-hint">Toca el número para escribir directamente</p>
-
-              <!-- Desglose calculado -->
-              <div class="cuota-calc-info">
-                <span class="ci-label">
-                  @if (esTodas()) {
-                    Saldo completo =
-                  } @else {
-                    {{ cantidadCuotas() }} × {{ formatCurrency(prestamo()!.valorCuota) }} =
-                  }
-                </span>
-                <span class="ci-value">{{ formatCurrency(montoAPagar()) }}</span>
+              <div class="resumen-item">
+                <span class="label">Cuotas Pagadas:</span>
+                <span class="value">{{ prestamo()!.estadisticas?.cuotasPagadas || 0 }} / {{ prestamo()!.cantidadCuotas }}</span>
               </div>
-
-              <!-- Quick pills -->
-              <div class="pills-section">
-                <span class="pills-hint">Accesos rápidos:</span>
-                <div class="pills-row">
-                  @for (n of quickPills(); track n) {
-                    <button class="pill"
-                            type="button"
-                            [class.active]="cantidadCuotas() === n && !esTodas()"
-                            (click)="seleccionarPill(n)">{{ n }}</button>
-                  }
-                  <button class="pill pill-todo"
-                          type="button"
-                          [class.active]="esTodas()"
-                          (click)="seleccionarTodas()">
-                    Todo ({{ cuotasRestantes() }})
-                  </button>
-                </div>
+              <div class="resumen-item">
+                <span class="label">Valor por Cuota:</span>
+                <span class="value">{{ formatCurrency(prestamo()!.valorCuota) }}</span>
               </div>
-            </div>
-          } @else {
-            <!-- MODO MONTO LIBRE -->
-            <div class="stepper-section">
-              <label class="campo-label">
-                <i class="bi bi-currency-dollar"></i>
-                Monto libre a cobrar
-              </label>
-
-              <div class="monto-libre-row" [class.has-error]="error()">
-                  <input class="monto-libre-input"
-                       [(appMoneda)]="montoPersonalizado"
-                       (blur)="validarMontoLibre()"
-                       placeholder="$ 0">
-                <button class="monto-libre-clear"
-                        type="button"
-                        (click)="montoPersonalizado.set(0); error.set('')">
-                  <i class="bi bi-x-circle"></i>
-                </button>
-              </div>
-
-              <div class="alert-info">
-                <i class="bi bi-info-circle-fill"></i>
-                Máximo {{ formatCurrency(saldoPendiente()) }}. Si ingresás más, se ajustará automáticamente.
-              </div>
-
-              <!-- Volver a cuotas -->
-              <button class="modo-libre-link" type="button" (click)="toggleModoLibre()">
-                <i class="bi bi-grid-3x3-gap"></i>
-                Volver a cuotas
-              </button>
             </div>
           }
+
+          <!-- Valor a Pagar -->
+          <div class="pago-section">
+            <label class="campo-label">
+              <i class="bi bi-currency-dollar"></i>
+              Valor a pagar:
+            </label>
+            <div class="monto-libre-row" [class.has-error]="error()">
+              <input class="monto-libre-input"
+                     [(appMoneda)]="montoPersonalizado"
+                     (blur)="validarMontoLibre()"
+                     placeholder="$ 0">
+              <button class="monto-libre-clear"
+                      type="button"
+                      (click)="montoPersonalizado.set(0); error.set('')">
+                <i class="bi bi-x-circle"></i>
+              </button>
+            </div>
+            <p class="cuota-hint">
+              <i class="bi bi-tag"></i>
+              Cuota: {{ formatCurrency(prestamo()!.valorCuota) }}
+            </p>
+          </div>
 
           <!-- Fecha de Pago -->
           <div class="campo-fecha">
