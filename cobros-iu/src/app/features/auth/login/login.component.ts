@@ -15,11 +15,10 @@ import { environment } from '../../../../environments/environment';
 export class LoginComponent implements OnInit, AfterViewInit {
   readonly isDevMode       = !environment.production || (environment as any).allowDevLogin;
   readonly showGoogleLogin = (environment as any).showGoogleLogin === true;
-  loading             = signal(false);
-  error               = signal<string | null>(null);
-  biometricAvailable  = signal(false);
-  biometricEmail      = signal('');
-  showEmailInput      = signal(false);
+  loading              = signal(false);
+  error                = signal<string | null>(null);
+  biometricAvailable   = signal(false);
+  biometricRegistered  = signal(false);
 
   constructor(
     private auth: AuthService,
@@ -30,6 +29,10 @@ export class LoginComponent implements OnInit, AfterViewInit {
   async ngOnInit(): Promise<void> {
     const available = await this.biometric.isPlatformAuthenticatorAvailable();
     this.biometricAvailable.set(available);
+    this.biometricRegistered.set(
+      this.biometric.hasRegisteredLocally() &&
+      this.biometric.getStoredCredentialIds().length > 0
+    );
   }
 
   ngAfterViewInit(): void {
@@ -80,18 +83,10 @@ export class LoginComponent implements OnInit, AfterViewInit {
   }
 
   async loginWithBiometrics(): Promise<void> {
-    if (!this.biometricEmail()) {
-      this.showEmailInput.set(true);
-      return;
-    }
-    if (!this.biometric.hasRegisteredLocally()) {
-      this.error.set('Para usar biometría, primero debes activarla desde tu perfil tras iniciar sesión.');
-      return;
-    }
     this.loading.set(true);
     this.error.set(null);
     try {
-      const options = await this.biometric.authenticateBegin(this.biometricEmail());
+      const options = await this.biometric.authenticateBegin('');
       const assertion = await navigator.credentials.get({ publicKey: options }) as PublicKeyCredential;
       if (!assertion) throw new Error('No se obtuvo respuesta del autenticador.');
       const session = await this.biometric.authenticateComplete(assertion);
