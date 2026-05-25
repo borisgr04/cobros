@@ -41,14 +41,7 @@ export class HomeComponent implements OnInit {
     if (this.biometric.hasRegisteredLocally()) return;
     const available = await this.biometric.isPlatformAuthenticatorAvailable();
     if (!available) return;
-    try {
-      await this.biometric.loadCredentials();
-    } catch {
-      return;
-    }
-    if (this.biometric.credentials().length === 0) {
-      this.showBiometricPrompt.set(true);
-    }
+    this.showBiometricPrompt.set(true);
   }
 
   dismissBiometricPrompt(): void {
