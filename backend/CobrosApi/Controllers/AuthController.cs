@@ -28,11 +28,14 @@ public class AuthController(
 
     private void SetRefreshCookie(string rawToken, DateTime expires)
     {
+        var isDev = config.GetValue<bool>("IsDevelopment",
+            string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Development",
+                StringComparison.OrdinalIgnoreCase));
         Response.Cookies.Append(RefreshCookieName, rawToken, new CookieOptions
         {
             HttpOnly = true,
             Secure   = true,
-            SameSite = SameSiteMode.Strict,
+            SameSite = isDev ? SameSiteMode.Strict : SameSiteMode.None,
             Expires  = expires,
             Path     = "/api/auth"
         });
