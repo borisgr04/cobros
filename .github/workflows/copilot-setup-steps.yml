@@ -26,4 +26,4 @@ jobs:
           node-version: "20"
 
       - name: Install OpenSpec globally
-        run: npm install -g openspec
+        run: npm install -g @fission-ai/openspec@latest
