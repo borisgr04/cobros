@@ -55,7 +55,7 @@ export const appConfig: ApplicationConfig = {
       useClass: environment.useMocks ? PagoMockService : PagoService
     }, provideServiceWorker('ngsw-worker.js', {
             enabled: !isDevMode(),
-            registrationStrategy: 'registerWhenStable:30000'
+            registrationStrategy: 'registerWhenStable:3000'
           }),
   ]
 };
