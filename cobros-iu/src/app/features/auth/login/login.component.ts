@@ -1,21 +1,36 @@
-import { Component, signal, AfterViewInit } from '@angular/core';
+import { Component, signal, AfterViewInit, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { BiometricAuthService } from '../services/biometric-auth.service';
 import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-login',
   standalone: true,
+  imports: [FormsModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent implements AfterViewInit {
-  readonly isDevMode      = !environment.production || (environment as any).allowDevLogin;
+export class LoginComponent implements OnInit, AfterViewInit {
+  readonly isDevMode       = !environment.production || (environment as any).allowDevLogin;
   readonly showGoogleLogin = (environment as any).showGoogleLogin === true;
-  loading = signal(false);
-  error   = signal<string | null>(null);
+  loading             = signal(false);
+  error               = signal<string | null>(null);
+  biometricAvailable  = signal(false);
+  biometricEmail      = signal('');
+  showEmailInput      = signal(false);
 
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(
+    private auth: AuthService,
+    private biometric: BiometricAuthService,
+    private router: Router
+  ) {}
+
+  async ngOnInit(): Promise<void> {
+    const available = await this.biometric.isPlatformAuthenticatorAvailable();
+    this.biometricAvailable.set(available);
+  }
 
   ngAfterViewInit(): void {
     if (this.showGoogleLogin) {
@@ -62,5 +77,29 @@ export class LoginComponent implements AfterViewInit {
         this.loading.set(false);
       }
     });
+  }
+
+  async loginWithBiometrics(): Promise<void> {
+    if (!this.biometricEmail()) {
+      this.showEmailInput.set(true);
+      return;
+    }
+    this.loading.set(true);
+    this.error.set(null);
+    try {
+      const options = await this.biometric.authenticateBegin(this.biometricEmail());
+      const assertion = await navigator.credentials.get({ publicKey: options }) as PublicKeyCredential;
+      if (!assertion) throw new Error('No se obtuvo respuesta del autenticador.');
+      const session = await this.biometric.authenticateComplete(assertion);
+      this.auth.applySession(session);
+      this.router.navigate(['/']);
+    } catch (err: any) {
+      if (err?.name === 'NotAllowedError') {
+        this.error.set('Permiso denegado o tiempo de espera agotado.');
+      } else {
+        this.error.set(err?.message ?? 'Error al autenticar con biometría.');
+      }
+      this.loading.set(false);
+    }
   }
 }
