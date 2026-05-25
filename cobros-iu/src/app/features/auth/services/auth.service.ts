@@ -117,7 +117,11 @@ export class AuthService {
         return true;
       })
       .catch(() => {
-        this.clearSession();
+        // Solo limpiar el token (no el usuario ni localStorage)
+        // así el guard puede detectar sesión previa y permitir acceso mientras el backend está fuera.
+        this.clearRefreshTimer();
+        this._token.set(null);
+        this._expira.set(null);
         return false;
       })
       .finally(() => {

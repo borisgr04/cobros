@@ -85,13 +85,20 @@ export class BiometricAuthService {
     await firstValueFrom(
       this.http.post('/api/auth/webauthn/register/complete', body, { withCredentials: true })
     );
+    // Persist the credentialId locally so authenticate can use it without email lookup
+    this.addCredentialId(credential.id);
   }
 
   // ─── Authentication ────────────────────────────────────────────────────────
 
   async authenticateBegin(email: string): Promise<PublicKeyCredentialRequestOptions> {
+    const localIds = this.getStoredCredentialIds();
+    const body = localIds.length > 0
+      ? { credentialIds: localIds }
+      : { email, credentialIds: [] };
+
     const response = await firstValueFrom(
-      this.http.post<any>('/api/auth/webauthn/authenticate/begin', { email })
+      this.http.post<any>('/api/auth/webauthn/authenticate/begin', body)
     );
     return {
       ...response,
@@ -125,6 +132,39 @@ export class BiometricAuthService {
     );
   }
 
+  // ─── Local credential ID storage ──────────────────────────────────────────
+
+  private static readonly CREDENTIAL_IDS_KEY = 'biometric_credential_ids';
+
+  /** Returns stored credentialIds for this device */
+  getStoredCredentialIds(): string[] {
+    try {
+      const raw = localStorage.getItem(BiometricAuthService.CREDENTIAL_IDS_KEY);
+      return raw ? (JSON.parse(raw) as string[]) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  /** Adds a credentialId to localStorage (no duplicates) */
+  addCredentialId(id: string): void {
+    const ids = this.getStoredCredentialIds();
+    if (!ids.includes(id)) {
+      ids.push(id);
+      localStorage.setItem(BiometricAuthService.CREDENTIAL_IDS_KEY, JSON.stringify(ids));
+    }
+  }
+
+  /** Removes a credentialId from localStorage; cleans up key if empty */
+  removeCredentialId(id: string): void {
+    const ids = this.getStoredCredentialIds().filter(x => x !== id);
+    if (ids.length === 0) {
+      localStorage.removeItem(BiometricAuthService.CREDENTIAL_IDS_KEY);
+    } else {
+      localStorage.setItem(BiometricAuthService.CREDENTIAL_IDS_KEY, JSON.stringify(ids));
+    }
+  }
+
   // ─── Local registration flag ───────────────────────────────────────────────
 
   /** Returns true if this device has ever successfully registered a biometric credential */
@@ -149,5 +189,6 @@ export class BiometricAuthService {
   async deleteCredential(id: string): Promise<void> {
     await firstValueFrom(this.http.delete('/api/auth/webauthn/credentials/' + id));
     this.credentials.update(list => list.filter(c => c.id !== id));
+    this.removeCredentialId(id);
   }
 }

@@ -270,6 +270,9 @@ public class WebAuthnRegisterCompleteRequestDto
 public class WebAuthnAuthBeginRequestDto
 {
     public List<string> CredentialIds { get; set; } = [];
+
+    [MaxLength(200)]
+    public string? Email { get; set; }
 }
 
 public class WebAuthnAuthCompleteRequestDto

@@ -323,10 +323,27 @@ public class AuthController(
     public async Task<IActionResult> WebAuthnAuthBegin([FromBody] WebAuthnAuthBeginRequestDto request)
     {
         var allowedCredentials = new List<PublicKeyCredentialDescriptor>();
-        foreach (var idBase64 in request.CredentialIds)
+
+        if (request.CredentialIds.Count > 0)
         {
-            try { allowedCredentials.Add(new PublicKeyCredentialDescriptor(Convert.FromBase64String(idBase64))); }
-            catch { /* skip invalid */ }
+            // Cliente envió IDs explícitos — usarlos directamente
+            foreach (var idBase64 in request.CredentialIds)
+            {
+                try { allowedCredentials.Add(new PublicKeyCredentialDescriptor(Convert.FromBase64String(idBase64))); }
+                catch { /* skip invalid */ }
+            }
+        }
+        else if (!string.IsNullOrWhiteSpace(request.Email))
+        {
+            // Fallback: buscar credenciales por email
+            var credIds = await db.WebAuthnCredentials
+                .Include(c => c.Usuario)
+                .Where(c => c.Usuario != null && c.Usuario.Email == request.Email)
+                .Select(c => c.CredentialId)
+                .ToListAsync();
+
+            foreach (var credId in credIds)
+                allowedCredentials.Add(new PublicKeyCredentialDescriptor(credId));
         }
 
         var options = fido2.GetAssertionOptions(
@@ -335,9 +352,9 @@ public class AuthController(
         );
 
         // Cache options keyed by each credential ID so the complete step can retrieve them
-        foreach (var idBase64 in request.CredentialIds)
+        foreach (var cred in allowedCredentials)
         {
-            var key = $"webauthn:assert:{idBase64}";
+            var key = $"webauthn:assert:{Convert.ToBase64String(cred.Id)}";
             await cache.SetStringAsync(key,
                 options.ToJson(),
                 new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2) });

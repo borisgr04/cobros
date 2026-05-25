@@ -4,8 +4,10 @@ import { catchError, filter, from, switchMap, take, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  // Let auth endpoints pass through without modification
-  if (req.url.includes('/api/auth/')) {
+  // Solo los endpoints de login/refresh/logout pasan sin token.
+  // WebAuthn (/api/auth/webauthn/*) sí requiere Bearer token.
+  const noAuthPaths = ['/api/auth/google', '/api/auth/dev-login', '/api/auth/refresh', '/api/auth/logout'];
+  if (noAuthPaths.some(p => req.url.includes(p))) {
     return next(req);
   }
 
