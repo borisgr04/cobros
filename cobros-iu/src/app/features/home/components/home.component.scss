@@ -508,3 +508,63 @@
     }
   }
 }
+
+// ==========================================
+// BIOMETRIC ACTIVATION BANNER
+// ==========================================
+.biometric-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.875rem 1.25rem;
+  margin-bottom: 1.25rem;
+  background: #EEF2FF;
+  border: 1px solid #C7D2FE;
+  border-radius: var(--radius-md);
+  flex-wrap: wrap;
+
+  .biometric-banner-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .biometric-banner-icon {
+    font-size: 1.75rem;
+    color: #4F46E5;
+    flex-shrink: 0;
+  }
+
+  .biometric-banner-text {
+    display: flex;
+    flex-direction: column;
+
+    strong {
+      font-size: 0.9rem;
+      color: #1E1B4B;
+    }
+
+    span {
+      font-size: 0.8rem;
+      color: #4338CA;
+    }
+  }
+
+  .biometric-banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+
+    .btn-link {
+      color: #6B7280;
+      text-decoration: none;
+      font-size: 0.8rem;
+
+      &:hover {
+        color: #374151;
+      }
+    }
+  }
+}

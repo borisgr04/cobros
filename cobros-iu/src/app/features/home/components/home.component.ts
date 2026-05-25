@@ -2,6 +2,7 @@ import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { DashboardService } from '../../dashboard/services/dashboard.service';
+import { BiometricAuthService } from '../../auth/services/biometric-auth.service';
 import type { ResumenZona } from '../../dashboard/models/dashboard.models';
 
 /**
@@ -17,9 +18,11 @@ import type { ResumenZona } from '../../dashboard/models/dashboard.models';
 export class HomeComponent implements OnInit {
   private dashboardService = inject(DashboardService);
   private router = inject(Router);
+  private biometric = inject(BiometricAuthService);
 
   zonas = signal<ResumenZona[]>([]);
   cargando = signal<boolean>(false);
+  showBiometricPrompt = signal(false);
 
   // Totales generales
   totales = signal({
@@ -28,8 +31,34 @@ export class HomeComponent implements OnInit {
     cartera: 0
   });
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.cargarResumenZonas();
+    await this.checkBiometricPrompt();
+  }
+
+  private async checkBiometricPrompt(): Promise<void> {
+    if (localStorage.getItem('biometric_prompt_dismissed')) return;
+    if (this.biometric.hasRegisteredLocally()) return;
+    const available = await this.biometric.isPlatformAuthenticatorAvailable();
+    if (!available) return;
+    try {
+      await this.biometric.loadCredentials();
+    } catch {
+      return;
+    }
+    if (this.biometric.credentials().length === 0) {
+      this.showBiometricPrompt.set(true);
+    }
+  }
+
+  dismissBiometricPrompt(): void {
+    localStorage.setItem('biometric_prompt_dismissed', 'true');
+    this.showBiometricPrompt.set(false);
+  }
+
+  activateBiometrics(): void {
+    this.dismissBiometricPrompt();
+    this.router.navigate(['/perfil']);
   }
 
   /**

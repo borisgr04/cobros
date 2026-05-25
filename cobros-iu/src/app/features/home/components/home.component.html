@@ -1,4 +1,25 @@
 <div class="home-container">
+  <!-- Biometric activation prompt -->
+  @if (showBiometricPrompt()) {
+    <div class="biometric-banner">
+      <div class="biometric-banner-content">
+        <i class="bi bi-fingerprint biometric-banner-icon"></i>
+        <div class="biometric-banner-text">
+          <strong>Activa Face ID / Huella</strong>
+          <span>Inicia sesión más rápido en este dispositivo con tu biometría.</span>
+        </div>
+      </div>
+      <div class="biometric-banner-actions">
+        <button class="btn btn-sm btn-primary" (click)="activateBiometrics()">
+          Activar
+        </button>
+        <button class="btn btn-sm btn-link" (click)="dismissBiometricPrompt()">
+          Ahora no
+        </button>
+      </div>
+    </div>
+  }
+
   <!-- Header -->
   <div class="home-header">
     <h1 class="page-title">

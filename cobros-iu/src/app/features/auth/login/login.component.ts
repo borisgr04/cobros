@@ -84,6 +84,10 @@ export class LoginComponent implements OnInit, AfterViewInit {
       this.showEmailInput.set(true);
       return;
     }
+    if (!this.biometric.hasRegisteredLocally()) {
+      this.error.set('Para usar biometría, primero debes activarla desde tu perfil tras iniciar sesión.');
+      return;
+    }
     this.loading.set(true);
     this.error.set(null);
     try {

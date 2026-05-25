@@ -38,6 +38,7 @@ export class BiometricRegistrationComponent implements OnInit {
       const credential = await navigator.credentials.create({ publicKey: options }) as PublicKeyCredential;
       if (!credential) throw new Error('No se obtuvo credencial del autenticador.');
       await this.biometric.registerComplete(credential, this.deviceName || 'Mi dispositivo');
+      this.biometric.markAsRegistered();
       this.success.set('Biometría registrada correctamente.');
       this.deviceName = '';
       await this.biometric.loadCredentials();
