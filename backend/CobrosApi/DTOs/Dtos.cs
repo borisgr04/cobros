@@ -258,10 +258,40 @@ public class WebAuthnRegisterBeginRequestDto
     public string? DeviceName { get; set; }
 }
 
+public class WebAuthnAttestationDataDto
+{
+    public string ClientDataJSON { get; set; } = string.Empty;
+    public string AttestationObject { get; set; } = string.Empty;
+}
+
+public class WebAuthnAttestationCredentialDto
+{
+    public string Id { get; set; } = string.Empty;
+    public string RawId { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty;
+    public WebAuthnAttestationDataDto Response { get; set; } = new();
+}
+
+public class WebAuthnAssertionDataDto
+{
+    public string ClientDataJSON { get; set; } = string.Empty;
+    public string AuthenticatorData { get; set; } = string.Empty;
+    public string Signature { get; set; } = string.Empty;
+    public string? UserHandle { get; set; }
+}
+
+public class WebAuthnAssertionCredentialDto
+{
+    public string Id { get; set; } = string.Empty;
+    public string RawId { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty;
+    public WebAuthnAssertionDataDto Response { get; set; } = new();
+}
+
 public class WebAuthnRegisterCompleteRequestDto
 {
     [Required]
-    public string AttestationResponse { get; set; } = string.Empty;
+    public WebAuthnAttestationCredentialDto AttestationResponse { get; set; } = new();
 
     [MaxLength(200)]
     public string? DeviceName { get; set; }
@@ -278,7 +308,7 @@ public class WebAuthnAuthBeginRequestDto
 public class WebAuthnAuthCompleteRequestDto
 {
     [Required]
-    public string AssertionResponse { get; set; } = string.Empty;
+    public WebAuthnAssertionCredentialDto AssertionResponse { get; set; } = new();
 }
 
 public class WebAuthnCredentialDto

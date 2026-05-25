@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
-using System.Text.Json;
 
 namespace CobrosApi.Controllers;
 
@@ -277,16 +276,22 @@ public class AuthController(
         try { options = CredentialCreateOptions.FromJson(cachedJson); }
         catch { return BadRequest(new ErrorDto { Error = "Opciones de registro inválidas." }); }
 
-        AuthenticatorAttestationRawResponse? attestation;
+        AuthenticatorAttestationRawResponse attestation;
         try
         {
-            attestation = JsonSerializer.Deserialize<AuthenticatorAttestationRawResponse>(
-                request.AttestationResponse);
+            attestation = new AuthenticatorAttestationRawResponse
+            {
+                Id    = DecodeBase64Url(request.AttestationResponse.Id),
+                RawId = DecodeBase64Url(request.AttestationResponse.RawId),
+                Type  = request.AttestationResponse.Type,
+                Response = new AuthenticatorAttestationRawResponse.ResponseData
+                {
+                    ClientDataJson    = DecodeBase64Url(request.AttestationResponse.Response.ClientDataJSON),
+                    AttestationObject = DecodeBase64Url(request.AttestationResponse.Response.AttestationObject)
+                }
+            };
         }
         catch { return BadRequest(new ErrorDto { Error = "Respuesta del autenticador inválida." }); }
-
-        if (attestation is null)
-            return BadRequest(new ErrorDto { Error = "Respuesta del autenticador inválida." });
 
         IsCredentialIdUniqueToUserAsyncDelegate isUniqueCallback = async (args) =>
             !await db.WebAuthnCredentials.AnyAsync(c => c.CredentialId == args.CredentialId);
@@ -371,16 +376,26 @@ public class AuthController(
     [ProducesResponseType(typeof(ErrorDto), 401)]
     public async Task<IActionResult> WebAuthnAuthComplete([FromBody] WebAuthnAuthCompleteRequestDto request)
     {
-        AuthenticatorAssertionRawResponse? assertion;
+        AuthenticatorAssertionRawResponse assertion;
         try
         {
-            assertion = JsonSerializer.Deserialize<AuthenticatorAssertionRawResponse>(
-                request.AssertionResponse);
+            assertion = new AuthenticatorAssertionRawResponse
+            {
+                Id    = DecodeBase64Url(request.AssertionResponse.Id),
+                RawId = DecodeBase64Url(request.AssertionResponse.RawId),
+                Type  = request.AssertionResponse.Type,
+                Response = new AuthenticatorAssertionRawResponse.AssertionResponse
+                {
+                    ClientDataJson    = DecodeBase64Url(request.AssertionResponse.Response.ClientDataJSON),
+                    AuthenticatorData = DecodeBase64Url(request.AssertionResponse.Response.AuthenticatorData),
+                    Signature         = DecodeBase64Url(request.AssertionResponse.Response.Signature),
+                    UserHandle        = request.AssertionResponse.Response.UserHandle is not null
+                        ? DecodeBase64Url(request.AssertionResponse.Response.UserHandle)
+                        : null
+                }
+            };
         }
         catch { return BadRequest(new ErrorDto { Error = "Respuesta del autenticador inválida." }); }
-
-        if (assertion is null)
-            return BadRequest(new ErrorDto { Error = "Respuesta del autenticador inválida." });
 
         var storedCred = await db.WebAuthnCredentials
             .Include(c => c.Usuario)
@@ -476,6 +491,14 @@ public class AuthController(
     }
 
     // ─── Private helpers ──────────────────────────────────────────────────────
+
+    private static byte[] DecodeBase64Url(string base64Url)
+    {
+        string padded = base64Url.Replace('-', '+').Replace('_', '/');
+        int mod = padded.Length % 4;
+        if (mod != 0) padded += new string('=', 4 - mod);
+        return Convert.FromBase64String(padded);
+    }
 
     private async Task<Usuario?> GetCurrentUserAsync()
     {

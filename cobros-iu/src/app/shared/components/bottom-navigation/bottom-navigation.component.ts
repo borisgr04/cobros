@@ -33,7 +33,6 @@ export class BottomNavigationComponent {
     { path: '/clientes', label: 'Clientes', icon: 'bi-people-fill' },
     { path: '/zonas', label: 'Zonas', icon: 'bi-geo-alt-fill' },
     { path: '/dashboard', label: 'Tablero', icon: 'bi-grid-1x2-fill' },
-    { path: '/perfil', label: 'Perfil', icon: 'bi-person-circle' },
     { path: '/usuarios', label: 'Usuarios', icon: 'bi-person-gear' }
   ];
 
