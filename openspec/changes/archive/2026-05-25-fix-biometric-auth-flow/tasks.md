@@ -22,7 +22,7 @@
 
 ## 5. Validación
 
-- [ ] 5.1 Probar registro biométrico desde perfil: verificar que `biometric_credential_ids` aparece en localStorage con el ID correcto
-- [ ] 5.2 Probar login biométrico inmediatamente después del registro (IDs en localStorage): debe funcionar sin pedir email
-- [ ] 5.3 Limpiar localStorage manualmente y probar login biométrico con fallback por email: debe funcionar
-- [ ] 5.4 Eliminar credencial desde perfil y verificar que el ID se remueve de localStorage
+- [x] 5.1 Probar registro biométrico desde perfil: verificar que `biometric_credential_ids` aparece en localStorage con el ID correcto
+- [x] 5.2 Probar login biométrico inmediatamente después del registro (IDs en localStorage): debe funcionar sin pedir email
+- [x] 5.3 Limpiar localStorage manualmente y probar login biométrico con fallback por email: debe funcionar (diseño cambiado — fallback por email eliminado; botón desactivado si no hay IDs locales)
+- [x] 5.4 Eliminar credencial desde perfil y verificar que el ID se remueve de localStorage

@@ -51,9 +51,9 @@
 
 ## 6. Validación y Ajustes Finales
 
-- [ ] 6.1 Ejecutar build de producción Angular (`ng build`) y verificar que el service worker se genera correctamente
-- [ ] 6.2 Ejecutar `dotnet build` y verificar que todas las migraciones están aplicadas
+- [x] 6.1 Ejecutar build de producción Angular (`ng build`) y verificar que el service worker se genera correctamente
+- [x] 6.2 Ejecutar `dotnet build` y verificar que todas las migraciones están aplicadas
 - [ ] 6.3 Probar flujo completo de refresh silencioso: login → esperar expiración cercana → verificar que no hay redirección al login
-- [ ] 6.4 Probar flujo WebAuthn en Chrome (Android o desktop con Windows Hello) y Safari (iOS)
-- [ ] 6.5 Ejecutar tests de integración del backend (`dotnet test`)
-- [ ] 6.6 Documentar las variables de configuración nuevas en `README.md`: `Jwt:RefreshTokenExpiryDays`, CORS origin, Fido2 rpId/origin
+- [x] 6.4 Probar flujo WebAuthn en Chrome (Android o desktop con Windows Hello) y Safari (iOS)
+- [x] 6.5 Ejecutar tests de integración del backend (`dotnet test`)
+- [x] 6.6 Documentar las variables de configuración nuevas en `README.md`: `Jwt:RefreshTokenExpiryDays`, CORS origin, Fido2 rpId/origin
