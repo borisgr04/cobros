@@ -1,6 +1,7 @@
 using System.Text;
 using CobrosApi.Data;
 using CobrosApi.Services;
+using Fido2NetLib;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
@@ -31,7 +32,8 @@ builder.Services.AddCors(opts =>
     opts.AddPolicy("CobrosPolicy", policy =>
         policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
-              .AllowAnyMethod()));
+              .AllowAnyMethod()
+              .AllowCredentials()));
 
 // ─── JWT Authentication ─────────────────────────────────────────────────────
 var jwtSecret  = builder.Configuration["Jwt:Secret"]   ?? throw new InvalidOperationException("Jwt:Secret no configurado");
@@ -58,6 +60,20 @@ builder.Services.AddAuthorization();
 
 // ─── Services ───────────────────────────────────────────────────────────────
 builder.Services.AddScoped<TokenService>();
+
+// ─── Distributed Cache (in-memory; swap for Redis in production) ────────────
+builder.Services.AddDistributedMemoryCache();
+
+// ─── Fido2 / WebAuthn ───────────────────────────────────────────────────────
+var fido2Origin   = builder.Configuration["Fido2:Origin"]     ?? "https://localhost:4200";
+var fido2RpId     = builder.Configuration["Fido2:RpId"]       ?? "localhost";
+var fido2RpName   = builder.Configuration["Fido2:ServerName"] ?? "Cobros";
+builder.Services.AddSingleton(new Fido2(new Fido2.Configuration
+{
+    Origin     = fido2Origin,
+    ServerDomain = fido2RpId,
+    ServerName = fido2RpName
+}));
 builder.Services.AddControllers();
 
 // ─── Swagger / OpenAPI ──────────────────────────────────────────────────────

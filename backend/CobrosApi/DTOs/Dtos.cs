@@ -250,6 +250,42 @@ public class ErrorDto
     public string Error { get; set; } = string.Empty;
 }
 
+// ─── WEBAUTHN ──────────────────────────────────────────────────────────────
+
+public class WebAuthnRegisterBeginRequestDto
+{
+    [MaxLength(200)]
+    public string? DeviceName { get; set; }
+}
+
+public class WebAuthnRegisterCompleteRequestDto
+{
+    [Required]
+    public string AttestationResponse { get; set; } = string.Empty;
+
+    [MaxLength(200)]
+    public string? DeviceName { get; set; }
+}
+
+public class WebAuthnAuthBeginRequestDto
+{
+    public List<string> CredentialIds { get; set; } = [];
+}
+
+public class WebAuthnAuthCompleteRequestDto
+{
+    [Required]
+    public string AssertionResponse { get; set; } = string.Empty;
+}
+
+public class WebAuthnCredentialDto
+{
+    public string Id { get; set; } = string.Empty;
+    public string? DeviceName { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? LastUsedAt { get; set; }
+}
+
 public class TotalPagadoDto
 {
     public string PrestamoId { get; set; } = string.Empty;
