@@ -125,6 +125,18 @@ export class BiometricAuthService {
     );
   }
 
+  // ─── Local registration flag ───────────────────────────────────────────────
+
+  /** Returns true if this device has ever successfully registered a biometric credential */
+  hasRegisteredLocally(): boolean {
+    return localStorage.getItem('biometric_registered') === 'true';
+  }
+
+  /** Marks this device as having a registered biometric credential */
+  markAsRegistered(): void {
+    localStorage.setItem('biometric_registered', 'true');
+  }
+
   // ─── Credential management ─────────────────────────────────────────────────
 
   async loadCredentials(): Promise<void> {
