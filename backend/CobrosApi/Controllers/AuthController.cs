@@ -120,6 +120,10 @@ public class AuthController(
         {
             return Unauthorized(new ErrorDto { Error = $"Token de Google inválido: {ex.Message}" });
         }
+        catch (Exception ex)
+        {
+            return BadRequest(new ErrorDto { Error = $"Error al validar token de Google: {ex.Message}" });
+        }
 
         var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Email == payload.Email);
         if (usuario is null)
