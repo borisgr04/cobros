@@ -9,6 +9,7 @@ import { AbstractZonaService } from '../../core/services/abstract-zona.service';
 import type { EstadoPrestamo } from '../utils/prestamo-calculations';
 import { RegistroPagoModalComponent } from './registro-pago-modal/registro-pago-modal.component';
 import { RegistroPrestamoModalComponent } from './registro-prestamo-modal/registro-prestamo-modal.component';
+import { EdicionPrestamoModalComponent } from './edicion-prestamo-modal/edicion-prestamo-modal.component';
 
 /**
  * Componente principal para la gestión de préstamos.
@@ -17,7 +18,7 @@ import { RegistroPrestamoModalComponent } from './registro-prestamo-modal/regist
 @Component({
   selector: 'app-prestamos',
   standalone: true,
-  imports: [CommonModule, FormsModule, RegistroPagoModalComponent, RegistroPrestamoModalComponent],
+  imports: [CommonModule, FormsModule, RegistroPagoModalComponent, RegistroPrestamoModalComponent, EdicionPrestamoModalComponent],
   templateUrl: './prestamos.component.html',
   styleUrl: './prestamos.component.scss',
 })
@@ -31,6 +32,7 @@ export class PrestamosComponent implements OnInit {
   // ViewChild para acceder a los modales y elementos
   modalPago = viewChild(RegistroPagoModalComponent);
   modalPrestamo = viewChild(RegistroPrestamoModalComponent);
+  modalEdicion = viewChild(EdicionPrestamoModalComponent);
 
   // Signals de datos
   prestamos = signal<PrestamoConCliente[]>([]);
@@ -452,5 +454,24 @@ export class PrestamosComponent implements OnInit {
       `Préstamo ${prestamo.id} creado exitosamente`,
       'success'
     );
+  }
+
+  /**
+   * Abre el modal de edición para el préstamo indicado.
+   * Solo disponible cuando el préstamo no tiene pagos registrados.
+   */
+  editarPrestamo(prestamo: PrestamoConCliente): void {
+    const modal = this.modalEdicion();
+    if (modal) {
+      modal.abrir(prestamo);
+    }
+  }
+
+  /**
+   * Maneja el evento de préstamo actualizado exitosamente
+   */
+  onPrestamoActualizado(prestamo: IPrestamo): void {
+    this.cargarDatos();
+    this.mostrarMensaje(`Préstamo ${prestamo.id} actualizado exitosamente`, 'success');
   }
 }

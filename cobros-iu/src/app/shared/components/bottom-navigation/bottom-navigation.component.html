@@ -1,3 +1,33 @@
+<!-- Overlay: cierra el panel al tocar fuera -->
+@if (mostrarMenuUsuario()) {
+  <div class="user-panel-overlay" (click)="cerrarMenuUsuario()"></div>
+}
+
+<!-- Panel deslizante del usuario -->
+@if (mostrarMenuUsuario()) {
+  <div class="user-panel">
+    @if (user()) {
+      <div class="user-panel-card">
+        @if (user()!.fotoUrl) {
+          <img [src]="user()!.fotoUrl" [alt]="user()!.nombre" class="panel-avatar" referrerpolicy="no-referrer">
+        } @else {
+          <div class="panel-avatar-fallback">
+            <i class="bi bi-person-fill"></i>
+          </div>
+        }
+        <div class="panel-user-info">
+          <span class="panel-user-name">{{ user()!.nombre }}</span>
+          <span class="panel-user-email">{{ user()!.email }}</span>
+        </div>
+      </div>
+    }
+    <button class="panel-logout-btn" type="button" (click)="logout()">
+      <i class="bi bi-box-arrow-right"></i>
+      <span>Cerrar sesión</span>
+    </button>
+  </div>
+}
+
 <nav class="bottom-nav">
   <div class="bottom-nav-container">
     @for (item of navItems; track item.path) {
@@ -11,5 +41,19 @@
         <span>{{ item.label }}</span>
       </a>
     }
+    <!-- Ítem de usuario -->
+    <button
+      class="bottom-nav-item bottom-nav-user"
+      [class.active]="mostrarMenuUsuario()"
+      (click)="toggleMenuUsuario()"
+      type="button"
+      aria-label="Menú de usuario">
+      @if (user()?.fotoUrl) {
+        <img [src]="user()!.fotoUrl" [alt]="user()!.nombre" class="nav-user-avatar" referrerpolicy="no-referrer">
+      } @else {
+        <i class="bi bi-person-circle"></i>
+      }
+      <span>Usuario</span>
+    </button>
   </div>
 </nav>
