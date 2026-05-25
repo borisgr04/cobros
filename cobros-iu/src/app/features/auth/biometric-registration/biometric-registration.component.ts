@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BiometricAuthService, WebAuthnCredentialInfo } from '../services/biometric-auth.service';
@@ -10,6 +10,8 @@ import { BiometricAuthService, WebAuthnCredentialInfo } from '../services/biomet
   templateUrl: './biometric-registration.component.html'
 })
 export class BiometricRegistrationComponent implements OnInit {
+  private biometric = inject(BiometricAuthService);
+
   readonly isSupported   = signal(false);
   readonly credentials   = this.biometric.credentials;
   loading  = signal(false);
@@ -17,7 +19,7 @@ export class BiometricRegistrationComponent implements OnInit {
   success  = signal<string | null>(null);
   deviceName = '';
 
-  constructor(private biometric: BiometricAuthService) {}
+  constructor() {}
 
   async ngOnInit(): Promise<void> {
     const available = await this.biometric.isPlatformAuthenticatorAvailable();

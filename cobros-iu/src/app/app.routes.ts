@@ -56,6 +56,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/consulta-publica/consulta-publica.component').then(m => m.ConsultaPublicaComponent)
   },
   {
+    path: 'perfil',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/perfil/perfil.component').then(m => m.PerfilComponent)
+  },
+  {
     path: '**',
     redirectTo: ''
   }
