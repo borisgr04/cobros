@@ -353,7 +353,7 @@ public class AuthController(
 
         var options = fido2.GetAssertionOptions(
             allowedCredentials,
-            UserVerificationRequirement.Required
+            UserVerificationRequirement.Preferred
         );
 
         // Cache options keyed by each credential ID so the complete step can retrieve them
