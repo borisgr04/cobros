@@ -1,8 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { SidebarService } from '../../../features/core/services/sidebar.service';
 import { AuthService } from '../../../features/auth/services/auth.service';
+import { BiometricAuthService } from '../../../features/auth/services/biometric-auth.service';
 
 interface NavItem {
   path: string;
@@ -17,12 +18,14 @@ interface NavItem {
   templateUrl: './sidebar-navigation.component.html',
   styleUrl: './sidebar-navigation.component.scss'
 })
-export class SidebarNavigationComponent {
+export class SidebarNavigationComponent implements OnInit {
   private sidebarService = inject(SidebarService);
   auth = inject(AuthService);
+  readonly biometric = inject(BiometricAuthService);
   user = this.auth.currentUser;
 
   sidebarState = this.sidebarService.getState();
+  biometricAvailable = signal(false);
 
   navItems: NavItem[] = [
     { path: '/', label: 'Inicio', icon: 'bi-house-fill' },
@@ -32,6 +35,11 @@ export class SidebarNavigationComponent {
     { path: '/dashboard', label: 'Tablero', icon: 'bi-grid-1x2-fill' },
     { path: '/usuarios', label: 'Usuarios', icon: 'bi-person-gear' }
   ];
+
+  async ngOnInit(): Promise<void> {
+    const ok = await this.biometric.isPlatformAuthenticatorAvailable();
+    this.biometricAvailable.set(ok);
+  }
 
   toggleSidebar(): void {
     this.sidebarService.toggle();

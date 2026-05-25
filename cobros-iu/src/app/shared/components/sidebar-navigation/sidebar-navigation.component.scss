@@ -225,6 +225,57 @@
   text-overflow: ellipsis;
 }
 
+.perfil-btn {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  border-left: 4px solid transparent;
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  width: 100%;
+  transition: all 200ms ease;
+  font-size: 0.95rem;
+  text-decoration: none;
+
+  i.nav-icon {
+    font-size: 1.4rem;
+    min-width: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .nav-label {
+    margin-left: 1rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  &:hover, &.active {
+    background: rgba(255, 255, 255, 0.06);
+    border-left-color: rgba(255, 255, 255, 0.3);
+    color: white;
+  }
+}
+
+.biometric-badge {
+  font-size: 1rem;
+  color: var(--color-success, #00E676);
+  animation: pulse-icon 2s ease-in-out infinite;
+}
+
+@keyframes pulse-icon {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
 .logout-btn {
   display: flex;
   align-items: center;

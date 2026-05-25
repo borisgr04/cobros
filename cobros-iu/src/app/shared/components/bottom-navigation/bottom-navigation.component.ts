@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { AuthService } from '../../../features/auth/services/auth.service';
+import { BiometricAuthService } from '../../../features/auth/services/biometric-auth.service';
 
 interface NavItem {
   path: string;
@@ -20,9 +21,11 @@ interface NavItem {
 export class BottomNavigationComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
+  readonly biometric = inject(BiometricAuthService);
 
   user = this.auth.currentUser;
   mostrarMenuUsuario = signal<boolean>(false);
+  biometricAvailable = signal(false);
 
   // Items de navegación (mismos que sidebar)
   navItems: NavItem[] = [
@@ -38,6 +41,8 @@ export class BottomNavigationComponent {
     this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe(() => this.mostrarMenuUsuario.set(false));
+
+    this.biometric.isPlatformAuthenticatorAvailable().then(ok => this.biometricAvailable.set(ok));
   }
 
   toggleMenuUsuario(): void {
@@ -46,6 +51,11 @@ export class BottomNavigationComponent {
 
   cerrarMenuUsuario(): void {
     this.mostrarMenuUsuario.set(false);
+  }
+
+  irAPerfil(): void {
+    this.cerrarMenuUsuario();
+    this.router.navigate(['/perfil']);
   }
 
   logout(): void {

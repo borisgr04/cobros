@@ -38,6 +38,19 @@
         </div>
       </div>
     }
+    <a
+      routerLink="/perfil"
+      routerLinkActive="active"
+      class="perfil-btn"
+      aria-label="Mi perfil">
+      <i class="bi bi-person-circle nav-icon"></i>
+      <span class="nav-label">
+        Mi perfil
+        @if (biometricAvailable() && !biometric.hasRegisteredLocally()) {
+          <i class="bi bi-fingerprint biometric-badge" title="Activa Face ID / Huella desde tu perfil"></i>
+        }
+      </span>
+    </a>
     <button class="logout-btn" (click)="logout()" type="button" title="Cerrar sesión" aria-label="Cerrar sesión">
       <i class="bi bi-box-arrow-right"></i>
       <span class="nav-label">Cerrar sesión</span>
