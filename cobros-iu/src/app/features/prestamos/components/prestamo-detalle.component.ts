@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, computed, inject, viewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { PrestamoService, type PrestamoConCliente } from '../services';
@@ -24,6 +24,7 @@ import { ConfirmacionEliminarPrestamoModalComponent } from './confirmacion-elimi
 export class PrestamoDetalleComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private location = inject(Location);
   private prestamoService = inject(PrestamoService);
   private pagoService = inject(AbstractPagoService);
 
@@ -123,6 +124,11 @@ export class PrestamoDetalleComponent implements OnInit {
    * Vuelve a la lista de préstamos
    */
   volver(): void {
+    const navigationId = window.history.state?.navigationId ?? 0;
+    if (navigationId > 1) {
+      this.location.back();
+      return;
+    }
     this.router.navigate(['/prestamos']);
   }
 
