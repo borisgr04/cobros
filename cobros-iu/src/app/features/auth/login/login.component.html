@@ -11,6 +11,13 @@
     </div>
 
     <!-- Error -->
+    @if (info()) {
+      <div class="alert-info" role="status">
+        <i class="bi bi-info-circle-fill"></i>
+        <span>{{ info() }}</span>
+      </div>
+    }
+
     @if (error()) {
       <div class="alert-error" role="alert">
         <i class="bi bi-exclamation-circle-fill"></i>

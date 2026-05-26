@@ -29,9 +29,12 @@ export class AuthService {
   private readonly _token   = signal<string | null>(null);
   private readonly _expira  = signal<Date | null>(null);
   private readonly _user    = signal<AuthUser | null>(this.loadUser());
+  private readonly _isRefreshing = signal(false);
 
   readonly isAuthenticated = computed(() => !!this._token());
+  readonly hasActiveSession = computed(() => !!this._token() || this._isRefreshing());
   readonly currentUser     = this._user.asReadonly();
+  readonly isRefreshing    = this._isRefreshing.asReadonly();
 
   /** Ongoing silent-refresh promise – shared across concurrent callers */
   private _refreshing: Promise<boolean> | null = null;
@@ -50,6 +53,11 @@ export class AuthService {
    */
   async initSession(): Promise<void> {
     await this.silentRefresh();
+  }
+
+  async ensureValidSession(): Promise<boolean> {
+    if (this.isTokenValid()) return true;
+    return this.silentRefresh();
   }
 
   // ─── Login ────────────────────────────────────────────────────────────────
@@ -77,7 +85,12 @@ export class AuthService {
       error: () => { /* ignore network errors during logout */ }
     });
     this.clearSession();
-    this.router.navigate(['/login']);
+    this.redirectToLogin();
+  }
+
+  expireSession(): void {
+    this.clearSession();
+    this.redirectToLogin('session-expired');
   }
 
   // ─── Token accessors ──────────────────────────────────────────────────────
@@ -105,9 +118,11 @@ export class AuthService {
    * Returns true on success, false on failure.
    * Multiple concurrent callers share the same in-flight promise.
    */
-  silentRefresh(): Promise<boolean> {
+  silentRefresh(options: { redirectOnFailure?: boolean } = {}): Promise<boolean> {
     if (this._refreshing) return this._refreshing;
 
+    const hadSession = !!this._token() || !!this._user();
+    this._isRefreshing.set(true);
     this.refreshing$.next(true);
     this._refreshing = firstValueFrom(
       this.http.post<AuthResponse>('/api/auth/refresh', {}, { withCredentials: true }) as Observable<AuthResponse>
@@ -117,15 +132,15 @@ export class AuthService {
         return true;
       })
       .catch(() => {
-        // Solo limpiar el token (no el usuario ni localStorage)
-        // así el guard puede detectar sesión previa y permitir acceso mientras el backend está fuera.
-        this.clearRefreshTimer();
-        this._token.set(null);
-        this._expira.set(null);
+        this.clearSession();
+        if (options.redirectOnFailure && hadSession) {
+          this.redirectToLogin('session-expired');
+        }
         return false;
       })
       .finally(() => {
         this._refreshing = null;
+        this._isRefreshing.set(false);
         this.refreshing$.next(false);
       });
 
@@ -167,7 +182,9 @@ export class AuthService {
     this.clearRefreshTimer();
     const delay = expira.getTime() - Date.now() - REFRESH_AHEAD_MS;
     if (delay > 0) {
-      this._refreshTimer = setTimeout(() => this.silentRefresh(), delay);
+      this._refreshTimer = setTimeout(() => {
+        void this.silentRefresh({ redirectOnFailure: true });
+      }, delay);
     }
   }
 
@@ -181,5 +198,12 @@ export class AuthService {
   private loadUser(): AuthUser | null {
     const raw = localStorage.getItem(USER_KEY);
     return raw ? JSON.parse(raw) as AuthUser : null;
+  }
+
+  private redirectToLogin(reason?: string): void {
+    void this.router.navigate(
+      ['/login'],
+      reason ? { queryParams: { reason } } : undefined
+    );
   }
 }

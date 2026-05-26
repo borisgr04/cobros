@@ -40,5 +40,5 @@ export class AppComponent {
     PUBLIC_ROUTES.some(p => (this.currentUrl() ?? '').startsWith(p))
   );
 
-  showNav = computed(() => this.auth.isAuthenticated() && !this.isPublicRoute());
+  showNav = computed(() => this.auth.hasActiveSession() && !this.isPublicRoute());
 }

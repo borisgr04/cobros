@@ -21,7 +21,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       catchError((error: HttpErrorResponse) => {
         if (error.status === 401) {
           // Server-side rejection → force logout (refresh token is also invalid)
-          auth.logout();
+          auth.expireSession();
         }
         return throwError(() => error);
       })

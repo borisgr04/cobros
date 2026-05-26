@@ -1,6 +1,6 @@
 import { Component, signal, AfterViewInit, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { BiometricAuthService } from '../services/biometric-auth.service';
 import { environment } from '../../../../environments/environment';
@@ -17,16 +17,25 @@ export class LoginComponent implements OnInit, AfterViewInit {
   readonly showGoogleLogin = (environment as any).showGoogleLogin === true;
   loading              = signal(false);
   error                = signal<string | null>(null);
+  info                 = signal<string | null>(null);
   biometricAvailable   = signal(false);
   biometricRegistered  = signal(false);
 
   constructor(
     private auth: AuthService,
     private biometric: BiometricAuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   async ngOnInit(): Promise<void> {
+    const reason = this.route.snapshot.queryParamMap.get('reason');
+    this.info.set(
+      reason === 'session-expired'
+        ? 'Tu sesión expiró. Inicia sesión de nuevo para continuar.'
+        : null
+    );
+
     const available = await this.biometric.isPlatformAuthenticatorAvailable();
     this.biometricAvailable.set(available);
     this.biometricRegistered.set(
