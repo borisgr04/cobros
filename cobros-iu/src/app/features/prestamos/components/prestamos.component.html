@@ -1,19 +1,30 @@
 <div class="prestamos-container">
   <!-- HEADER -->
-  <div class="prestamos-header">
-    <div class="header-content">
-      <div class="header-title">
-        <div class="icon-wrapper">
-          <i class="bi bi-cash-coin"></i>
+  <app-page-header
+    icon="bi-cash-coin"
+    title="Gestión de Préstamos"
+    subtitle="Sistema de control de créditos y cobros">
+    <div class="header-stats-row" pageStats>
+      <div class="header-stats">
+        <div class="stat-card">
+          <span class="stat-label">Activos</span>
+          <span class="stat-value">{{ estadisticas().totalActivos }}</span>
         </div>
-        <div class="title-text">
-          <h1 class="title">Gestión de Préstamos</h1>
-          <p class="subtitle">Sistema de control de créditos y cobros</p>
+        <div class="stat-card">
+          <span class="stat-label">Prestado</span>
+          <span class="stat-value">{{ formatCurrency(estadisticas().totalPrestado) }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Por Cobrar</span>
+          <span class="stat-value">{{ formatCurrency(estadisticas().totalPorCobrar) }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Vencidos</span>
+          <span class="stat-value danger">{{ estadisticas().totalVencidos }}</span>
         </div>
       </div>
-
     </div>
-  </div>
+  </app-page-header>
 
   <!-- ALERTAS -->
   @if (mostrarAlerta()) {
@@ -170,28 +181,6 @@
       </div>
     </div>
   }
-
-  <!-- ESTADÍSTICAS -->
-  <div class="header-stats-row">
-    <div class="header-stats">
-      <div class="stat-card">
-        <span class="stat-label">Activos</span>
-        <span class="stat-value">{{ estadisticas().totalActivos }}</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-label">Prestado</span>
-        <span class="stat-value">{{ formatCurrency(estadisticas().totalPrestado) }}</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-label">Por Cobrar</span>
-        <span class="stat-value">{{ formatCurrency(estadisticas().totalPorCobrar) }}</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-label">Vencidos</span>
-        <span class="stat-value danger">{{ estadisticas().totalVencidos }}</span>
-      </div>
-    </div>
-  </div>
 
   <!-- LISTA DE PRÉSTAMOS -->
   <div class="prestamos-list">

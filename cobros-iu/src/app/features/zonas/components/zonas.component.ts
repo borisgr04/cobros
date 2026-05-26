@@ -7,11 +7,12 @@ import { AbstractZonaService } from '../../core/services/abstract-zona.service';
 import { AbstractClienteService } from '../../core/services/abstract-cliente.service';
 import { IZona } from '../../core/models';
 import { ZonaModalComponent } from './zona-modal/zona-modal.component';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 
 @Component({
   selector: 'app-zonas',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, ZonaModalComponent],
+  imports: [CommonModule, RouterModule, FormsModule, ZonaModalComponent, PageHeaderComponent],
   templateUrl: './zonas.component.html',
   styleUrls: ['./zonas.component.scss']
 })

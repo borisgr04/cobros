@@ -1,30 +1,22 @@
 <div class="clientes-container">
-  <!-- Header moderno -->
-  <header class="clientes-header">
-    <div class="header-content">
-      <div class="header-title">
-        <div class="icon-wrapper">
-          <i class="bi bi-people-fill"></i>
+  <!-- Header -->
+  <app-page-header
+    icon="bi-people-fill"
+    title="Gestión de Clientes"
+    subtitle="Administra la información de tus clientes">
+    <ng-container pageActions>
+      <div class="header-stats">
+        <div class="stat-card">
+          <span class="stat-label">Total</span>
+          <span class="stat-value">{{ clientes().length }}</span>
         </div>
-        <div>
-          <h1 class="title">Gestión de Clientes</h1>
-          <p class="subtitle">Administra la información de tus clientes</p>
-        </div>
-      </div>
-      <div class="header-actions">
-        <div class="header-stats">
-          <div class="stat-card">
-            <span class="stat-label">Total</span>
-            <span class="stat-value">{{ clientes().length }}</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">Activos</span>
-            <span class="stat-value">{{ clientesActivos() }}</span>
-          </div>
+        <div class="stat-card">
+          <span class="stat-label">Activos</span>
+          <span class="stat-value">{{ clientesActivos() }}</span>
         </div>
       </div>
-    </div>
-  </header>
+    </ng-container>
+  </app-page-header>
 
   <!-- Mensajes de alerta modernos -->
   @if (mensaje()) {

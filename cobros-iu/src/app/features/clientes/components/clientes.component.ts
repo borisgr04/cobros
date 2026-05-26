@@ -9,6 +9,7 @@ import { RegistroPrestamoModalComponent } from '../../prestamos/components/regis
 import { RegistroPagoModalComponent } from '../../prestamos/components/registro-pago-modal/registro-pago-modal.component';
 import { PrestamoService, type PrestamoConCliente } from '../../prestamos/services/prestamo.service';
 import type { FrecuenciaPago } from '../../core/models';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 
 /**
  * Componente principal para la gestión de clientes.
@@ -17,7 +18,7 @@ import type { FrecuenciaPago } from '../../core/models';
 @Component({
   selector: 'app-clientes',
   standalone: true,
-  imports: [CommonModule, FormsModule, RegistroPrestamoModalComponent, RegistroPagoModalComponent],
+  imports: [CommonModule, FormsModule, RegistroPrestamoModalComponent, RegistroPagoModalComponent, PageHeaderComponent],
   templateUrl: './clientes.component.html',
   styleUrl: './clientes.component.scss'
 })
