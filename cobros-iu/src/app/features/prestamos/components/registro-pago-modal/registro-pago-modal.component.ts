@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, Output, EventEmitter, HostListener } from '@angular/core';
+import { Component, inject, signal, computed, Output, EventEmitter, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MonedaInputDirective } from '../../../../shared/directives';
@@ -21,6 +21,7 @@ import type { IPago } from '../../../core/models';
 export class RegistroPagoModalComponent {
   private pagoService = inject(AbstractPagoService);
   private sanitizer = inject(DomSanitizer);
+  @ViewChild('postPagoAcciones') postPagoAccionesRef?: ElementRef<HTMLElement>;
 
   // Outputs
   @Output() pagoRegistrado = new EventEmitter<IPago>();
@@ -177,6 +178,7 @@ export class RegistroPagoModalComponent {
           this.saldoPostPago.set(this.nuevoSaldo());
           this.pagoExitoso.set(pagoRegistrado);
           this.pagoRegistrado.emit(pagoRegistrado);
+          this.desplazarAHitoPostPago();
         },
         error: (error) => {
           console.error('Error al registrar pago:', error);
@@ -228,5 +230,35 @@ export class RegistroPagoModalComponent {
       month: 'short',
       year: 'numeric',
     }).format(new Date(date));
+  }
+
+  private desplazarAHitoPostPago(): void {
+    if (!this.visible() || !this.pagoExitoso()) return;
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const objetivo = this.postPagoAccionesRef?.nativeElement;
+        if (!objetivo || this.estaVisibleEnViewport(objetivo)) return;
+
+        objetivo.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest'
+        });
+      });
+    });
+  }
+
+  private estaVisibleEnViewport(elemento: HTMLElement): boolean {
+    const rect = elemento.getBoundingClientRect();
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+
+    return (
+      rect.top >= 0 &&
+      rect.left >= 0 &&
+      rect.bottom <= viewportHeight &&
+      rect.right <= viewportWidth
+    );
   }
 }
