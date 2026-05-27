@@ -176,6 +176,7 @@ export class ClientesComponent implements OnInit {
    */
   nuevoCliente(): void {
     this.formulario = this.getFormularioVacio();
+    this.formulario.zonaId = this.zonaFiltroId() || this.zonas()[0]?.id || '';
     this.modoEdicion.set(false);
     this.mostrarFormulario.set(true);
     this.clienteSeleccionado.set(null);
@@ -425,7 +426,7 @@ export class ClientesComponent implements OnInit {
       id: '',
       nombre: '',
       identificacion: '',
-      zonaId: 'zona-1',
+      zonaId: '',
       estado: 'activo'
     };
   }
