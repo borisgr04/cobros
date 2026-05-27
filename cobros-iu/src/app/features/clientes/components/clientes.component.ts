@@ -175,7 +175,7 @@ export class ClientesComponent implements OnInit {
    * Abre el formulario para crear un nuevo cliente
    */
   nuevoCliente(): void {
-    this.formulario = this.getFormularioVacio();
+    this.formulario = this.getFormularioVacio(this.getZonaInicialNuevoCliente());
     this.modoEdicion.set(false);
     this.mostrarFormulario.set(true);
     this.clienteSeleccionado.set(null);
@@ -420,13 +420,28 @@ export class ClientesComponent implements OnInit {
   /**
    * Retorna un objeto de formulario vacío
    */
-  private getFormularioVacio(): ICliente {
+  private getFormularioVacio(zonaId: string = 'zona-1'): ICliente {
     return {
       id: '',
       nombre: '',
       identificacion: '',
-      zonaId: 'zona-1',
+      zonaId,
       estado: 'activo'
     };
+  }
+
+  private getZonaInicialNuevoCliente(): string {
+    const zonas = this.zonas();
+    const zonaFiltroId = this.zonaFiltroId().trim();
+
+    if (zonaFiltroId && zonas.some(zona => zona.id === zonaFiltroId)) {
+      return zonaFiltroId;
+    }
+
+    if (zonas.some(zona => zona.id === 'zona-1')) {
+      return 'zona-1';
+    }
+
+    return zonas[0]?.id ?? 'zona-1';
   }
 }
