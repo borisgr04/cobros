@@ -121,7 +121,8 @@ export class PrestamoDetalleComponent implements OnInit {
   }
 
   /**
-   * Vuelve a la lista de préstamos
+   * Vuelve a la página anterior en el historial de navegación
+   * con fallback seguro a la lista de préstamos.
    */
   volver(): void {
     const navigationId = window.history.state?.navigationId ?? 0;

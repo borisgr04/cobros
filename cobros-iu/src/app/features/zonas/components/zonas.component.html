@@ -1,26 +1,16 @@
 <div class="zonas-container">
   <!-- HEADER -->
-  <div class="zonas-header">
-    <div class="header-content">
-      <div class="header-title">
-        <div class="icon-wrapper">
-          <i class="bi bi-geo-alt"></i>
-        </div>
-        <div>
-          <h1 class="title">Gestión de Zonas</h1>
-          <p class="subtitle">Organiza tus clientes por ubicación geográfica</p>
-        </div>
-      </div>
-
-      <div class="header-actions">
-        <button class="btn-nueva-zona" (click)="abrirModalNueva()">
-          <i class="bi bi-plus-circle-fill"></i>
-          <span>Nueva Zona</span>
-        </button>
-      </div>
-    </div>
-
-    <div class="header-stats-row">
+  <app-page-header
+    icon="bi-geo-alt"
+    title="Gestión de Zonas"
+    subtitle="Organiza tus clientes por ubicación geográfica">
+    <ng-container pageActions>
+      <button class="btn-nueva-zona" (click)="abrirModalNueva()">
+        <i class="bi bi-plus-circle-fill"></i>
+        <span>Nueva Zona</span>
+      </button>
+    </ng-container>
+    <div class="header-stats-row" pageStats>
       <div class="header-stats">
         <div class="stat-card">
           <span class="stat-label">Total</span>
@@ -36,7 +26,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </app-page-header>
 
   <!-- CONTROLES DE BÚSQUEDA Y FILTROS -->
   <div class="controles-zona">
