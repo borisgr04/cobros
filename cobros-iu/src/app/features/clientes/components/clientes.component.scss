@@ -322,9 +322,7 @@
 }
 
 .btn-text {
-  @media (max-width: 639px) {
-    display: none;
-  }
+  display: inline;
 }
 
 // ==========================================
