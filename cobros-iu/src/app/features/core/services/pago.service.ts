@@ -89,4 +89,15 @@ export class PagoService extends BaseService<IPago> implements AbstractPagoServi
       .get<{ prestamoId: string; totalPagado: number }>(`${this.apiUrl}/prestamo/${prestamoId}/total`)
       .pipe(map(r => r.totalPagado));
   }
+
+  /**
+   * Anula el pago indicado registrando el motivo de anulación.
+   * Solo se puede anular el pago activo más reciente del préstamo.
+   * @param id - Identificador del pago a anular
+   * @param motivo - Motivo o comentario de la anulación
+   * @returns Observable con el pago actualizado
+   */
+  anular(id: string, motivo: string): Observable<IPago> {
+    return this.http.post<IPago>(`${this.apiUrl}/${id}/anular`, { motivo });
+  }
 }

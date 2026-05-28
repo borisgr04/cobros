@@ -9,6 +9,7 @@ import type { IPago, IPrestamo } from '../../core/models';
 import { RegistroPagoModalComponent } from './registro-pago-modal/registro-pago-modal.component';
 import { EdicionPrestamoModalComponent } from './edicion-prestamo-modal/edicion-prestamo-modal.component';
 import { ConfirmacionEliminarPrestamoModalComponent } from './confirmacion-eliminar-prestamo-modal/confirmacion-eliminar-prestamo-modal.component';
+import { AnulacionPagoModalComponent } from './anulacion-pago-modal/anulacion-pago-modal.component';
 
 /**
  * Componente de detalle de un préstamo individual
@@ -17,7 +18,7 @@ import { ConfirmacionEliminarPrestamoModalComponent } from './confirmacion-elimi
 @Component({
   selector: 'app-prestamo-detalle',
   standalone: true,
-  imports: [CommonModule, RegistroPagoModalComponent, EdicionPrestamoModalComponent, ConfirmacionEliminarPrestamoModalComponent],
+  imports: [CommonModule, RegistroPagoModalComponent, EdicionPrestamoModalComponent, ConfirmacionEliminarPrestamoModalComponent, AnulacionPagoModalComponent],
   templateUrl: './prestamo-detalle.component.html',
   styleUrl: './prestamo-detalle.component.scss',
 })
@@ -36,6 +37,9 @@ export class PrestamoDetalleComponent implements OnInit {
 
   // ViewChild para acceder al modal de eliminación
   modalEliminar = viewChild(ConfirmacionEliminarPrestamoModalComponent);
+
+  // ViewChild para acceder al modal de anulación de pago
+  modalAnulacion = viewChild(AnulacionPagoModalComponent);
 
   // Signals de datos
   prestamo = signal<PrestamoConCliente | null>(null);
@@ -201,6 +205,38 @@ export class PrestamoDetalleComponent implements OnInit {
   /** Suma los primeros N pagos para calcular el saldo acumulado pagado */
   calcularSaldoAcumulado(n: number): number {
     return this.pagos().slice(0, n).reduce((sum, p) => sum + p.valor, 0);
+  }
+
+  /**
+   * Devuelve el pago activo más reciente del préstamo (candidato a anulación).
+   * Ordena por fechaPago desc, luego por id desc como desempate.
+   */
+  pagoAnulable = computed<IPago | null>(() => {
+    const activos = this.pagos().filter(p => !p.anulado);
+    if (activos.length === 0) return null;
+    return activos.reduce((prev, curr) => {
+      const fechaPrev = new Date(prev.fechaPago).getTime();
+      const fechaCurr = new Date(curr.fechaPago).getTime();
+      if (fechaCurr !== fechaPrev) return fechaCurr > fechaPrev ? curr : prev;
+      return Number(curr.id) > Number(prev.id) ? curr : prev;
+    });
+  });
+
+  /**
+   * Abre el modal de anulación para el pago indicado.
+   */
+  abrirModalAnulacion(pago: IPago): void {
+    const modal = this.modalAnulacion();
+    if (modal) {
+      modal.abrir(pago);
+    }
+  }
+
+  /**
+   * Maneja el evento de pago anulado exitosamente.
+   */
+  onPagoAnulado(_pago: IPago): void {
+    this.cargarPrestamo();
   }
 
   /**

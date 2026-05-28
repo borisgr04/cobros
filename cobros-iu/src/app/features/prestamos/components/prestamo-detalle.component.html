@@ -257,16 +257,48 @@
                         <th>Fecha</th>
                         <th>Valor Abonado</th>
                         <th>Saldo Pendiente</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
                       @for (pago of pagos(); track pago.id; let idx = $index) {
-                        <tr>
+                        <tr [class.fila-anulada]="pago.anulado">
                           <td><strong>{{ idx + 1 }}</strong></td>
                           <td>{{ formatDate(pago.fechaPago) }}</td>
-                          <td class="monto">{{ formatCurrency(pago.valor) }}</td>
+                          <td class="monto" [class.monto-anulado]="pago.anulado">
+                            {{ formatCurrency(pago.valor) }}
+                          </td>
                           <td class="monto">
-                            {{ formatCurrency(prestamo()!.valorTotal - calcularSaldoAcumulado(idx + 1)) }}
+                            @if (pago.anulado) {
+                              <span class="text-muted">—</span>
+                            } @else {
+                              {{ formatCurrency(prestamo()!.valorTotal - calcularSaldoAcumulado(idx + 1)) }}
+                            }
+                          </td>
+                          <td>
+                            @if (pago.anulado) {
+                              <span
+                                class="badge-anulado"
+                                [title]="pago.motivoAnulacion || 'Pago anulado'">
+                                <i class="bi bi-x-circle-fill"></i> Anulado
+                              </span>
+                            } @else {
+                              <span class="badge-activo-pago">
+                                <i class="bi bi-check-circle-fill"></i> Activo
+                              </span>
+                            }
+                          </td>
+                          <td>
+                            @if (!pago.anulado && pagoAnulable()?.id === pago.id) {
+                              <button
+                                class="btn-anular-pago"
+                                (click)="abrirModalAnulacion(pago)"
+                                title="Anular este pago">
+                                <i class="bi bi-x-circle"></i>
+                                Anular
+                              </button>
+                            }
                           </td>
                         </tr>
                       }
@@ -356,3 +388,9 @@
   (prestamoEliminado)="onPrestamoEliminado($event)"
   (modalCerrado)="cargarPrestamo()">
 </app-confirmacion-eliminar-prestamo-modal>
+
+<!-- MODAL DE ANULACIÓN DE PAGO -->
+<app-anulacion-pago-modal
+  (pagoAnulado)="onPagoAnulado($event)"
+  (modalCerrado)="cargarPrestamo()">
+</app-anulacion-pago-modal>

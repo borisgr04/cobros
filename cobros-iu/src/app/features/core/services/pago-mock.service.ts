@@ -101,8 +101,35 @@ export class PagoMockService implements AbstractPagoService {
 
   getTotalByPrestamo(prestamoId: string): Observable<number> {
     const total = this.pagos
-      .filter(p => p.prestamoId === prestamoId)
+      .filter(p => p.prestamoId === prestamoId && !p.anulado)
       .reduce((sum, p) => sum + p.valor, 0);
     return of(total).pipe(delay(this.MOCK_DELAY));
+  }
+
+  anular(id: string, motivo: string): Observable<IPago> {
+    const index = this.pagos.findIndex(p => p.id === id);
+    if (index === -1) {
+      return throwError(() => new Error('Pago no encontrado')).pipe(delay(this.MOCK_DELAY));
+    }
+    const pago = this.pagos[index];
+    if (pago.anulado) {
+      return throwError(() => new Error('El pago ya está anulado')).pipe(delay(this.MOCK_DELAY));
+    }
+    // Check it is the most recent active payment for that loan
+    const activosMasPagos = this.pagos
+      .filter(p => p.prestamoId === pago.prestamoId && !p.anulado)
+      .sort((a, b) => new Date(b.fechaPago).getTime() - new Date(a.fechaPago).getTime()
+                   || Number(b.id) - Number(a.id));
+    if (!activosMasPagos.length || activosMasPagos[0].id !== id) {
+      return throwError(() => new Error('Solo se puede anular el pago más reciente')).pipe(delay(this.MOCK_DELAY));
+    }
+    const pagoCancelado: IPago = {
+      ...pago,
+      anulado: true,
+      fechaAnulacion: new Date(),
+      motivoAnulacion: motivo,
+    };
+    this.pagos[index] = pagoCancelado;
+    return of({ ...pagoCancelado }).pipe(delay(this.MOCK_DELAY));
   }
 }
