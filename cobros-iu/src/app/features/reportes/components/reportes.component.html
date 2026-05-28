@@ -360,8 +360,7 @@
               <div class="recaudo-zona-card">
 
                 <!-- Cabecera de zona -->
-                <div class="recaudo-zona-header" (click)="toggleZona(zona.zonaId)" role="button" tabindex="0"
-                     (keydown.enter)="toggleZona(zona.zonaId)">
+                <div class="recaudo-zona-header">
                   <div class="zona-titulo">
                     <i class="bi bi-geo-alt-fill"></i>
                     <h3>{{ zona.zonaNombre }}</h3>
@@ -376,84 +375,62 @@
                       <span class="kpi-val cobrado">{{ formatearMoneda(zona.montoCobrado) }}</span>
                     </div>
                   </div>
-                  <i class="bi toggle-icon"
-                     [ngClass]="zonaExpandida() === zona.zonaId ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
                 </div>
 
-                <!-- Detalle por cliente (expandible) -->
-                @if (zonaExpandida() === zona.zonaId) {
-                  <div class="recaudo-clientes">
+                <!-- Detalle por cliente (siempre visible) -->
+                <div class="recaudo-clientes">
 
-                    <!-- Mini-tarjetas de clientes (móvil) -->
-                    <div class="clientes-cards-list mobile-only">
-                      @for (cli of zona.clientes; track cli.clienteId) {
-                        <div class="cliente-recaudo-card">
-                          <div class="cliente-recaudo-info">
-                            <strong class="cli-nombre">{{ cli.clienteNombre }}</strong>
-                            @if (cli.clienteAlias) {
-                              <span class="cli-alias">"{{ cli.clienteAlias }}"</span>
-                            }
+                  <!-- Mini-tarjetas de clientes (móvil) -->
+                  <div class="clientes-cards-list mobile-only">
+                    @for (cli of zona.clientes; track cli.clienteId) {
+                      <div class="cliente-recaudo-card">
+                        <div class="cliente-recaudo-info">
+                          <strong class="cli-nombre">{{ cli.clienteNombre }}</strong>
+                          @if (cli.clienteAlias) {
+                            <span class="cli-alias">"{{ cli.clienteAlias }}"</span>
+                          }
+                        </div>
+                        <div class="cliente-recaudo-datos">
+                          <div class="recaudo-dato">
+                            <span class="recaudo-lbl">Pagos</span>
+                            <span class="recaudo-val">{{ cli.pagosRealizados }}</span>
                           </div>
-                          <div class="cliente-recaudo-datos">
-                            <div class="recaudo-dato">
-                              <span class="recaudo-lbl">Pagos</span>
-                              <span class="recaudo-val">{{ cli.pagosRealizados }}</span>
-                            </div>
-                            <div class="recaudo-dato">
-                              <span class="recaudo-lbl">Cobrado</span>
-                              <span class="recaudo-val cobrado">{{ formatearMoneda(cli.montoCobrado) }}</span>
-                            </div>
-                            <div class="recaudo-dato">
-                              <span class="recaudo-lbl">Esperado</span>
-                              <span class="recaudo-val">{{ formatearMoneda(cli.montoEsperado) }}</span>
-                            </div>
-                            <div class="recaudo-dato">
-                              <span class="recaudo-lbl">Cumplimiento</span>
-                              <span class="pct-chip" [class]="getClaseCumplimiento(cli.porcentajeCumplimiento)">
-                                {{ formatearPorcentaje(cli.porcentajeCumplimiento) }}
-                              </span>
-                            </div>
+                          <div class="recaudo-dato">
+                            <span class="recaudo-lbl">Cobrado</span>
+                            <span class="recaudo-val cobrado">{{ formatearMoneda(cli.montoCobrado) }}</span>
                           </div>
                         </div>
-                      }
-                    </div>
-
-                    <!-- Tabla de clientes (desktop) -->
-                    <table class="reporte-tabla clientes-tabla desktop-only">
-                      <thead>
-                        <tr>
-                          <th>Cliente</th>
-                          <th>Pagos</th>
-                          <th>Cobrado</th>
-                          <th>Esperado</th>
-                          <th>Cumplimiento</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        @for (cli of zona.clientes; track cli.clienteId) {
-                          <tr>
-                            <td>
-                              <div class="cliente-cell">
-                                <strong>{{ cli.clienteNombre }}</strong>
-                                @if (cli.clienteAlias) {
-                                  <small class="alias">{{ cli.clienteAlias }}</small>
-                                }
-                              </div>
-                            </td>
-                            <td class="numero">{{ cli.pagosRealizados }}</td>
-                            <td class="monto cobrado">{{ formatearMoneda(cli.montoCobrado) }}</td>
-                            <td class="monto">{{ formatearMoneda(cli.montoEsperado) }}</td>
-                            <td>
-                              <span class="pct-chip" [class]="getClaseCumplimiento(cli.porcentajeCumplimiento)">
-                                {{ formatearPorcentaje(cli.porcentajeCumplimiento) }}
-                              </span>
-                            </td>
-                          </tr>
-                        }
-                      </tbody>
-                    </table>
+                      </div>
+                    }
                   </div>
-                }
+
+                  <!-- Tabla de clientes (desktop) -->
+                  <table class="reporte-tabla clientes-tabla desktop-only">
+                    <thead>
+                      <tr>
+                        <th>Cliente</th>
+                        <th>Pagos</th>
+                        <th>Cobrado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (cli of zona.clientes; track cli.clienteId) {
+                        <tr>
+                          <td>
+                            <div class="cliente-cell">
+                              <strong>{{ cli.clienteNombre }}</strong>
+                              @if (cli.clienteAlias) {
+                                <small class="alias">{{ cli.clienteAlias }}</small>
+                              }
+                            </div>
+                          </td>
+                          <td class="numero">{{ cli.pagosRealizados }}</td>
+                          <td class="monto cobrado">{{ formatearMoneda(cli.montoCobrado) }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
 
               </div>
             }
