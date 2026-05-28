@@ -25,7 +25,67 @@
         <span class="badge-count">{{ usuarios().length }} usuarios</span>
       </div>
 
-      <div class="table-responsive">
+      <!-- ── Vista TARJETAS (móvil) ── -->
+      <div class="usuarios-lista">
+        @for (u of usuarios(); track u.id) {
+          <div class="usuario-card" [class.authorized]="u.autorizado" [class.denied]="!u.autorizado">
+            <div class="usuario-card-top">
+              <!-- Avatar + info -->
+              <div class="usuario-avatar-wrap">
+                @if (u.fotoUrl) {
+                  <img [src]="u.fotoUrl" [alt]="u.nombre ?? u.email" class="user-avatar" referrerpolicy="no-referrer">
+                } @else {
+                  <div class="user-avatar-fallback"><i class="bi bi-person-fill"></i></div>
+                }
+              </div>
+              <div class="usuario-info">
+                <span class="user-name">{{ u.nombre ?? '—' }}</span>
+                <span class="user-email">{{ u.email }}</span>
+              </div>
+              <span class="status-badge" [class.badge-ok]="u.autorizado" [class.badge-denied]="!u.autorizado">
+                {{ u.autorizado ? 'Autorizado' : 'Sin acceso' }}
+              </span>
+            </div>
+
+            <div class="card-meta">
+              <span><i class="bi bi-clock"></i> Acceso: {{ u.ultimoAcceso | date:'dd/MM/yy HH:mm' }}</span>
+              <span><i class="bi bi-calendar-plus"></i> Registro: {{ u.creadoEn | date:'dd/MM/yy' }}</span>
+            </div>
+
+            <div class="card-actions">
+              <button
+                class="toggle-btn"
+                [class.btn-authorize]="!u.autorizado"
+                [class.btn-deny]="u.autorizado"
+                [disabled]="saving() === u.id || deleting() === u.id"
+                (click)="toggleAutorizacion(u)"
+                [title]="u.autorizado ? 'Denegar acceso' : 'Autorizar acceso'">
+                @if (saving() === u.id) {
+                  <span class="spinner-border spinner-border-sm"></span>
+                } @else if (u.autorizado) {
+                  <i class="bi bi-shield-x"></i> Denegar
+                } @else {
+                  <i class="bi bi-shield-check"></i> Autorizar
+                }
+              </button>
+              <button
+                class="delete-btn"
+                [disabled]="deleting() === u.id || saving() === u.id"
+                (click)="eliminarUsuario(u)"
+                title="Eliminar usuario">
+                @if (deleting() === u.id) {
+                  <span class="spinner-border spinner-border-sm"></span>
+                } @else {
+                  <i class="bi bi-trash3"></i> Eliminar
+                }
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- ── Vista TABLA (desktop) ── -->
+      <div class="table-responsive desktop-table">
         <table class="users-table">
           <thead>
             <tr>

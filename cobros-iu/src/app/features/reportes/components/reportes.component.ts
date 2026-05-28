@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReporteService } from '../services/reporte.service';
 import { AbstractZonaService } from '../../core/services/abstract-zona.service';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import type {
   ReporteCompleto,
   ReportePrestamoNuevo,
@@ -19,7 +20,7 @@ export type TabReporte = 'nuevos' | 'finalizados' | 'recaudo';
 @Component({
   selector: 'app-reportes',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PageHeaderComponent],
   templateUrl: './reportes.component.html',
   styleUrl: './reportes.component.scss'
 })

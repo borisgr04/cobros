@@ -2,11 +2,11 @@
 <div class="reportes-container">
 
   <!-- HEADER -->
-  <div class="reportes-header">
-    <div class="header-content">
-      <h1><i class="bi bi-file-earmark-bar-graph"></i> Reportes de Cobros</h1>
-      <p class="subtitle">Análisis de cobros y pagos por período</p>
-  </div>
+  <app-page-header
+    icon="bi-file-earmark-bar-graph"
+    title="Reportes de Cobros"
+    subtitle="Análisis de cobros y pagos por período">
+  </app-page-header>
 
   <!-- TABS -->
   <div class="tabs-nav">
@@ -17,341 +17,462 @@
         (click)="cambiarTab(tab.id)"
         type="button">
         <i class="bi" [ngClass]="tab.icono"></i>
-        <span>{{ tab.etiqueta }}</span>
+        <span class="tab-label">{{ tab.etiqueta }}</span>
       </button>
     }
   </div>
 
-    <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <!-- FILTROS COMPARTIDOS                                                  -->
-    <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <div class="filtros-reporte-completo">
-      <div class="filtros-fila">
-        <div class="filtro-grupo">
-          <label for="ri-fecha-inicio">
-            <i class="bi bi-calendar-event"></i> Desde
-          </label>
-          <input
-            type="date"
-            id="ri-fecha-inicio"
-            class="filtro-input-date"
-            [ngModel]="fechaInicioReporte()" (ngModelChange)="fechaInicioReporte.set($event)"
-            [max]="fechaFinReporte()">
-          </div>
-
-          <div class="filtro-grupo">
-            <label for="ri-fecha-fin">
-              <i class="bi bi-calendar-check"></i> Hasta
-            </label>
-            <input
-              type="date"
-              id="ri-fecha-fin"
-              class="filtro-input-date"
-              [ngModel]="fechaFinReporte()" (ngModelChange)="fechaFinReporte.set($event)"
-              [min]="fechaInicioReporte()">
-          </div>
-
-          <div class="filtro-grupo">
-            <label for="ri-zona">
-              <i class="bi bi-geo-alt"></i> Zona
-            </label>
-            <select id="ri-zona" class="filtro-select" [ngModel]="zonaFiltroReporte()" (ngModelChange)="zonaFiltroReporte.set($event)">
-              <option value="">Todas las zonas</option>
-              @for (zona of zonas(); track zona.id) {
-                <option [value]="zona.id">{{ zona.nombre }}</option>
-              }
-            </select>
-          </div>
-
-          <button class="btn-aplicar" (click)="aplicarFiltrosReporte()" type="button">
-            <i class="bi bi-search"></i>
-            Generar
-          </button>
-        </div>
-
-        @if (errorReporte()) {
-          <div class="alerta-error">
-            <i class="bi bi-exclamation-triangle"></i>
-            {{ errorReporte() }}
-          </div>
-        }
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- FILTROS COMPARTIDOS                                                  -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <div class="filtros-reporte-completo">
+    <div class="filtros-fila">
+      <div class="filtro-grupo">
+        <label for="ri-fecha-inicio">
+          <i class="bi bi-calendar-event"></i> Desde
+        </label>
+        <input
+          type="date"
+          id="ri-fecha-inicio"
+          class="filtro-input-date"
+          [ngModel]="fechaInicioReporte()" (ngModelChange)="fechaInicioReporte.set($event)"
+          [max]="fechaFinReporte()">
       </div>
 
-      <!-- Loading reporte completo -->
-      @if (cargandoReporte()) {
-        <div class="loading-state">
-          <i class="bi bi-hourglass-split"></i>
-          <p>Consultando base de datos...</p>
+      <div class="filtro-grupo">
+        <label for="ri-fecha-fin">
+          <i class="bi bi-calendar-check"></i> Hasta
+        </label>
+        <input
+          type="date"
+          id="ri-fecha-fin"
+          class="filtro-input-date"
+          [ngModel]="fechaFinReporte()" (ngModelChange)="fechaFinReporte.set($event)"
+          [min]="fechaInicioReporte()">
+      </div>
+
+      <div class="filtro-grupo">
+        <label for="ri-zona">
+          <i class="bi bi-geo-alt"></i> Zona
+        </label>
+        <select id="ri-zona" class="filtro-select" [ngModel]="zonaFiltroReporte()" (ngModelChange)="zonaFiltroReporte.set($event)">
+          <option value="">Todas las zonas</option>
+          @for (zona of zonas(); track zona.id) {
+            <option [value]="zona.id">{{ zona.nombre }}</option>
+          }
+        </select>
+      </div>
+
+      <button class="btn-aplicar" (click)="aplicarFiltrosReporte()" type="button">
+        <i class="bi bi-search"></i>
+        Generar
+      </button>
+    </div>
+
+    @if (errorReporte()) {
+      <div class="alerta-error">
+        <i class="bi bi-exclamation-triangle"></i>
+        {{ errorReporte() }}
+      </div>
+    }
+  </div>
+
+  <!-- Loading reporte completo -->
+  @if (cargandoReporte()) {
+    <div class="loading-state">
+      <i class="bi bi-hourglass-split"></i>
+      <p>Consultando base de datos...</p>
+    </div>
+  }
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- TAB: PRÉSTAMOS NUEVOS                                               -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  @if (tabActiva() === 'nuevos' && !cargandoReporte()) {
+    <div class="reporte-seccion">
+      @if (reporteCompleto()) {
+        <div class="seccion-header">
+          <h2><i class="bi bi-plus-circle-fill"></i> Préstamos Nuevos</h2>
+          <span class="badge-count">{{ prestamosNuevos().length }} préstamos</span>
+        </div>
+
+        @if (prestamosNuevos().length > 0) {
+          <!-- Totales -->
+          <div class="totales-bar">
+            <div class="total-item">
+              <span class="total-label">Capital total prestado</span>
+              <span class="total-valor">
+                {{ formatearMoneda(sumarCampo(prestamosNuevos(), 'valorPrestado')) }}
+              </span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Total intereses</span>
+              <span class="total-valor">
+                {{ formatearMoneda(sumarCampo(prestamosNuevos(), 'valorTotal') - sumarCampo(prestamosNuevos(), 'valorPrestado')) }}
+              </span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Total a recaudar</span>
+              <span class="total-valor">
+                {{ formatearMoneda(sumarCampo(prestamosNuevos(), 'valorTotal')) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Vista de TARJETAS (móvil) -->
+          <div class="prestamos-cards-list mobile-only">
+            @for (p of prestamosNuevos(); track p.prestamoId) {
+              <div class="prestamo-card">
+                <div class="prestamo-card-header">
+                  <strong class="prestamo-cliente">{{ p.clienteNombre }}</strong>
+                  <span class="zona-badge">{{ p.zonaNombre }}</span>
+                </div>
+                <div class="prestamo-card-body">
+                  <div class="prestamo-dato">
+                    <span class="dato-label"><i class="bi bi-calendar3"></i> Fecha</span>
+                    <span class="dato-valor">{{ formatearFecha(p.fechaPrestamo) }}</span>
+                  </div>
+                  <div class="prestamo-dato">
+                    <span class="dato-label"><i class="bi bi-cash"></i> Capital</span>
+                    <span class="dato-valor monto">{{ formatearMoneda(p.valorPrestado) }}</span>
+                  </div>
+                  <div class="prestamo-dato">
+                    <span class="dato-label"><i class="bi bi-percent"></i> Intereses</span>
+                    <span class="dato-valor monto">{{ formatearMoneda(calcularIntereses(p)) }}</span>
+                  </div>
+                  <div class="prestamo-dato">
+                    <span class="dato-label"><i class="bi bi-wallet2"></i> Total</span>
+                    <span class="dato-valor monto destacado">{{ formatearMoneda(p.valorTotal) }}</span>
+                  </div>
+                  <div class="prestamo-dato">
+                    <span class="dato-label"><i class="bi bi-arrow-repeat"></i> Frecuencia</span>
+                    <span class="dato-valor">{{ p.frecuenciaPago }}</span>
+                  </div>
+                  <div class="prestamo-dato">
+                    <span class="dato-label"><i class="bi bi-list-ol"></i> Cuotas</span>
+                    <span class="dato-valor">{{ p.cantidadCuotas }} × {{ formatearMoneda(p.valorCuota) }}</span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Tabla (desktop) -->
+          <div class="tabla-responsive desktop-only">
+            <table class="reporte-tabla">
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Zona</th>
+                  <th>Fecha</th>
+                  <th>Valor Prestado</th>
+                  <th>Intereses</th>
+                  <th>Valor Total</th>
+                  <th>Frecuencia</th>
+                  <th>Cuotas</th>
+                  <th>Valor Cuota</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (p of prestamosNuevos(); track p.prestamoId) {
+                  <tr>
+                    <td>
+                      <div class="cliente-cell">
+                        <strong>{{ p.clienteNombre }}</strong>
+                      </div>
+                    </td>
+                    <td><span class="zona-badge">{{ p.zonaNombre }}</span></td>
+                    <td>{{ formatearFecha(p.fechaPrestamo) }}</td>
+                    <td class="monto">{{ formatearMoneda(p.valorPrestado) }}</td>
+                    <td class="monto">{{ formatearMoneda(calcularIntereses(p)) }}</td>
+                    <td class="monto">{{ formatearMoneda(p.valorTotal) }}</td>
+                    <td>{{ p.frecuenciaPago }}</td>
+                    <td class="numero">{{ p.cantidadCuotas }}</td>
+                    <td class="monto">{{ formatearMoneda(p.valorCuota) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <div class="empty-state-main">
+            <i class="bi bi-inbox"></i>
+            <h3>Sin préstamos nuevos</h3>
+            <p>No se registraron préstamos en el rango de fechas seleccionado</p>
+          </div>
+        }
+      } @else {
+        <div class="empty-state-main">
+          <i class="bi bi-calendar-range"></i>
+          <h3>Selecciona un rango de fechas</h3>
+          <p>Elige las fechas y presiona <strong>Generar</strong> para ver el reporte</p>
         </div>
       }
+    </div>
+  }
 
-    <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <!-- TAB: PRÉSTAMOS NUEVOS                                               -->
-    <!-- ═══════════════════════════════════════════════════════════════════ -->
-    @if (tabActiva() === 'nuevos' && !cargandoReporte()) {
-      <div class="reporte-seccion">
-        @if (reporteCompleto()) {
-          <div class="seccion-header">
-            <h2><i class="bi bi-plus-circle-fill"></i> Préstamos Nuevos</h2>
-            <span class="badge-count">{{ prestamosNuevos().length }} préstamos</span>
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- TAB: PRÉSTAMOS FINALIZADOS                                          -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  @if (tabActiva() === 'finalizados' && !cargandoReporte()) {
+    <div class="reporte-seccion">
+      @if (reporteCompleto()) {
+        <div class="seccion-header">
+          <h2><i class="bi bi-check-circle-fill"></i> Préstamos Finalizados</h2>
+          <span class="badge-count">{{ prestamosFinalizados().length }} préstamos</span>
+        </div>
+
+        @if (prestamosFinalizados().length > 0) {
+          <!-- Contadores por estado -->
+          <div class="totales-bar">
+            <div class="total-item estado-ok">
+              <span class="total-label">Pagados completos</span>
+              <span class="total-valor">
+                {{ contarEstado(prestamosFinalizados(), 'pagado_completo') }}
+              </span>
+            </div>
+            <div class="total-item estado-vencido">
+              <span class="total-label">Vencidos sin pagar</span>
+              <span class="total-valor">
+                {{ contarEstado(prestamosFinalizados(), 'vencido_sin_pagar') }}
+              </span>
+            </div>
           </div>
 
-          @if (prestamosNuevos().length > 0) {
-            <!-- Totales -->
-            <div class="totales-bar">
-              <div class="total-item">
-                <span class="total-label">Capital total prestado</span>
-                <span class="total-valor">
-                  {{ formatearMoneda(sumarCampo(prestamosNuevos(), 'valorPrestado')) }}
-                </span>
-              </div>
-              <div class="total-item">
-                <span class="total-label">Total intereses</span>
-                <span class="total-valor">
-                  {{ formatearMoneda(sumarCampo(prestamosNuevos(), 'valorTotal') - sumarCampo(prestamosNuevos(), 'valorPrestado')) }}
-                </span>
-              </div>
-              <div class="total-item">
-                <span class="total-label">Total a recaudar</span>
-                <span class="total-valor">
-                  {{ formatearMoneda(sumarCampo(prestamosNuevos(), 'valorTotal')) }}
-                </span>
-              </div>
-            </div>
-
-            <!-- Tabla -->
-            <div class="tabla-responsive">
-              <table class="reporte-tabla">
-                <thead>
-                  <tr>
-                    <th>Cliente</th>
-                    <th>Zona</th>
-                    <th>Fecha</th>
-                    <th>Valor Prestado</th>
-                    <th>Intereses</th>
-                    <th>Valor Total</th>
-                    <th>Frecuencia</th>
-                    <th>Cuotas</th>
-                    <th>Valor Cuota</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (p of prestamosNuevos(); track p.prestamoId) {
-                    <tr>
-                      <td>
-                        <div class="cliente-cell">
-                          <strong>{{ p.clienteNombre }}</strong>
-                        </div>
-                      </td>
-                      <td><span class="zona-badge">{{ p.zonaNombre }}</span></td>
-                      <td>{{ formatearFecha(p.fechaPrestamo) }}</td>
-                      <td class="monto">{{ formatearMoneda(p.valorPrestado) }}</td>
-                      <td class="monto">{{ formatearMoneda(calcularIntereses(p)) }}</td>
-                      <td class="monto">{{ formatearMoneda(p.valorTotal) }}</td>
-                      <td>{{ p.frecuenciaPago }}</td>
-                      <td class="numero">{{ p.cantidadCuotas }}</td>
-                      <td class="monto">{{ formatearMoneda(p.valorCuota) }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          } @else {
-            <div class="empty-state-main">
-              <i class="bi bi-inbox"></i>
-              <h3>Sin préstamos nuevos</h3>
-              <p>No se registraron préstamos en el rango de fechas seleccionado</p>
-            </div>
-          }
-        } @else {
-          <div class="empty-state-main">
-            <i class="bi bi-calendar-range"></i>
-            <h3>Selecciona un rango de fechas</h3>
-            <p>Elige las fechas y presiona <strong>Generar</strong> para ver el reporte</p>
-          </div>
-        }
-      </div>
-    }
-
-    <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <!-- TAB: PRÉSTAMOS FINALIZADOS                                          -->
-    <!-- ═══════════════════════════════════════════════════════════════════ -->
-    @if (tabActiva() === 'finalizados' && !cargandoReporte()) {
-      <div class="reporte-seccion">
-        @if (reporteCompleto()) {
-          <div class="seccion-header">
-            <h2><i class="bi bi-check-circle-fill"></i> Préstamos Finalizados</h2>
-            <span class="badge-count">{{ prestamosFinalizados().length }} préstamos</span>
-          </div>
-
-          @if (prestamosFinalizados().length > 0) {
-            <!-- Contadores por estado -->
-            <div class="totales-bar">
-              <div class="total-item estado-ok">
-                <span class="total-label">Pagados completos</span>
-                <span class="total-valor">
-                  {{ contarEstado(prestamosFinalizados(), 'pagado_completo') }}
-                </span>
-              </div>
-              <div class="total-item estado-vencido">
-                <span class="total-label">Vencidos sin pagar</span>
-                <span class="total-valor">
-                  {{ contarEstado(prestamosFinalizados(), 'vencido_sin_pagar') }}
-                </span>
-              </div>
-            </div>
-
-            <div class="tabla-responsive">
-              <table class="reporte-tabla">
-                <thead>
-                  <tr>
-                    <th>Cliente</th>
-                    <th>Zona</th>
-                    <th>F. Inicio</th>
-                    <th>F. Final</th>
-                    <th>Valor Prestado</th>
-                    <th>Valor Total</th>
-                    <th>Total Pagado</th>
-                    <th>Estado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (p of prestamosFinalizados(); track p.prestamoId) {
-                    <tr>
-                      <td><strong>{{ p.clienteNombre }}</strong></td>
-                      <td><span class="zona-badge">{{ p.zonaNombre }}</span></td>
-                      <td>{{ formatearFecha(p.fechaPrestamo) }}</td>
-                      <td>{{ formatearFecha(p.fechaFinal) }}</td>
-                      <td class="monto">{{ formatearMoneda(p.valorPrestado) }}</td>
-                      <td class="monto">{{ formatearMoneda(p.valorTotal) }}</td>
-                      <td class="monto">{{ formatearMoneda(p.totalPagado) }}</td>
-                      <td>
-                        <span class="estado-chip"
-                              [class.chip-ok]="p.estadoFinalizacion === 'pagado_completo'"
-                              [class.chip-vencido]="p.estadoFinalizacion === 'vencido_sin_pagar'">
-                          @if (p.estadoFinalizacion === 'pagado_completo') {
-                            <i class="bi bi-check-circle-fill"></i> Pagado
-                          } @else {
-                            <i class="bi bi-x-circle-fill"></i> Vencido
-                          }
-                        </span>
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          } @else {
-            <div class="empty-state-main">
-              <i class="bi bi-inbox"></i>
-              <h3>Sin préstamos finalizados</h3>
-              <p>No se encontraron préstamos cuya fecha final caiga en el rango seleccionado</p>
-            </div>
-          }
-        } @else {
-          <div class="empty-state-main">
-            <i class="bi bi-calendar-range"></i>
-            <h3>Selecciona un rango de fechas</h3>
-            <p>Elige las fechas y presiona <strong>Generar</strong> para ver el reporte</p>
-          </div>
-        }
-      </div>
-    }
-
-    <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <!-- TAB: RECAUDO POR ZONA                                               -->
-    <!-- ═══════════════════════════════════════════════════════════════════ -->
-    @if (tabActiva() === 'recaudo' && !cargandoReporte()) {
-      <div class="reporte-seccion">
-        @if (reporteCompleto()) {
-          <div class="seccion-header">
-            <h2><i class="bi bi-geo-alt-fill"></i> Recaudo por Zona</h2>
-            <span class="badge-count">{{ recaudoPorZona().length }} zonas</span>
-          </div>
-
-          @if (recaudoPorZona().length > 0) {
-            <div class="recaudo-zonas">
-              @for (zona of recaudoPorZona(); track zona.zonaId) {
-                <div class="recaudo-zona-card">
-
-                  <!-- Cabecera de zona -->
-                  <div class="recaudo-zona-header" (click)="toggleZona(zona.zonaId)" role="button" tabindex="0"
-                       (keydown.enter)="toggleZona(zona.zonaId)">
-                    <div class="zona-titulo">
-                      <i class="bi bi-geo-alt-fill"></i>
-                      <h3>{{ zona.zonaNombre }}</h3>
-                    </div>
-                    <div class="zona-kpis">
-                      <div class="zona-kpi">
-                        <span class="kpi-lbl">Pagos</span>
-                        <span class="kpi-val">{{ zona.pagosRealizados }}</span>
-                      </div>
-                      <div class="zona-kpi">
-                        <span class="kpi-lbl">Cobrado</span>
-                        <span class="kpi-val cobrado">{{ formatearMoneda(zona.montoCobrado) }}</span>
-                      </div>
-                    </div>
-                    <i class="bi toggle-icon"
-                       [ngClass]="zonaExpandida() === zona.zonaId ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
-                  </div>
-
-                  <!-- Detalle por cliente (expandible) -->
-                  @if (zonaExpandida() === zona.zonaId) {
-                    <div class="recaudo-clientes">
-                      <table class="reporte-tabla clientes-tabla">
-                        <thead>
-                          <tr>
-                            <th>Cliente</th>
-                            <th>Pagos</th>
-                            <th>Cobrado</th>
-                            <th>Esperado</th>
-                            <th>Cumplimiento</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          @for (cli of zona.clientes; track cli.clienteId) {
-                            <tr>
-                              <td>
-                                <div class="cliente-cell">
-                                  <strong>{{ cli.clienteNombre }}</strong>
-                                  @if (cli.clienteAlias) {
-                                    <small class="alias">{{ cli.clienteAlias }}</small>
-                                  }
-                                </div>
-                              </td>
-                              <td class="numero">{{ cli.pagosRealizados }}</td>
-                              <td class="monto cobrado">{{ formatearMoneda(cli.montoCobrado) }}</td>
-                              <td class="monto">{{ formatearMoneda(cli.montoEsperado) }}</td>
-                              <td>
-                                <span class="pct-chip" [class]="getClaseCumplimiento(cli.porcentajeCumplimiento)">
-                                  {{ formatearPorcentaje(cli.porcentajeCumplimiento) }}
-                                </span>
-                              </td>
-                            </tr>
-                          }
-                        </tbody>
-                      </table>
-                    </div>
-                  }
-
+          <!-- Vista de TARJETAS (móvil) -->
+          <div class="prestamos-cards-list mobile-only">
+            @for (p of prestamosFinalizados(); track p.prestamoId) {
+              <div class="prestamo-card" [class.prestamo-card-ok]="p.estadoFinalizacion === 'pagado_completo'"
+                                         [class.prestamo-card-vencido]="p.estadoFinalizacion === 'vencido_sin_pagar'">
+                <div class="prestamo-card-header">
+                  <strong class="prestamo-cliente">{{ p.clienteNombre }}</strong>
+                  <span class="estado-chip"
+                        [class.chip-ok]="p.estadoFinalizacion === 'pagado_completo'"
+                        [class.chip-vencido]="p.estadoFinalizacion === 'vencido_sin_pagar'">
+                    @if (p.estadoFinalizacion === 'pagado_completo') {
+                      <i class="bi bi-check-circle-fill"></i> Pagado
+                    } @else {
+                      <i class="bi bi-x-circle-fill"></i> Vencido
+                    }
+                  </span>
                 </div>
-              }
-            </div>
-          } @else {
-            <div class="empty-state-main">
-              <i class="bi bi-inbox"></i>
-              <h3>Sin recaudo en el período</h3>
-              <p>No se encontraron cobros ni cuotas esperadas en el rango seleccionado</p>
-            </div>
-          }
+                <div class="prestamo-card-subheader">
+                  <span class="zona-badge">{{ p.zonaNombre }}</span>
+                </div>
+                <div class="prestamo-card-body">
+                  <div class="prestamo-dato">
+                    <span class="dato-label"><i class="bi bi-calendar-plus"></i> Inicio</span>
+                    <span class="dato-valor">{{ formatearFecha(p.fechaPrestamo) }}</span>
+                  </div>
+                  <div class="prestamo-dato">
+                    <span class="dato-label"><i class="bi bi-calendar-check"></i> Final</span>
+                    <span class="dato-valor">{{ formatearFecha(p.fechaFinal) }}</span>
+                  </div>
+                  <div class="prestamo-dato">
+                    <span class="dato-label"><i class="bi bi-cash"></i> Prestado</span>
+                    <span class="dato-valor monto">{{ formatearMoneda(p.valorPrestado) }}</span>
+                  </div>
+                  <div class="prestamo-dato">
+                    <span class="dato-label"><i class="bi bi-wallet2"></i> Total</span>
+                    <span class="dato-valor monto">{{ formatearMoneda(p.valorTotal) }}</span>
+                  </div>
+                  <div class="prestamo-dato">
+                    <span class="dato-label"><i class="bi bi-check2-circle"></i> Pagado</span>
+                    <span class="dato-valor monto destacado">{{ formatearMoneda(p.totalPagado) }}</span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Tabla (desktop) -->
+          <div class="tabla-responsive desktop-only">
+            <table class="reporte-tabla">
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Zona</th>
+                  <th>F. Inicio</th>
+                  <th>F. Final</th>
+                  <th>Valor Prestado</th>
+                  <th>Valor Total</th>
+                  <th>Total Pagado</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (p of prestamosFinalizados(); track p.prestamoId) {
+                  <tr>
+                    <td><strong>{{ p.clienteNombre }}</strong></td>
+                    <td><span class="zona-badge">{{ p.zonaNombre }}</span></td>
+                    <td>{{ formatearFecha(p.fechaPrestamo) }}</td>
+                    <td>{{ formatearFecha(p.fechaFinal) }}</td>
+                    <td class="monto">{{ formatearMoneda(p.valorPrestado) }}</td>
+                    <td class="monto">{{ formatearMoneda(p.valorTotal) }}</td>
+                    <td class="monto">{{ formatearMoneda(p.totalPagado) }}</td>
+                    <td>
+                      <span class="estado-chip"
+                            [class.chip-ok]="p.estadoFinalizacion === 'pagado_completo'"
+                            [class.chip-vencido]="p.estadoFinalizacion === 'vencido_sin_pagar'">
+                        @if (p.estadoFinalizacion === 'pagado_completo') {
+                          <i class="bi bi-check-circle-fill"></i> Pagado
+                        } @else {
+                          <i class="bi bi-x-circle-fill"></i> Vencido
+                        }
+                      </span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
         } @else {
           <div class="empty-state-main">
-            <i class="bi bi-calendar-range"></i>
-            <h3>Selecciona un rango de fechas</h3>
-            <p>Elige las fechas y presiona <strong>Generar</strong> para ver el reporte</p>
+            <i class="bi bi-inbox"></i>
+            <h3>Sin préstamos finalizados</h3>
+            <p>No se encontraron préstamos cuya fecha final caiga en el rango seleccionado</p>
           </div>
         }
-      </div>
-    }
+      } @else {
+        <div class="empty-state-main">
+          <i class="bi bi-calendar-range"></i>
+          <h3>Selecciona un rango de fechas</h3>
+          <p>Elige las fechas y presiona <strong>Generar</strong> para ver el reporte</p>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- TAB: RECAUDO POR ZONA                                               -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  @if (tabActiva() === 'recaudo' && !cargandoReporte()) {
+    <div class="reporte-seccion">
+      @if (reporteCompleto()) {
+        <div class="seccion-header">
+          <h2><i class="bi bi-geo-alt-fill"></i> Recaudo por Zona</h2>
+          <span class="badge-count">{{ recaudoPorZona().length }} zonas</span>
+        </div>
+
+        @if (recaudoPorZona().length > 0) {
+          <div class="recaudo-zonas">
+            @for (zona of recaudoPorZona(); track zona.zonaId) {
+              <div class="recaudo-zona-card">
+
+                <!-- Cabecera de zona -->
+                <div class="recaudo-zona-header" (click)="toggleZona(zona.zonaId)" role="button" tabindex="0"
+                     (keydown.enter)="toggleZona(zona.zonaId)">
+                  <div class="zona-titulo">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    <h3>{{ zona.zonaNombre }}</h3>
+                  </div>
+                  <div class="zona-kpis">
+                    <div class="zona-kpi">
+                      <span class="kpi-lbl">Pagos</span>
+                      <span class="kpi-val">{{ zona.pagosRealizados }}</span>
+                    </div>
+                    <div class="zona-kpi">
+                      <span class="kpi-lbl">Cobrado</span>
+                      <span class="kpi-val cobrado">{{ formatearMoneda(zona.montoCobrado) }}</span>
+                    </div>
+                  </div>
+                  <i class="bi toggle-icon"
+                     [ngClass]="zonaExpandida() === zona.zonaId ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                </div>
+
+                <!-- Detalle por cliente (expandible) -->
+                @if (zonaExpandida() === zona.zonaId) {
+                  <div class="recaudo-clientes">
+
+                    <!-- Mini-tarjetas de clientes (móvil) -->
+                    <div class="clientes-cards-list mobile-only">
+                      @for (cli of zona.clientes; track cli.clienteId) {
+                        <div class="cliente-recaudo-card">
+                          <div class="cliente-recaudo-info">
+                            <strong class="cli-nombre">{{ cli.clienteNombre }}</strong>
+                            @if (cli.clienteAlias) {
+                              <span class="cli-alias">"{{ cli.clienteAlias }}"</span>
+                            }
+                          </div>
+                          <div class="cliente-recaudo-datos">
+                            <div class="recaudo-dato">
+                              <span class="recaudo-lbl">Pagos</span>
+                              <span class="recaudo-val">{{ cli.pagosRealizados }}</span>
+                            </div>
+                            <div class="recaudo-dato">
+                              <span class="recaudo-lbl">Cobrado</span>
+                              <span class="recaudo-val cobrado">{{ formatearMoneda(cli.montoCobrado) }}</span>
+                            </div>
+                            <div class="recaudo-dato">
+                              <span class="recaudo-lbl">Esperado</span>
+                              <span class="recaudo-val">{{ formatearMoneda(cli.montoEsperado) }}</span>
+                            </div>
+                            <div class="recaudo-dato">
+                              <span class="recaudo-lbl">Cumplimiento</span>
+                              <span class="pct-chip" [class]="getClaseCumplimiento(cli.porcentajeCumplimiento)">
+                                {{ formatearPorcentaje(cli.porcentajeCumplimiento) }}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    </div>
+
+                    <!-- Tabla de clientes (desktop) -->
+                    <table class="reporte-tabla clientes-tabla desktop-only">
+                      <thead>
+                        <tr>
+                          <th>Cliente</th>
+                          <th>Pagos</th>
+                          <th>Cobrado</th>
+                          <th>Esperado</th>
+                          <th>Cumplimiento</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (cli of zona.clientes; track cli.clienteId) {
+                          <tr>
+                            <td>
+                              <div class="cliente-cell">
+                                <strong>{{ cli.clienteNombre }}</strong>
+                                @if (cli.clienteAlias) {
+                                  <small class="alias">{{ cli.clienteAlias }}</small>
+                                }
+                              </div>
+                            </td>
+                            <td class="numero">{{ cli.pagosRealizados }}</td>
+                            <td class="monto cobrado">{{ formatearMoneda(cli.montoCobrado) }}</td>
+                            <td class="monto">{{ formatearMoneda(cli.montoEsperado) }}</td>
+                            <td>
+                              <span class="pct-chip" [class]="getClaseCumplimiento(cli.porcentajeCumplimiento)">
+                                {{ formatearPorcentaje(cli.porcentajeCumplimiento) }}
+                              </span>
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                }
+
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state-main">
+            <i class="bi bi-inbox"></i>
+            <h3>Sin recaudo en el período</h3>
+            <p>No se encontraron cobros ni cuotas esperadas en el rango seleccionado</p>
+          </div>
+        }
+      } @else {
+        <div class="empty-state-main">
+          <i class="bi bi-calendar-range"></i>
+          <h3>Selecciona un rango de fechas</h3>
+          <p>Elige las fechas y presiona <strong>Generar</strong> para ver el reporte</p>
+        </div>
+      }
+    </div>
+  }
 
 </div>
