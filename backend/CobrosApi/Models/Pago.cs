@@ -16,6 +16,13 @@ public class Pago
     [Required]
     public DateTime FechaPago { get; set; }
 
+    public bool Anulado { get; set; } = false;
+
+    public DateTime? FechaAnulacion { get; set; }
+
+    [MaxLength(500)]
+    public string? MotivoAnulacion { get; set; }
+
     [ForeignKey(nameof(PrestamoId))]
     public Prestamo? Prestamo { get; set; }
 

@@ -150,6 +150,9 @@ public class PagoDto
     public string PrestamoId { get; set; } = string.Empty;
     public decimal Valor { get; set; }
     public DateTime FechaPago { get; set; }
+    public bool Anulado { get; set; }
+    public DateTime? FechaAnulacion { get; set; }
+    public string? MotivoAnulacion { get; set; }
 }
 
 public class PagoInputDto
@@ -162,6 +165,12 @@ public class PagoInputDto
 
     [Required]
     public DateTime FechaPago { get; set; }
+}
+
+public class AnularPagoInputDto
+{
+    [Required, MaxLength(500)]
+    public string Motivo { get; set; } = string.Empty;
 }
 
 // ─── CUOTA ─────────────────────────────────────────────────────────────────
