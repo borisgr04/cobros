@@ -26,15 +26,18 @@ const REFRESH_AHEAD_MS = 60_000;
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   // Access token kept only in memory (never in localStorage)
-  private readonly _token   = signal<string | null>(null);
-  private readonly _expira  = signal<Date | null>(null);
-  private readonly _user    = signal<AuthUser | null>(this.loadUser());
-  private readonly _isRefreshing = signal(false);
+  private readonly _token          = signal<string | null>(null);
+  private readonly _expira         = signal<Date | null>(null);
+  private readonly _user           = signal<AuthUser | null>(this.loadUser());
+  private readonly _isRefreshing   = signal(false);
+  private readonly _isInitializing = signal(true);
 
-  readonly isAuthenticated = computed(() => !!this._token());
+  readonly isAuthenticated  = computed(() => !!this._token());
   readonly hasActiveSession = computed(() => !!this._token() || this._isRefreshing());
-  readonly currentUser     = this._user.asReadonly();
-  readonly isRefreshing    = this._isRefreshing.asReadonly();
+  readonly currentUser      = this._user.asReadonly();
+  readonly isRefreshing     = this._isRefreshing.asReadonly();
+  /** True while the initial silent-refresh attempt is in flight (APP_INITIALIZER). */
+  readonly isInitializing   = this._isInitializing.asReadonly();
 
   /** Ongoing silent-refresh promise – shared across concurrent callers */
   private _refreshing: Promise<boolean> | null = null;
@@ -52,7 +55,11 @@ export class AuthService {
    * Tries a silent refresh to restore the session from the HttpOnly cookie.
    */
   async initSession(): Promise<void> {
-    await this.silentRefresh();
+    try {
+      await this.silentRefresh();
+    } finally {
+      this._isInitializing.set(false);
+    }
   }
 
   async ensureValidSession(): Promise<boolean> {

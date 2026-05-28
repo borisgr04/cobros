@@ -1,19 +1,26 @@
-@if (showNav()) {
-  <!-- Sidebar Navigation (Desktop/Tablet) -->
-  <app-sidebar-navigation />
-}
+@if (isInitializing()) {
+  <!-- Full-screen loading indicator while the session is being restored -->
+  <div class="app-loading">
+    <div class="app-loading__spinner"></div>
+  </div>
+} @else {
+  @if (showNav()) {
+    <!-- Sidebar Navigation (Desktop/Tablet) -->
+    <app-sidebar-navigation />
+  }
 
-<!-- Main Content Area -->
-<main
-  class="main-content"
-  [class.sidebar-collapsed]="showNav() && sidebarState() === 'collapsed'"
-  [class.sidebar-expanded]="showNav() && sidebarState() === 'expanded'"
-  [class.public-layout]="!showNav()">
-  <router-outlet />
-</main>
+  <!-- Main Content Area -->
+  <main
+    class="main-content"
+    [class.sidebar-collapsed]="showNav() && sidebarState() === 'collapsed'"
+    [class.sidebar-expanded]="showNav() && sidebarState() === 'expanded'"
+    [class.public-layout]="!showNav()">
+    <router-outlet />
+  </main>
 
-@if (showNav()) {
-  <!-- Bottom Navigation (Mobile) -->
-  <app-bottom-navigation />
+  @if (showNav()) {
+    <!-- Bottom Navigation (Mobile) -->
+    <app-bottom-navigation />
+  }
 }
 

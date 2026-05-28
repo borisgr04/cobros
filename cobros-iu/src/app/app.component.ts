@@ -41,4 +41,5 @@ export class AppComponent {
   );
 
   showNav = computed(() => this.auth.hasActiveSession() && !this.isPublicRoute());
+  isInitializing = this.auth.isInitializing;
 }
