@@ -67,12 +67,14 @@
       <div 
         class="zona-card" 
         [class.inactiva]="zona.estado === 'inactivo'"
-        [class.zona-card-activa]="zona.estado === 'activo'"
-        [class.zona-card-inactiva]="zona.estado === 'inactivo'">
+        (click)="verPrestamosZona(zona)"
+        role="button"
+        tabindex="0"
+        [title]="'Ver préstamos de ' + zona.nombre">
         
         <!-- Header de la card -->
         <div class="zona-card-header">
-          <div class="zona-icono" [class.zona-icono-inactiva]="zona.estado === 'inactivo'">
+          <div class="zona-icono">
             <i class="bi bi-geo-alt"></i>
           </div>
           <div class="zona-info">
@@ -88,10 +90,8 @@
         <div class="zona-stats">
           <div class="stat-item">
             <i class="bi bi-people-fill"></i>
-            <div class="stat-texto-grupo">
-              <span class="stat-numero">{{ contarClientes(zona.id) }}</span>
-              <span class="stat-texto">clientes activos</span>
-            </div>
+            <span class="stat-numero">{{ contarClientes(zona.id) }}</span>
+            <span class="stat-texto">clientes activos</span>
           </div>
         </div>
 
@@ -99,22 +99,15 @@
         <div class="zona-acciones">
           <button
             class="btn-accion btn-ver"
-            (click)="verClientesZona(zona)"
+            (click)="verClientesZona(zona); $event.stopPropagation()"
             [disabled]="contarClientes(zona.id) === 0"
             title="Ver clientes de esta zona">
-            <i class="bi bi-people-fill"></i>
+            <i class="bi bi-eye-fill"></i>
             Ver Clientes
           </button>
           <button
-            class="btn-accion btn-prestamos"
-            (click)="verPrestamosZona(zona)"
-            title="Ver préstamos de esta zona">
-            <i class="bi bi-cash-stack"></i>
-            Préstamos
-          </button>
-          <button
             class="btn-accion btn-editar"
-            (click)="abrirModalEditar(zona)"
+            (click)="abrirModalEditar(zona); $event.stopPropagation()"
             title="Editar zona">
             <i class="bi bi-pencil-fill"></i>
           </button>
@@ -122,7 +115,7 @@
             class="btn-accion"
             [class.btn-desactivar]="zona.estado === 'activo'"
             [class.btn-activar]="zona.estado === 'inactivo'"
-            (click)="cambiarEstado(zona)"
+            (click)="cambiarEstado(zona); $event.stopPropagation()"
             [title]="zona.estado === 'activo' ? 'Desactivar zona' : 'Activar zona'">
             <i class="bi" [class.bi-toggle-on]="zona.estado === 'activo'" [class.bi-toggle-off]="zona.estado === 'inactivo'"></i>
           </button>
