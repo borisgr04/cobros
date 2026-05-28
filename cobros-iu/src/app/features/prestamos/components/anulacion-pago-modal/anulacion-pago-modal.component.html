@@ -1,0 +1,120 @@
+<!-- Modal de Anulación de Pago -->
+<div class="modal-overlay" [class.visible]="modalAbierto()" (click)="cerrar()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="modal-header">
+      <div class="header-content">
+        <div class="icon-container">
+          <i class="bi bi-x-circle-fill"></i>
+        </div>
+        <div class="title-container">
+          <h2 class="modal-title">Anular Pago</h2>
+          <p class="modal-subtitle">Esta acción revertirá el abono a las cuotas correspondientes</p>
+        </div>
+      </div>
+      <button
+        class="btn-close"
+        (click)="cerrar()"
+        [disabled]="procesando()"
+        title="Cerrar">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body">
+
+      @if (pago(); as p) {
+        <!-- Información del pago a anular -->
+        <div class="pago-info">
+          <h3 class="section-title">
+            <i class="bi bi-info-circle"></i>
+            Pago a anular
+          </h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Valor</span>
+              <span class="info-value monto">
+                {{ p.valor | currency:'COP':'symbol-narrow':'1.0-0':'es-CO' }}
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Fecha de pago</span>
+              <span class="info-value">{{ p.fechaPago | date:'dd/MM/yyyy':'':'es-CO' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">ID del pago</span>
+              <span class="info-value id-value">{{ p.id }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Advertencia -->
+        <div class="warning-panel">
+          <i class="bi bi-exclamation-triangle-fill warning-icon"></i>
+          <div class="warning-content">
+            <p><strong>Esta acción revertirá el abono</strong> aplicado a cada cuota del préstamo.</p>
+            <p>El pago quedará registrado como anulado y no podrás deshacerlo.</p>
+          </div>
+        </div>
+
+        <!-- Campo de motivo -->
+        <div class="form-group">
+          <label for="motivoAnulacion" class="form-label">
+            Motivo de la anulación <span class="required">*</span>
+          </label>
+          <textarea
+            id="motivoAnulacion"
+            class="form-control"
+            [class.invalido]="motivoLength === 0 && motivo() !== ''"
+            rows="3"
+            maxlength="500"
+            placeholder="Describe el motivo de la anulación..."
+            [value]="motivo()"
+            (input)="onMotivoChange($event)"
+            [disabled]="procesando()">
+          </textarea>
+          <div class="form-hint">
+            <span>Máximo 500 caracteres</span>
+            <span [class.limite-cerca]="motivoLength > 450">{{ motivoLength }}/500</span>
+          </div>
+        </div>
+
+        <!-- Mensaje de error -->
+        @if (error()) {
+          <div class="error-message">
+            <i class="bi bi-exclamation-circle-fill"></i>
+            <span>{{ error() }}</span>
+          </div>
+        }
+      }
+
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer">
+      <button
+        class="btn btn-secondary"
+        (click)="cerrar()"
+        [disabled]="procesando()">
+        <i class="bi bi-x"></i>
+        Cancelar
+      </button>
+
+      <button
+        class="btn btn-anular"
+        (click)="confirmarAnulacion()"
+        [disabled]="!puedeAnular">
+        @if (procesando()) {
+          <i class="bi bi-arrow-repeat spinning"></i>
+          Anulando...
+        } @else {
+          <i class="bi bi-x-circle"></i>
+          Confirmar Anulación
+        }
+      </button>
+    </div>
+
+  </div>
+</div>

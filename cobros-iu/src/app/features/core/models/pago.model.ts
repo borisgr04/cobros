@@ -11,4 +11,10 @@ export interface IPago {
   valor: number;
   /** Fecha en la que se registra/realiza el pago */
   fechaPago: Date;
+  /** Indica si el pago fue anulado */
+  anulado?: boolean;
+  /** Fecha en que se realizó la anulación */
+  fechaAnulacion?: Date;
+  /** Motivo o comentario de la anulación */
+  motivoAnulacion?: string;
 }
