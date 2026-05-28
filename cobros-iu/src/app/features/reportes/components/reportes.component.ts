@@ -71,11 +71,9 @@ export class ReportesComponent implements OnInit {
   // ── Inicialización ────────────────────────────────────────────────────────
 
   private inicializarFechasReporte(): void {
-    const hoy = new Date();
-    const hace30 = new Date(hoy);
-    hace30.setDate(hoy.getDate() - 30);
-    this.fechaInicioReporte.set(hace30.toISOString().substring(0, 10));
-    this.fechaFinReporte.set(hoy.toISOString().substring(0, 10));
+    const hoy = new Date().toISOString().substring(0, 10);
+    this.fechaInicioReporte.set(hoy);
+    this.fechaFinReporte.set(hoy);
   }
 
   // ── Tabs ──────────────────────────────────────────────────────────────────
@@ -121,13 +119,6 @@ export class ReportesComponent implements OnInit {
   aplicarFiltrosReporte(): void {
     this.reporteCompleto.set(null);
     this.cargarReporteCompleto();
-  }
-
-  // ── Zona expandida en recaudo ─────────────────────────────────────────────
-  zonaExpandida = signal<string | null>(null);
-
-  toggleZona(zonaId: string): void {
-    this.zonaExpandida.set(this.zonaExpandida() === zonaId ? null : zonaId);
   }
 
   cargarZonas(): void {
