@@ -367,12 +367,12 @@
                   </div>
                   <div class="zona-kpis">
                     <div class="zona-kpi">
-                      <span class="kpi-lbl">Pagos</span>
+                      <span class="kpi-lbl"><i class="bi bi-receipt"></i> Pagos</span>
                       <span class="kpi-val">{{ zona.pagosRealizados }}</span>
                     </div>
-                    <div class="zona-kpi">
-                      <span class="kpi-lbl">Cobrado</span>
-                      <span class="kpi-val cobrado">{{ formatearMoneda(zona.montoCobrado) }}</span>
+                    <div class="zona-kpi kpi-cobrado">
+                      <span class="kpi-lbl"><i class="bi bi-cash-coin"></i> Cobrado</span>
+                      <span class="kpi-val kpi-val-cobrado">{{ formatearMoneda(zona.montoCobrado) }}</span>
                     </div>
                   </div>
                 </div>
