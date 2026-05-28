@@ -317,9 +317,9 @@
         <div class="empty-icon">
           <i class="bi bi-inbox"></i>
         </div>
-        <h3>{{ terminoBusqueda() ? 'Sin resultados' : 'No hay clientes' }}</h3>
+        <h3>{{ terminoBusqueda() ? 'Sin resultados' : (zonaFiltroId() ? 'No hay clientes en esta zona' : 'No hay clientes') }}</h3>
         <p>
-          {{ terminoBusqueda() ? 'Intenta con otros términos de búsqueda' : 'Comienza agregando tu primer cliente' }}
+          {{ terminoBusqueda() ? 'Intenta con otros términos de búsqueda' : (zonaFiltroId() ? 'Agrega el primer cliente para la zona ' + getNombreZona(zonaFiltroId()) : 'Comienza agregando tu primer cliente') }}
         </p>
         @if (!terminoBusqueda()) {
           <button class="btn-empty-action" (click)="nuevoCliente()">

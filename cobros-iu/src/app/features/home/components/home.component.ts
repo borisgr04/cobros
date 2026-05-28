@@ -1,6 +1,6 @@
 import { Component, OnInit, signal, inject, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { DashboardService } from '../../dashboard/services/dashboard.service';
 import { BiometricAuthService } from '../../auth/services/biometric-auth.service';
@@ -15,7 +15,7 @@ import type { IZona } from '../../core/models';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, ZonaModalComponent],
+  imports: [CommonModule, ZonaModalComponent, RouterLink],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
@@ -83,15 +83,6 @@ export class HomeComponent implements OnInit {
     } finally {
       this.cargando.set(false);
     }
-  }
-
-  /**
-   * Navega a la vista de clientes filtrados por zona
-   */
-  verClientesZona(zona: ResumenZona): void {
-    this.router.navigate(['/clientes'], { 
-      queryParams: { zona: zona.zonaId } 
-    });
   }
 
   /**

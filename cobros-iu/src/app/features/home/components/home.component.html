@@ -47,9 +47,10 @@
   @if (!cargando() && zonas().length > 0) {
     <div class="zonas-grid">
       @for (zona of zonas(); track zona.zonaId) {
-        <div 
+        <a 
           class="minimal-card clickable"
-          (click)="verClientesZona(zona)">
+          [routerLink]="['/clientes']"
+          [queryParams]="{ zona: zona.zonaId }">
           
           <!-- Header de la tarjeta -->
           <div class="minimal-header">
@@ -74,7 +75,7 @@
               <span class="minimal-stat-label">Préstamos</span>
             </div>
           </div>
-        </div>
+        </a>
       }
     </div>
 
