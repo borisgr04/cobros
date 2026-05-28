@@ -126,6 +126,8 @@ export class RegistroPrestamoModalComponent {
     this.clienteActual.set(cliente);
     this.visible.set(true);
     this.resetearFormulario();
+    // Asegurar que el overlay del modal sea visible independientemente del scroll actual
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
   }
 
   /**

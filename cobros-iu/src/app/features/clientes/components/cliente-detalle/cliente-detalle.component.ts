@@ -108,6 +108,29 @@ export class ClienteDetalleComponent implements OnInit {
   @HostListener('document:keydown.escape')
   onEscape(): void {}
 
+  compartirWhatsApp(): void {
+    const c = this.cliente();
+    if (!c) return;
+
+    const zona = this.getNombreZona(c.zonaId);
+    const prestamosActivos = this.prestamos().filter(p => p.estadisticas?.estado !== 'completado');
+    const saldoTotal = prestamosActivos.reduce((sum, p) => sum + (p.estadisticas?.totalPorCobrar || 0), 0);
+
+    let texto = `👤 *Cliente: ${c.nombre}*\n`;
+    if (c.alias) texto += `  Alias: "${c.alias}"\n`;
+    texto += `  Cédula: ${c.identificacion}\n`;
+    if (c.telefono) texto += `  📞 Tel: ${c.telefono}\n`;
+    texto += `  📍 Zona: ${zona}\n`;
+    if (c.direccion) texto += `  🏠 Dir: ${c.direccion}\n`;
+    if (prestamosActivos.length > 0) {
+      texto += `\n💰 *Préstamos activos: ${prestamosActivos.length}*\n`;
+      texto += `  Saldo total: ${this.formatCurrency(saldoTotal)}\n`;
+    }
+
+    const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+    window.open(url, '_blank');
+  }
+
   getNombreZona(zonaId: string): string {
     return this.zonas().find(z => z.id === zonaId)?.nombre || zonaId;
   }
