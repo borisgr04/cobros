@@ -22,11 +22,17 @@
 
   <!-- Header -->
   <div class="home-header">
-    <h1 class="page-title">
-      <i class="bi bi-geo-alt-fill"></i>
-      Resumen por Zona
-    </h1>
-    <p class="page-subtitle">Vista general de clientes, préstamos y cartera por zona geográfica</p>
+    <div class="home-header-content">
+      <h1 class="page-title">
+        <i class="bi bi-geo-alt-fill"></i>
+        Resumen por Zona
+      </h1>
+      <p class="page-subtitle">Vista general de clientes, préstamos y cartera por zona geográfica</p>
+    </div>
+    <button class="btn btn-primary btn-nueva-zona" (click)="abrirModalNuevaZona()">
+      <i class="bi bi-plus-circle"></i>
+      Nueva Zona
+    </button>
   </div>
 
   <!-- Loading State -->
@@ -42,8 +48,7 @@
     <div class="zonas-grid">
       @for (zona of zonas(); track zona.zonaId) {
         <div 
-          class="minimal-card" 
-          [class.clickable]="zona.clientes > 0"
+          class="minimal-card clickable"
           (click)="verClientesZona(zona)">
           
           <!-- Header de la tarjeta -->
@@ -102,6 +107,13 @@
       <i class="bi bi-inbox"></i>
       <h3>No hay zonas registradas</h3>
       <p>Agrega zonas para ver el resumen aquí</p>
+      <button class="btn btn-primary btn-empty-nueva-zona" (click)="abrirModalNuevaZona()">
+        <i class="bi bi-plus-circle"></i>
+        Nueva Zona
+      </button>
     </div>
   }
+
+  <!-- Modal Nueva Zona -->
+  <app-zona-modal (guardado)="guardarZona($event)" />
 </div>

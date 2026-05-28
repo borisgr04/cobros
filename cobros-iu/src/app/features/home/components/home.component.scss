@@ -56,9 +56,17 @@
   padding: 1.5rem;
   margin-bottom: 1.5rem;
   box-shadow: var(--shadow-md);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
 
   @media (min-width: 768px) {
     padding: 2rem;
+  }
+
+  .home-header-content {
+    flex: 1;
   }
 
   .page-title {
@@ -105,6 +113,15 @@
     @media (min-width: 768px) {
       font-size: 1rem;
     }
+  }
+
+  .btn-nueva-zona {
+    flex-shrink: 0;
+    align-self: center;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
   }
 }
 
@@ -423,6 +440,13 @@
     font-size: 1rem;
     color: var(--text-secondary);
     margin: 0;
+  }
+
+  .btn-empty-nueva-zona {
+    margin-top: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
   }
 }
 
