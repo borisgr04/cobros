@@ -183,6 +183,9 @@
 // MINIMAL CARD - Diseño Limpio
 // ==========================================
 .minimal-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
   background: var(--bg-primary);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
