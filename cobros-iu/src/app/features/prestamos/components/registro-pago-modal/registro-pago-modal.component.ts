@@ -67,8 +67,9 @@ export class RegistroPagoModalComponent {
     const pago = this.pagoExitoso();
     if (!p || !pago || !p.cliente?.telefono) return null;
 
-    const telefono = p.cliente.telefono.replace(/\D/g, '');
-    if (!telefono) return null;
+    const telefonoLimpio = p.cliente.telefono.replace(/\D/g, '');
+    if (!telefonoLimpio) return null;
+    const telefono = `57${telefonoLimpio}`;
 
     const nombre = p.cliente.nombre ?? 'cliente';
     const monto  = this.formatCurrency(pago.valor);

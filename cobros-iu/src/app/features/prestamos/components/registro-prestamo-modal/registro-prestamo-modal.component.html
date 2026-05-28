@@ -162,37 +162,68 @@
         }
 
         @if (exito()) {
-          <div class="alerta alerta-exito">
-            <i class="bi bi-check-circle-fill"></i>
-            <span>¡Préstamo registrado exitosamente!</span>
-            @if (procesando()) {
-              <span class="spinner-pequeno"></span>
+          <div #postPrestamoAcciones class="prestamo-exitoso">
+            <div class="prestamo-exitoso-icon">
+              <i class="bi bi-check-circle-fill"></i>
+            </div>
+            <h3>¡Préstamo registrado exitosamente!</h3>
+            @if (prestamoCreado()) {
+              <div class="prestamo-exitoso-detalle">
+                <span class="prestamo-exitoso-monto">{{ formatCurrency(prestamoCreado()!.valorPrestado) }}</span>
+                <span class="prestamo-exitoso-saldo">Total a pagar: {{ formatCurrency(prestamoCreado()!.valorTotal) }}</span>
+              </div>
             }
+            @if (whatsappLink()) {
+              <a
+                [href]="whatsappLink()!"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn-whatsapp">
+                <i class="bi bi-whatsapp"></i>
+                Notificar al cliente por WhatsApp
+              </a>
+            } @else {
+              <p class="sin-telefono">
+                <i class="bi bi-info-circle"></i>
+                El cliente no tiene teléfono registrado.
+              </p>
+            }
+            <button class="btn btn-cerrar-exito" (click)="cerrar()">
+              <i class="bi bi-check2"></i>
+              Cerrar
+            </button>
           </div>
         }
       </div>
 
       <!-- Footer -->
       <div class="modal-footer">
-        <button 
-          class="btn btn-cancelar" 
-          (click)="cerrar()"
-          [disabled]="procesando()">
-          <i class="bi bi-x-circle"></i>
-          Cancelar
-        </button>
-        <button 
-          class="btn btn-registrar" 
-          (click)="registrarPrestamo()"
-          [disabled]="!esFormularioValido() || procesando()">
-          @if (procesando()) {
-            <span class="spinner"></span>
-            Registrando...
-          } @else {
-            <i class="bi bi-check-circle-fill"></i>
-            Crear Préstamo
-          }
-        </button>
+        @if (exito()) {
+          <button class="btn btn-registrar" (click)="cerrar()">
+            <i class="bi bi-check2"></i>
+            Cerrar
+          </button>
+        } @else {
+          <button 
+            class="btn btn-cancelar" 
+            (click)="cerrar()"
+            [disabled]="procesando()">
+            <i class="bi bi-x-circle"></i>
+            Cancelar
+          </button>
+          <button 
+            class="btn btn-registrar" 
+            (click)="registrarPrestamo()"
+            [disabled]="!esFormularioValido() || procesando()">
+            @if (procesando()) {
+              <span class="spinner"></span>
+              Registrando...
+            } @else {
+              <i class="bi bi-check-circle-fill"></i>
+              Crear Préstamo
+            }
+          </button>
+        }
       </div>
 
     </div>

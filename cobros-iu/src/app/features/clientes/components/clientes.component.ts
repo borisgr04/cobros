@@ -422,7 +422,11 @@ export class ClientesComponent implements OnInit {
       texto += `  Saldo total: ${this.formatCurrency(saldoTotal)}\n`;
     }
 
-    const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+    const telefonoLimpio = cliente.telefono?.replace(/\D/g, '') ?? '';
+    const telefonoConPrefijo = telefonoLimpio ? `57${telefonoLimpio}` : '';
+    const url = telefonoConPrefijo
+      ? `https://wa.me/${telefonoConPrefijo}?text=${encodeURIComponent(texto)}`
+      : `https://wa.me/?text=${encodeURIComponent(texto)}`;
     window.open(url, '_blank');
   }
 
