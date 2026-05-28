@@ -71,6 +71,11 @@ export class ClientesComponent implements OnInit {
   terminoBusqueda = signal<string>('');
 
   /**
+   * Error de validación en tiempo real para el campo identificación
+   */
+  errorIdentificacion = signal<string>('');
+
+  /**
    * Cache de préstamos por cliente (cargados bajo demanda)
    */
   prestamosCache = signal<Record<string, PrestamoConCliente[]>>({});
@@ -180,6 +185,7 @@ export class ClientesComponent implements OnInit {
     this.modoEdicion.set(false);
     this.mostrarFormulario.set(true);
     this.clienteSeleccionado.set(null);
+    this.errorIdentificacion.set('');
   }
 
   /**
@@ -190,6 +196,7 @@ export class ClientesComponent implements OnInit {
     this.modoEdicion.set(true);
     this.mostrarFormulario.set(true);
     this.clienteSeleccionado.set(cliente);
+    this.errorIdentificacion.set('');
   }
 
   /**
@@ -367,6 +374,56 @@ export class ClientesComponent implements OnInit {
     this.mostrarFormulario.set(false);
     this.formulario = this.getFormularioVacio();
     this.clienteSeleccionado.set(null);
+    this.errorIdentificacion.set('');
+  }
+
+  /**
+   * Valida la identificación en tiempo real mientras el usuario escribe.
+   * Actualiza el signal errorIdentificacion con el mensaje de error o lo vacía si es válido.
+   */
+  validarIdentificacionEnVivo(valor: string): void {
+    if (!valor?.trim()) {
+      this.errorIdentificacion.set('La identificación es obligatoria');
+      return;
+    }
+    if (!/^[a-zA-Z0-9\-]+$/.test(valor.trim())) {
+      this.errorIdentificacion.set('Solo se permiten letras, números y guiones');
+      return;
+    }
+    const identificacion = valor.trim();
+    const duplicado = this.clientes().some(c =>
+      c.identificacion?.trim() === identificacion &&
+      c.id !== this.formulario.id
+    );
+    if (duplicado) {
+      this.errorIdentificacion.set('Ya existe un cliente con esta identificación');
+      return;
+    }
+    this.errorIdentificacion.set('');
+  }
+
+  /**
+   * Comparte la información del cliente por WhatsApp
+   */
+  compartirWhatsApp(cliente: ICliente): void {
+    const zona = this.getNombreZona(cliente.zonaId);
+    const prestamos = this.getPrestamosCliente(cliente.id);
+    const prestamosActivos = prestamos.filter(p => p.estadisticas?.estado !== 'completado');
+    const saldoTotal = prestamosActivos.reduce((sum, p) => sum + (p.estadisticas?.totalPorCobrar || 0), 0);
+
+    let texto = `👤 *Cliente: ${cliente.nombre}*\n`;
+    if (cliente.alias) texto += `  Alias: "${cliente.alias}"\n`;
+    texto += `  Cédula: ${cliente.identificacion}\n`;
+    if (cliente.telefono) texto += `  📞 Tel: ${cliente.telefono}\n`;
+    texto += `  📍 Zona: ${zona}\n`;
+    if (cliente.direccion) texto += `  🏠 Dir: ${cliente.direccion}\n`;
+    if (prestamosActivos.length > 0) {
+      texto += `\n💰 *Préstamos activos: ${prestamosActivos.length}*\n`;
+      texto += `  Saldo total: ${this.formatCurrency(saldoTotal)}\n`;
+    }
+
+    const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+    window.open(url, '_blank');
   }
 
   /**
@@ -377,18 +434,10 @@ export class ClientesComponent implements OnInit {
       this.mostrarMensaje('error', 'El nombre es obligatorio');
       return false;
     }
-    if (!this.formulario.identificacion?.trim()) {
-      this.mostrarMensaje('error', 'La identificación es obligatoria');
-      return false;
-    }
-    // Verificar identificación duplicada contra la lista en memoria
-    const identificacion = this.formulario.identificacion.trim();
-    const duplicado = this.clientes().some(c =>
-      c.identificacion?.trim() === identificacion &&
-      c.id !== this.formulario.id
-    );
-    if (duplicado) {
-      this.mostrarMensaje('error', 'Ya existe un cliente con esta identificación');
+    // Reutiliza la validación en vivo de identificación
+    this.validarIdentificacionEnVivo(this.formulario.identificacion || '');
+    if (this.errorIdentificacion()) {
+      this.mostrarMensaje('error', this.errorIdentificacion());
       return false;
     }
     if (!this.formulario.zonaId?.trim()) {

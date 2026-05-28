@@ -152,12 +152,20 @@
               <input
                 type="text"
                 class="form-input"
+                [class.input-error]="errorIdentificacion()"
                 id="identificacion"
                 [(ngModel)]="formulario.identificacion"
                 name="identificacion"
                 required
                 placeholder="Ej: 12345678"
+                (ngModelChange)="validarIdentificacionEnVivo($event)"
               >
+              @if (errorIdentificacion()) {
+                <span class="field-error">
+                  <i class="bi bi-exclamation-circle-fill"></i>
+                  {{ errorIdentificacion() }}
+                </span>
+              }
             </div>
 
             <!-- Zona -->
@@ -446,6 +454,14 @@
               >
                 <i class="bi bi-pencil"></i>
                 <span>Editar</span>
+              </button>
+              <button
+                class="btn-action btn-whatsapp"
+                (click)="compartirWhatsApp(cliente)"
+                title="Compartir por WhatsApp"
+              >
+                <i class="bi bi-whatsapp"></i>
+                <span>WhatsApp</span>
               </button>
               @if (!cliente.tienePrestamos) {
                 <button
