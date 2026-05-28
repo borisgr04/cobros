@@ -27,12 +27,12 @@ export class BottomNavigationComponent {
   mostrarMenuUsuario = signal<boolean>(false);
   biometricAvailable = signal(false);
 
-  // Items de navegación (mismos que sidebar)
+  // Items de navegación (mismos que sidebar, Reportes en lugar de Tablero en móvil)
   navItems: NavItem[] = [
     { path: '/', label: 'Inicio', icon: 'bi-house-fill' },
     { path: '/clientes', label: 'Clientes', icon: 'bi-people-fill' },
     { path: '/zonas', label: 'Zonas', icon: 'bi-geo-alt-fill' },
-    { path: '/dashboard', label: 'Tablero', icon: 'bi-grid-1x2-fill' },
+    { path: '/reportes', label: 'Reportes', icon: 'bi-file-earmark-bar-graph-fill' },
     { path: '/usuarios', label: 'Usuarios', icon: 'bi-person-gear' }
   ];
 

@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map, combineLatest } from 'rxjs';
 import { 
   ResumenCobros, 
@@ -7,7 +8,8 @@ import {
   CobrosPorZona,
   CobrosPorEstado,
   ClienteMoroso,
-  ClienteCumplidor
+  ClienteCumplidor,
+  ReporteCompleto
 } from '../models/reporte.models';
 import { AbstractPrestamoService } from '../../core/services/abstract-prestamo.service';
 import { AbstractPagoService } from '../../core/services/abstract-pago.service';
@@ -22,10 +24,29 @@ import type { IPrestamo, IPago, ICliente, IZona } from '../../core/models';
   providedIn: 'root'
 })
 export class ReporteService {
+  private http = inject(HttpClient);
   private prestamoDataService = inject(AbstractPrestamoService);
   private pagoService = inject(AbstractPagoService);
   private zonaService = inject(AbstractZonaService);
   private clienteService = inject(AbstractClienteService);
+
+  private readonly apiUrl = '/api/reportes';
+
+  /**
+   * Obtiene el reporte completo desde el backend para un rango de fechas.
+   * Incluye préstamos nuevos, finalizados y recaudo por zona con detalle por cliente.
+   */
+  getReporteCompleto(fechaInicio: Date, fechaFin: Date, zonaId?: string): Observable<ReporteCompleto> {
+    let params = new HttpParams()
+      .set('fechaInicio', fechaInicio.toISOString())
+      .set('fechaFin', fechaFin.toISOString());
+
+    if (zonaId) {
+      params = params.set('zonaId', zonaId);
+    }
+
+    return this.http.get<ReporteCompleto>(this.apiUrl, { params });
+  }
 
   /**
    * Obtiene el resumen de cobros para un período específico
