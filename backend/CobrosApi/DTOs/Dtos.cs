@@ -343,3 +343,72 @@ public class AplicacionCuotaDto
     public int NumeroCuota { get; set; }
     public decimal ValorAplicado { get; set; }
 }
+
+// ─── REPORTES ──────────────────────────────────────────────────────────────
+
+/// <summary>Detalle de un cliente dentro del recaudo de una zona.</summary>
+public class ReporteClienteRecaudoDto
+{
+    public string ClienteId { get; set; } = string.Empty;
+    public string ClienteNombre { get; set; } = string.Empty;
+    public string? ClienteAlias { get; set; }
+    public decimal MontoCobrado { get; set; }
+    public decimal MontoEsperado { get; set; }
+    public int PagosRealizados { get; set; }
+    public double PorcentajeCumplimiento { get; set; }
+}
+
+/// <summary>Recaudo de una zona con el detalle por cliente.</summary>
+public class ReporteRecaudoZonaDto
+{
+    public string ZonaId { get; set; } = string.Empty;
+    public string ZonaNombre { get; set; } = string.Empty;
+    public decimal MontoCobrado { get; set; }
+    public decimal MontoEsperado { get; set; }
+    public int PagosRealizados { get; set; }
+    public double PorcentajeCumplimiento { get; set; }
+    public List<ReporteClienteRecaudoDto> Clientes { get; set; } = [];
+}
+
+/// <summary>Préstamo nuevo (creado en el rango de fechas).</summary>
+public class ReportePrestamoNuevoDto
+{
+    public string PrestamoId { get; set; } = string.Empty;
+    public string ClienteId { get; set; } = string.Empty;
+    public string ClienteNombre { get; set; } = string.Empty;
+    public string ZonaId { get; set; } = string.Empty;
+    public string ZonaNombre { get; set; } = string.Empty;
+    public DateTime FechaPrestamo { get; set; }
+    public decimal ValorPrestado { get; set; }
+    public decimal ValorTotal { get; set; }
+    public string FrecuenciaPago { get; set; } = string.Empty;
+    public int CantidadCuotas { get; set; }
+    public decimal ValorCuota { get; set; }
+}
+
+/// <summary>Préstamo finalizado (su FechaFinal cae en el rango de fechas).</summary>
+public class ReportePrestamoFinalizadoDto
+{
+    public string PrestamoId { get; set; } = string.Empty;
+    public string ClienteId { get; set; } = string.Empty;
+    public string ClienteNombre { get; set; } = string.Empty;
+    public string ZonaId { get; set; } = string.Empty;
+    public string ZonaNombre { get; set; } = string.Empty;
+    public DateTime FechaPrestamo { get; set; }
+    public DateTime FechaFinal { get; set; }
+    public decimal ValorPrestado { get; set; }
+    public decimal ValorTotal { get; set; }
+    public decimal TotalPagado { get; set; }
+    /// <summary>"pagado_completo" | "vencido_sin_pagar"</summary>
+    public string EstadoFinalizacion { get; set; } = string.Empty;
+}
+
+/// <summary>Respuesta completa del endpoint GET /api/reportes.</summary>
+public class ReporteCompletoDto
+{
+    public DateTime FechaInicio { get; set; }
+    public DateTime FechaFin { get; set; }
+    public List<ReportePrestamoNuevoDto> PrestamosNuevos { get; set; } = [];
+    public List<ReportePrestamoFinalizadoDto> PrestamosFinalizados { get; set; } = [];
+    public List<ReporteRecaudoZonaDto> RecaudoPorZona { get; set; } = [];
+}

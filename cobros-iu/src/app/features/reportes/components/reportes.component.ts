@@ -3,8 +3,18 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReporteService } from '../services/reporte.service';
 import { AbstractZonaService } from '../../core/services/abstract-zona.service';
-import type { ResumenCobros, PeriodoReporte, FiltrosReporte } from '../models/reporte.models';
+import type {
+  ResumenCobros,
+  PeriodoReporte,
+  FiltrosReporte,
+  ReporteCompleto,
+  ReportePrestamoNuevo,
+  ReportePrestamoFinalizado,
+  ReporteRecaudoZona
+} from '../models/reporte.models';
 import type { IZona } from '../../core/models';
+
+export type TabReporte = 'resumen' | 'nuevos' | 'finalizados' | 'recaudo';
 
 /**
  * Componente para visualizar reportes de cobros
@@ -17,18 +27,48 @@ import type { IZona } from '../../core/models';
   styleUrl: './reportes.component.scss'
 })
 export class ReportesComponent implements OnInit {
-  // Señales
+  // ── Estado general ────────────────────────────────────────────────────────
   cargando = signal<boolean>(false);
   resumen = signal<ResumenCobros | null>(null);
   zonas = signal<IZona[]>([]);
-  
-  // Filtros
+
+  // ── Tab activo ────────────────────────────────────────────────────────────
+  tabActiva = signal<TabReporte>('resumen');
+
+  tabs: Array<{ id: TabReporte; etiqueta: string; icono: string }> = [
+    { id: 'resumen',     etiqueta: 'Resumen',             icono: 'bi-bar-chart-fill' },
+    { id: 'nuevos',      etiqueta: 'Préstamos Nuevos',    icono: 'bi-plus-circle-fill' },
+    { id: 'finalizados', etiqueta: 'Préstamos Finalizados', icono: 'bi-check-circle-fill' },
+    { id: 'recaudo',     etiqueta: 'Recaudo por Zona',    icono: 'bi-geo-alt-fill' }
+  ];
+
+  // ── Datos del reporte completo (backend) ──────────────────────────────────
+  reporteCompleto = signal<ReporteCompleto | null>(null);
+  cargandoReporte = signal<boolean>(false);
+  errorReporte = signal<string | null>(null);
+
+  prestamosNuevos = computed<ReportePrestamoNuevo[]>(() =>
+    this.reporteCompleto()?.prestamosNuevos ?? []
+  );
+  prestamosFinalizados = computed<ReportePrestamoFinalizado[]>(() =>
+    this.reporteCompleto()?.prestamosFinalizados ?? []
+  );
+  recaudoPorZona = computed<ReporteRecaudoZona[]>(() =>
+    this.reporteCompleto()?.recaudoPorZona ?? []
+  );
+
+  // ── Filtros del reporte completo ──────────────────────────────────────────
+  fechaInicioReporte = signal<string>('');
+  fechaFinReporte = signal<string>('');
+  zonaFiltroReporte = signal<string>('');
+
+  // ── Filtros del resumen (pestaña existente) ───────────────────────────────
   periodoSeleccionado = signal<PeriodoReporte>('semana');
   zonaSeleccionada = signal<string>('');
   fechaInicioPersonalizada = signal<string>('');
   fechaFinPersonalizada = signal<string>('');
   estadoSeleccionado = signal<string>('todos');
-  
+
   // Opciones de período
   periodos: Array<{ valor: PeriodoReporte; etiqueta: string; icono: string }> = [
     { valor: 'dia', etiqueta: 'Hoy', icono: 'bi-calendar-day' },
@@ -45,9 +85,9 @@ export class ReportesComponent implements OnInit {
     { valor: 'vencido', etiqueta: 'Vencido' }
   ];
 
-  // Computados
+  // ── Computados ───────────────────────────────────────────────────────────
   tieneDatos = computed(() => this.resumen() !== null);
-  
+
   porcentajeCumplimientoFormateado = computed(() => {
     const resumen = this.resumen();
     return resumen ? resumen.porcentajeCumplimiento.toFixed(1) : '0.0';
@@ -61,11 +101,73 @@ export class ReportesComponent implements OnInit {
   ngOnInit(): void {
     this.cargarZonas();
     this.cargarReporte();
+    this.inicializarFechasReporte();
   }
 
-  /**
-   * Carga la lista de zonas
-   */
+  // ── Inicialización ────────────────────────────────────────────────────────
+
+  private inicializarFechasReporte(): void {
+    const hoy = new Date();
+    const hace30 = new Date(hoy);
+    hace30.setDate(hoy.getDate() - 30);
+    this.fechaInicioReporte.set(hace30.toISOString().substring(0, 10));
+    this.fechaFinReporte.set(hoy.toISOString().substring(0, 10));
+  }
+
+  // ── Tabs ──────────────────────────────────────────────────────────────────
+
+  cambiarTab(tab: TabReporte): void {
+    this.tabActiva.set(tab);
+    if (tab !== 'resumen' && this.reporteCompleto() === null && !this.cargandoReporte()) {
+      this.cargarReporteCompleto();
+    }
+  }
+
+  // ── Reporte completo (backend) ────────────────────────────────────────────
+
+  cargarReporteCompleto(): void {
+    const inicio = this.fechaInicioReporte();
+    const fin = this.fechaFinReporte();
+
+    if (!inicio || !fin) {
+      this.errorReporte.set('Selecciona un rango de fechas para generar el reporte.');
+      return;
+    }
+
+    this.cargandoReporte.set(true);
+    this.errorReporte.set(null);
+
+    const fechaInicio = new Date(inicio);
+    const fechaFin = new Date(fin);
+    const zonaId = this.zonaFiltroReporte() || undefined;
+
+    this.reporteService.getReporteCompleto(fechaInicio, fechaFin, zonaId).subscribe({
+      next: (data) => {
+        this.reporteCompleto.set(data);
+        this.cargandoReporte.set(false);
+      },
+      error: (err) => {
+        console.error('Error al cargar reporte completo:', err);
+        this.errorReporte.set('No se pudo cargar el reporte. Intenta nuevamente.');
+        this.cargandoReporte.set(false);
+      }
+    });
+  }
+
+  aplicarFiltrosReporte(): void {
+    this.reporteCompleto.set(null);
+    this.cargarReporteCompleto();
+  }
+
+  // ── Zona expandida en recaudo ─────────────────────────────────────────────
+  zonaExpandida = signal<string | null>(null);
+
+  toggleZona(zonaId: string): void {
+    this.zonaExpandida.set(this.zonaExpandida() === zonaId ? null : zonaId);
+  }
+
+  // ── Resumen (pestaña existente) ───────────────────────────────────────────
+
   cargarZonas(): void {
     this.zonaService.getAll().subscribe({
       next: (zonas: IZona[]) => {
@@ -77,9 +179,6 @@ export class ReportesComponent implements OnInit {
     });
   }
 
-  /**
-   * Carga el reporte según los filtros actuales
-   */
   cargarReporte(): void {
     this.cargando.set(true);
     
@@ -91,7 +190,6 @@ export class ReportesComponent implements OnInit {
         : undefined
     };
 
-    // Si es período personalizado, agregar fechas
     if (this.periodoSeleccionado() === 'personalizado') {
       if (this.fechaInicioPersonalizada()) {
         filtros.fechaInicio = new Date(this.fechaInicioPersonalizada());
@@ -113,24 +211,15 @@ export class ReportesComponent implements OnInit {
     });
   }
 
-  /**
-   * Cambia el período seleccionado
-   */
   cambiarPeriodo(periodo: PeriodoReporte): void {
     this.periodoSeleccionado.set(periodo);
     this.cargarReporte();
   }
 
-  /**
-   * Aplica filtros del reporte
-   */
   aplicarFiltros(): void {
     this.cargarReporte();
   }
 
-  /**
-   * Limpia todos los filtros
-   */
   limpiarFiltros(): void {
     this.zonaSeleccionada.set('');
     this.estadoSeleccionado.set('todos');
@@ -142,18 +231,14 @@ export class ReportesComponent implements OnInit {
     this.cargarReporte();
   }
 
-  /**
-   * Verifica si hay filtros activos
-   */
   tieneFiltrosActivos(): boolean {
     return this.zonaSeleccionada() !== '' || 
            this.estadoSeleccionado() !== 'todos' ||
            this.periodoSeleccionado() === 'personalizado';
   }
 
-  /**
-   * Formatea un número como moneda
-   */
+  // ── Formateo ──────────────────────────────────────────────────────────────
+
   formatearMoneda(valor: number): string {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
@@ -163,25 +248,24 @@ export class ReportesComponent implements OnInit {
     }).format(valor);
   }
 
-  /**
-   * Formatea un porcentaje
-   */
   formatearPorcentaje(valor: number): string {
     return `${valor.toFixed(1)}%`;
   }
 
-  /**
-   * Obtiene la clase CSS según el porcentaje de cumplimiento
-   */
+  formatearFecha(fecha: Date | string): string {
+    return new Date(fecha).toLocaleDateString('es-CO', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+  }
+
   getClaseCumplimiento(porcentaje: number): string {
     if (porcentaje >= 80) return 'cumplimiento-alto';
     if (porcentaje >= 50) return 'cumplimiento-medio';
     return 'cumplimiento-bajo';
   }
 
-  /**
-   * Formatea rango de fechas
-   */
   formatearRangoFechas(): string {
     const resumen = this.resumen();
     if (!resumen) return '';
@@ -196,5 +280,15 @@ export class ReportesComponent implements OnInit {
     const fechaFin = new Date(resumen.fechaFin).toLocaleDateString('es-CO', opciones);
     
     return `${fechaInicio} - ${fechaFin}`;
+  }
+
+  /** Suma un campo numérico de un array de objetos */
+  sumarCampo<T extends Record<string, any>>(items: T[], campo: keyof T): number {
+    return items.reduce((acc, item) => acc + (Number(item[campo]) || 0), 0);
+  }
+
+  /** Cuenta cuántos ítems tienen un valor dado en estadoFinalizacion */
+  contarEstado(items: ReportePrestamoFinalizado[], estado: string): number {
+    return items.filter(i => i.estadoFinalizacion === estado).length;
   }
 }
