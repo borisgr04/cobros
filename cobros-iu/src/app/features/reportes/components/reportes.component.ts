@@ -4,9 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { ReporteService } from '../services/reporte.service';
 import { AbstractZonaService } from '../../core/services/abstract-zona.service';
 import type {
-  ResumenCobros,
-  PeriodoReporte,
-  FiltrosReporte,
   ReporteCompleto,
   ReportePrestamoNuevo,
   ReportePrestamoFinalizado,
@@ -14,7 +11,7 @@ import type {
 } from '../models/reporte.models';
 import type { IZona } from '../../core/models';
 
-export type TabReporte = 'resumen' | 'nuevos' | 'finalizados' | 'recaudo';
+export type TabReporte = 'nuevos' | 'finalizados' | 'recaudo';
 
 /**
  * Componente para visualizar reportes de cobros
@@ -28,18 +25,15 @@ export type TabReporte = 'resumen' | 'nuevos' | 'finalizados' | 'recaudo';
 })
 export class ReportesComponent implements OnInit {
   // ── Estado general ────────────────────────────────────────────────────────
-  cargando = signal<boolean>(false);
-  resumen = signal<ResumenCobros | null>(null);
   zonas = signal<IZona[]>([]);
 
   // ── Tab activo ────────────────────────────────────────────────────────────
-  tabActiva = signal<TabReporte>('resumen');
+  tabActiva = signal<TabReporte>('recaudo');
 
   tabs: Array<{ id: TabReporte; etiqueta: string; icono: string }> = [
-    { id: 'resumen',     etiqueta: 'Resumen',             icono: 'bi-bar-chart-fill' },
+    { id: 'recaudo',     etiqueta: 'Recaudo por Zona',    icono: 'bi-geo-alt-fill' },
     { id: 'nuevos',      etiqueta: 'Préstamos Nuevos',    icono: 'bi-plus-circle-fill' },
-    { id: 'finalizados', etiqueta: 'Préstamos Finalizados', icono: 'bi-check-circle-fill' },
-    { id: 'recaudo',     etiqueta: 'Recaudo por Zona',    icono: 'bi-geo-alt-fill' }
+    { id: 'finalizados', etiqueta: 'Préstamos Finalizados', icono: 'bi-check-circle-fill' }
   ];
 
   // ── Datos del reporte completo (backend) ──────────────────────────────────
@@ -62,37 +56,6 @@ export class ReportesComponent implements OnInit {
   fechaFinReporte = signal<string>('');
   zonaFiltroReporte = signal<string>('');
 
-  // ── Filtros del resumen (pestaña existente) ───────────────────────────────
-  periodoSeleccionado = signal<PeriodoReporte>('semana');
-  zonaSeleccionada = signal<string>('');
-  fechaInicioPersonalizada = signal<string>('');
-  fechaFinPersonalizada = signal<string>('');
-  estadoSeleccionado = signal<string>('todos');
-
-  // Opciones de período
-  periodos: Array<{ valor: PeriodoReporte; etiqueta: string; icono: string }> = [
-    { valor: 'dia', etiqueta: 'Hoy', icono: 'bi-calendar-day' },
-    { valor: 'semana', etiqueta: 'Esta semana', icono: 'bi-calendar-week' },
-    { valor: 'mes', etiqueta: 'Este mes', icono: 'bi-calendar-month' },
-    { valor: 'personalizado', etiqueta: 'Personalizado', icono: 'bi-calendar-range' }
-  ];
-
-  // Opciones de estado
-  estadosDisponibles = [
-    { valor: 'todos', etiqueta: 'Todos los estados' },
-    { valor: 'al_dia', etiqueta: 'Al día' },
-    { valor: 'proximo_vencer', etiqueta: 'Próximo a vencer' },
-    { valor: 'vencido', etiqueta: 'Vencido' }
-  ];
-
-  // ── Computados ───────────────────────────────────────────────────────────
-  tieneDatos = computed(() => this.resumen() !== null);
-
-  porcentajeCumplimientoFormateado = computed(() => {
-    const resumen = this.resumen();
-    return resumen ? resumen.porcentajeCumplimiento.toFixed(1) : '0.0';
-  });
-
   constructor(
     private reporteService: ReporteService,
     private zonaService: AbstractZonaService
@@ -100,8 +63,8 @@ export class ReportesComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarZonas();
-    this.cargarReporte();
     this.inicializarFechasReporte();
+    this.cargarReporteCompleto();
   }
 
   // ── Inicialización ────────────────────────────────────────────────────────
@@ -118,7 +81,7 @@ export class ReportesComponent implements OnInit {
 
   cambiarTab(tab: TabReporte): void {
     this.tabActiva.set(tab);
-    if (tab !== 'resumen' && this.reporteCompleto() === null && !this.cargandoReporte()) {
+    if (this.reporteCompleto() === null && !this.cargandoReporte()) {
       this.cargarReporteCompleto();
     }
   }
@@ -166,8 +129,6 @@ export class ReportesComponent implements OnInit {
     this.zonaExpandida.set(this.zonaExpandida() === zonaId ? null : zonaId);
   }
 
-  // ── Resumen (pestaña existente) ───────────────────────────────────────────
-
   cargarZonas(): void {
     this.zonaService.getAll().subscribe({
       next: (zonas: IZona[]) => {
@@ -177,64 +138,6 @@ export class ReportesComponent implements OnInit {
         console.error('Error al cargar zonas:', error);
       }
     });
-  }
-
-  cargarReporte(): void {
-    this.cargando.set(true);
-    
-    const filtros: FiltrosReporte = {
-      periodo: this.periodoSeleccionado(),
-      zonaId: this.zonaSeleccionada() || undefined,
-      estadoPrestamo: this.estadoSeleccionado() !== 'todos' 
-        ? this.estadoSeleccionado() as 'al_dia' | 'proximo_vencer' | 'vencido'
-        : undefined
-    };
-
-    if (this.periodoSeleccionado() === 'personalizado') {
-      if (this.fechaInicioPersonalizada()) {
-        filtros.fechaInicio = new Date(this.fechaInicioPersonalizada());
-      }
-      if (this.fechaFinPersonalizada()) {
-        filtros.fechaFin = new Date(this.fechaFinPersonalizada());
-      }
-    }
-
-    this.reporteService.getResumenCobros(filtros).subscribe({
-      next: (resumen: ResumenCobros) => {
-        this.resumen.set(resumen);
-        this.cargando.set(false);
-      },
-      error: (error: any) => {
-        console.error('Error al cargar reporte:', error);
-        this.cargando.set(false);
-      }
-    });
-  }
-
-  cambiarPeriodo(periodo: PeriodoReporte): void {
-    this.periodoSeleccionado.set(periodo);
-    this.cargarReporte();
-  }
-
-  aplicarFiltros(): void {
-    this.cargarReporte();
-  }
-
-  limpiarFiltros(): void {
-    this.zonaSeleccionada.set('');
-    this.estadoSeleccionado.set('todos');
-    this.fechaInicioPersonalizada.set('');
-    this.fechaFinPersonalizada.set('');
-    if (this.periodoSeleccionado() === 'personalizado') {
-      this.periodoSeleccionado.set('semana');
-    }
-    this.cargarReporte();
-  }
-
-  tieneFiltrosActivos(): boolean {
-    return this.zonaSeleccionada() !== '' || 
-           this.estadoSeleccionado() !== 'todos' ||
-           this.periodoSeleccionado() === 'personalizado';
   }
 
   // ── Formateo ──────────────────────────────────────────────────────────────
@@ -267,19 +170,25 @@ export class ReportesComponent implements OnInit {
   }
 
   formatearRangoFechas(): string {
-    const resumen = this.resumen();
-    if (!resumen) return '';
+    const inicio = this.fechaInicioReporte();
+    const fin = this.fechaFinReporte();
+    if (!inicio || !fin) return '';
 
-    const opciones: Intl.DateTimeFormatOptions = { 
-      day: '2-digit', 
-      month: 'short', 
-      year: 'numeric' 
+    const opciones: Intl.DateTimeFormatOptions = {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
     };
-    
-    const fechaInicio = new Date(resumen.fechaInicio).toLocaleDateString('es-CO', opciones);
-    const fechaFin = new Date(resumen.fechaFin).toLocaleDateString('es-CO', opciones);
-    
+
+    const fechaInicio = new Date(inicio).toLocaleDateString('es-CO', opciones);
+    const fechaFin = new Date(fin).toLocaleDateString('es-CO', opciones);
+
     return `${fechaInicio} - ${fechaFin}`;
+  }
+
+  /** Calcula los intereses de un préstamo nuevo */
+  calcularIntereses(p: ReportePrestamoNuevo): number {
+    return p.valorTotal - p.valorPrestado;
   }
 
   /** Suma un campo numérico de un array de objetos */
