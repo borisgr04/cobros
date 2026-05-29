@@ -17,4 +17,6 @@ export interface IPago {
   fechaAnulacion?: Date;
   /** Motivo o comentario de la anulación */
   motivoAnulacion?: string;
+  /** Tipo de pago: "regular" | "pronto_pago" */
+  tipoPago?: string;
 }

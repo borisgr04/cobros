@@ -22,6 +22,10 @@ public class Cuota
     [Required, Column(TypeName = "numeric(18,2)")]
     public decimal SaldoPagado { get; set; } = 0;
 
+    /// <summary>"pendiente" | "parcial" | "pagada" | "cerrada_pronto_pago"</summary>
+    [Required, MaxLength(30)]
+    public string Estado { get; set; } = "pendiente";
+
     [ForeignKey(nameof(PrestamoId))]
     public Prestamo? Prestamo { get; set; }
 

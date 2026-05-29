@@ -25,4 +25,8 @@ export interface IPrestamo {
   cantidadCuotas: number;
   /** Valor de cada cuota (valorTotal / cantidadCuotas) */
   valorCuota: number;
+  /** Estado explícito del préstamo: "activo" | "completado" | "cerrado_pronto_pago" */
+  estado?: string;
+  /** Fecha en que fue cerrado el préstamo (aplica para pronto pago) */
+  fechaCierre?: Date;
 }

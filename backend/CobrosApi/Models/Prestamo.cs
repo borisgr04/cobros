@@ -34,9 +34,16 @@ public class Prestamo
     [Required, Column(TypeName = "numeric(18,2)")]
     public decimal ValorCuota { get; set; }
 
+    /// <summary>"activo" | "completado" | "cerrado_pronto_pago"</summary>
+    [Required, MaxLength(30)]
+    public string Estado { get; set; } = "activo";
+
+    public DateTime? FechaCierre { get; set; }
+
     [ForeignKey(nameof(ClienteId))]
     public Cliente? Cliente { get; set; }
 
     public ICollection<Pago> Pagos { get; set; } = [];
     public ICollection<Cuota> Cuotas { get; set; } = [];
+    public ICollection<NovedadPrestamo> Novedades { get; set; } = [];
 }

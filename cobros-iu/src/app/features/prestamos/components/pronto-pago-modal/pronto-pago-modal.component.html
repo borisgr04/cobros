@@ -1,0 +1,251 @@
+@if (visible()) {
+  <div class="modal-overlay">
+    <div class="modal-container">
+
+      <!-- HEADER -->
+      <div class="modal-header">
+        <h2 class="modal-title">
+          <i class="bi bi-lightning-charge-fill"></i>
+          Pronto Pago
+        </h2>
+        <button class="btn-close" (click)="cerrar()" [disabled]="procesando()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- BODY -->
+      <div class="modal-body">
+
+        <!-- Loading inicial -->
+        @if (procesando() && !resumen()) {
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Cargando información del préstamo...</p>
+          </div>
+        }
+
+        <!-- Error -->
+        @if (error() && !resumen()) {
+          <div class="alert-error">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            {{ error() }}
+          </div>
+        }
+
+        <!-- PASO 1: Resumen y valor negociado -->
+        @if (paso() === 'resumen' && resumen()) {
+          <div class="paso-resumen">
+
+            <!-- Préstamo info -->
+            <div class="prestamo-header">
+              <div class="avatar-modal">
+                {{ (prestamo()?.cliente?.nombre || 'S')[0].toUpperCase() }}
+              </div>
+              <div>
+                <h3 class="cliente-nombre">{{ prestamo()?.cliente?.nombre }}</h3>
+                <span class="prestamo-id">Préstamo #{{ prestamo()?.id }}</span>
+              </div>
+            </div>
+
+            <!-- Tabla de resumen financiero -->
+            <div class="resumen-financiero">
+              <div class="resumen-item">
+                <span class="label">Saldo pendiente:</span>
+                <span class="value primary">{{ formatCurrency(resumen()!.saldoPendiente) }}</span>
+              </div>
+              <div class="resumen-item">
+                <span class="label">Cuotas pendientes:</span>
+                <span class="value">{{ resumen()!.cuotasPendientes }}</span>
+              </div>
+              <div class="resumen-item">
+                <span class="label">Intereses futuros estimados:</span>
+                <span class="value warning">{{ formatCurrency(resumen()!.interesesFuturosEstimados) }}</span>
+              </div>
+            </div>
+
+            <!-- Valor negociado -->
+            <div class="negociacion-section">
+              <label class="campo-label">
+                <i class="bi bi-currency-dollar"></i>
+                Valor negociado para cerrar el préstamo:
+              </label>
+              <input
+                class="input-valor"
+                type="number"
+                [value]="valorNegociado()"
+                (input)="onValorNegociadoChange($any($event.target).value)"
+                [max]="resumen()!.saldoPendiente"
+                min="1"
+                placeholder="$ 0">
+
+              <div class="descuento-preview">
+                <span class="descuento-label">Descuento aplicado:</span>
+                <span class="descuento-valor" [class.advertencia]="advertenciaDescuento()">
+                  {{ formatCurrency(descuento()) }}
+                </span>
+              </div>
+
+              @if (advertenciaDescuento()) {
+                <div class="alert-warning">
+                  <i class="bi bi-exclamation-triangle"></i>
+                  El descuento supera los intereses futuros estimados. Esto implica condonar parte del capital.
+                  Verifique con la administración antes de continuar.
+                </div>
+              }
+            </div>
+
+            <!-- Notas -->
+            <div class="notas-section">
+              <label class="campo-label">Notas de negociación (opcional):</label>
+              <textarea
+                class="input-notas"
+                [(ngModel)]="notas"
+                [ngModel]="notas()"
+                (ngModelChange)="notas.set($event)"
+                rows="2"
+                placeholder="Motivo del descuento, observaciones del cobrador...">
+              </textarea>
+            </div>
+
+            @if (error()) {
+              <div class="alert-error">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                {{ error() }}
+              </div>
+            }
+          </div>
+        }
+
+        <!-- PASO 2: Confirmación -->
+        @if (paso() === 'confirmacion' && resumen()) {
+          <div class="paso-confirmacion">
+            <div class="confirmacion-resumen">
+              <h3 class="confirmacion-titulo">Resumen de Pronto Pago</h3>
+
+              <div class="confirmacion-item">
+                <span class="label">Cliente:</span>
+                <span class="value">{{ prestamo()?.cliente?.nombre }}</span>
+              </div>
+              <div class="confirmacion-item">
+                <span class="label">Saldo pendiente:</span>
+                <span class="value">{{ formatCurrency(resumen()!.saldoPendiente) }}</span>
+              </div>
+              <div class="confirmacion-item">
+                <span class="label">Valor negociado:</span>
+                <span class="value primary">{{ formatCurrency(valorNegociado()) }}</span>
+              </div>
+              <div class="confirmacion-item destacado">
+                <span class="label">Descuento aplicado:</span>
+                <span class="value danger">- {{ formatCurrency(descuento()) }}</span>
+              </div>
+              @if (notas()) {
+                <div class="confirmacion-item">
+                  <span class="label">Notas:</span>
+                  <span class="value italic">{{ notas() }}</span>
+                </div>
+              }
+            </div>
+
+            <div class="advertencia-cierre">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              Esta acción cerrará el préstamo definitivamente. No se puede deshacer.
+            </div>
+
+            <label class="checkbox-confirmacion">
+              <input type="checkbox" [checked]="confirmado()" (change)="confirmado.set($any($event.target).checked)">
+              Entiendo que este préstamo quedará cerrado definitivamente
+            </label>
+
+            @if (error()) {
+              <div class="alert-error">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                {{ error() }}
+              </div>
+            }
+
+            @if (procesando()) {
+              <div class="alert-info">
+                <div class="spinner-small"></div>
+                Procesando pronto pago...
+              </div>
+            }
+          </div>
+        }
+
+        <!-- PASO 3: Resultado exitoso -->
+        @if (paso() === 'resultado' && resultado()) {
+          <div class="paso-resultado">
+            <div class="resultado-icon">
+              <i class="bi bi-check-circle-fill"></i>
+            </div>
+            <h3 class="resultado-titulo">¡Pronto Pago Registrado!</h3>
+            <p class="resultado-subtitle">El préstamo ha sido cerrado exitosamente.</p>
+
+            <div class="resultado-detalle">
+              <div class="resultado-item">
+                <span class="label">Novedad #{{ resultado()!.novedadId }}</span>
+              </div>
+              <div class="resultado-item">
+                <span class="label">Saldo original:</span>
+                <span class="value">{{ formatCurrency(resultado()!.saldoPendienteOriginal) }}</span>
+              </div>
+              <div class="resultado-item">
+                <span class="label">Valor pagado:</span>
+                <span class="value primary">{{ formatCurrency(resultado()!.valorNegociado) }}</span>
+              </div>
+              <div class="resultado-item">
+                <span class="label">Descuento aplicado:</span>
+                <span class="value danger">- {{ formatCurrency(resultado()!.descuentoAplicado) }}</span>
+              </div>
+              <div class="resultado-item">
+                <span class="label">Fecha de cierre:</span>
+                <span class="value">{{ formatDate(resultado()!.fechaCierre) }}</span>
+              </div>
+            </div>
+          </div>
+        }
+
+      </div>
+
+      <!-- FOOTER -->
+      <div class="modal-footer">
+        @if (paso() === 'resumen') {
+          <button class="btn-secondary" (click)="cerrar()" [disabled]="procesando()">
+            Cancelar
+          </button>
+          <button
+            class="btn-primary"
+            (click)="avanzarAConfirmacion()"
+            [disabled]="!esValorValido() || procesando()">
+            <i class="bi bi-arrow-right"></i>
+            Continuar
+          </button>
+        }
+        @if (paso() === 'confirmacion') {
+          <button class="btn-secondary" (click)="volverAResumen()" [disabled]="procesando()">
+            <i class="bi bi-arrow-left"></i>
+            Volver
+          </button>
+          <button
+            class="btn-danger"
+            (click)="confirmarProntoPago()"
+            [disabled]="!confirmado() || procesando()">
+            @if (procesando()) {
+              <span class="spinner-btn"></span>
+            } @else {
+              <i class="bi bi-lightning-charge-fill"></i>
+            }
+            Confirmar Pronto Pago
+          </button>
+        }
+        @if (paso() === 'resultado') {
+          <button class="btn-primary" (click)="cerrar()">
+            <i class="bi bi-check2"></i>
+            Cerrar
+          </button>
+        }
+      </div>
+
+    </div>
+  </div>
+}

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, delay, throwError } from 'rxjs';
 import type { IPrestamo } from '../../core/models';
+import type { INovedadPrestamo, IProntoPagoResumen, IProntoPagoResultado } from '../../core/models';
 import { AbstractPrestamoService } from '../../core/services/abstract-prestamo.service';
 
 /**
@@ -178,6 +179,41 @@ export class PrestamoMockService implements AbstractPrestamoService {
     });
 
     return of(cuotas).pipe(delay(this.MOCK_DELAY));
+  }
+
+  getResumenProntoPago(id: string): Observable<IProntoPagoResumen> {
+    const prestamo = this.prestamos.find(p => p.id === id);
+    if (!prestamo) {
+      return throwError(() => new Error('Préstamo no encontrado')).pipe(delay(this.MOCK_DELAY));
+    }
+    const saldoPendiente = prestamo.valorTotal * 0.4;
+    return of({
+      saldoPendiente,
+      cuotasPendientes: 5,
+      interesesFuturosEstimados: Math.round(prestamo.interesProyectado / prestamo.cantidadCuotas * 5),
+      valorSugerido: saldoPendiente
+    }).pipe(delay(this.MOCK_DELAY));
+  }
+
+  ejecutarProntoPago(id: string, input: { valorNegociado: number; notas?: string }): Observable<IProntoPagoResultado> {
+    const prestamo = this.prestamos.find(p => p.id === id);
+    if (!prestamo) {
+      return throwError(() => new Error('Préstamo no encontrado')).pipe(delay(this.MOCK_DELAY));
+    }
+    const saldoPendiente = prestamo.valorTotal * 0.4;
+    return of({
+      novedadId: 1,
+      pagoId: 999,
+      saldoPendienteOriginal: saldoPendiente,
+      interesesFuturosEstimados: Math.round(prestamo.interesProyectado / prestamo.cantidadCuotas * 5),
+      valorNegociado: input.valorNegociado,
+      descuentoAplicado: saldoPendiente - input.valorNegociado,
+      fechaCierre: new Date()
+    }).pipe(delay(this.MOCK_DELAY));
+  }
+
+  getNovedades(_id: string): Observable<INovedadPrestamo[]> {
+    return of([]).pipe(delay(this.MOCK_DELAY));
   }
 
   private calcularFechaCuota(fechaInicio: Date, frecuencia: string, n: number): Date {
