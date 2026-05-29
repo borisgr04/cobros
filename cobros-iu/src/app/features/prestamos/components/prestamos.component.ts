@@ -334,6 +334,7 @@ export class PrestamosComponent implements OnInit {
       completado: 'Completados',
       vencido: 'Vencidos',
       mora: 'En Mora',
+      cerrado_pronto_pago: 'Pronto Pago',
     };
     return textos[estado];
   }
