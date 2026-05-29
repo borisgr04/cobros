@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import type { IPrestamo } from '../models';
+import type { INovedadPrestamo, IProntoPagoResumen, IProntoPagoResultado } from '../models';
 import { BaseService } from './base.service';
 import { AbstractPrestamoService } from './abstract-prestamo.service';
 
@@ -93,5 +94,33 @@ export class PrestamoService extends BaseService<IPrestamo> implements AbstractP
    */
   calcularCuotas(id: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/${id}/cuotas`);
+  }
+
+  /**
+   * Obtiene el resumen de pronto pago para un préstamo (sin ejecutarlo).
+   * @param id - Identificador del préstamo
+   * @returns Observable con saldo pendiente, intereses futuros y valor sugerido
+   */
+  getResumenProntoPago(id: string): Observable<IProntoPagoResumen> {
+    return this.http.get<IProntoPagoResumen>(`${this.apiUrl}/${id}/resumen-pronto-pago`);
+  }
+
+  /**
+   * Ejecuta el pronto pago de un préstamo con el valor negociado.
+   * @param id - Identificador del préstamo
+   * @param input - Valor negociado y notas opcionales
+   * @returns Observable con el resultado de la operación
+   */
+  ejecutarProntoPago(id: string, input: { valorNegociado: number; notas?: string }): Observable<IProntoPagoResultado> {
+    return this.http.post<IProntoPagoResultado>(`${this.apiUrl}/${id}/pronto-pago`, input);
+  }
+
+  /**
+   * Obtiene el historial de novedades de un préstamo.
+   * @param id - Identificador del préstamo
+   * @returns Observable con array de novedades del préstamo
+   */
+  getNovedades(id: string): Observable<INovedadPrestamo[]> {
+    return this.http.get<INovedadPrestamo[]>(`${this.apiUrl}/${id}/novedades`);
   }
 }

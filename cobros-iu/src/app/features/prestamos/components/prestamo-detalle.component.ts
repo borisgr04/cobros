@@ -3,22 +3,31 @@ import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { PrestamoService, type PrestamoConCliente } from '../services';
+import { AbstractPrestamoService } from '../../core/services/abstract-prestamo.service';
 import { AbstractPagoService } from '../../core/services/abstract-pago.service';
 import type { CuotaProyectada } from '../utils/prestamo-calculations';
-import type { IPago, IPrestamo } from '../../core/models';
+import type { IPago, IPrestamo, INovedadPrestamo, IProntoPagoResultado } from '../../core/models';
 import { RegistroPagoModalComponent } from './registro-pago-modal/registro-pago-modal.component';
 import { EdicionPrestamoModalComponent } from './edicion-prestamo-modal/edicion-prestamo-modal.component';
 import { ConfirmacionEliminarPrestamoModalComponent } from './confirmacion-eliminar-prestamo-modal/confirmacion-eliminar-prestamo-modal.component';
 import { AnulacionPagoModalComponent } from './anulacion-pago-modal/anulacion-pago-modal.component';
+import { ProntoPagoModalComponent } from './pronto-pago-modal/pronto-pago-modal.component';
 
 /**
  * Componente de detalle de un préstamo individual
- * Muestra información completa con tabs: Información, Pagos, Proyección
+ * Muestra información completa con tabs: Información, Pagos, Proyección, Novedades
  */
 @Component({
   selector: 'app-prestamo-detalle',
   standalone: true,
-  imports: [CommonModule, RegistroPagoModalComponent, EdicionPrestamoModalComponent, ConfirmacionEliminarPrestamoModalComponent, AnulacionPagoModalComponent],
+  imports: [
+    CommonModule,
+    RegistroPagoModalComponent,
+    EdicionPrestamoModalComponent,
+    ConfirmacionEliminarPrestamoModalComponent,
+    AnulacionPagoModalComponent,
+    ProntoPagoModalComponent
+  ],
   templateUrl: './prestamo-detalle.component.html',
   styleUrl: './prestamo-detalle.component.scss',
 })
@@ -27,6 +36,7 @@ export class PrestamoDetalleComponent implements OnInit {
   private router = inject(Router);
   private location = inject(Location);
   private prestamoService = inject(PrestamoService);
+  private prestamoDataService = inject(AbstractPrestamoService);
   private pagoService = inject(AbstractPagoService);
 
   // ViewChild para acceder al modal de pago
@@ -41,19 +51,29 @@ export class PrestamoDetalleComponent implements OnInit {
   // ViewChild para acceder al modal de anulación de pago
   modalAnulacion = viewChild(AnulacionPagoModalComponent);
 
+  // ViewChild para acceder al modal de pronto pago
+  modalProntoPago = viewChild(ProntoPagoModalComponent);
+
   // Signals de datos
   prestamo = signal<PrestamoConCliente | null>(null);
   pagos = signal<IPago[]>([]);
   proyeccion = signal<CuotaProyectada[]>([]);
+  novedades = signal<INovedadPrestamo[]>([]);
   cargando = signal<boolean>(false);
   error = signal<string>('');
 
   // Signals de UI
-  tabActiva = signal<'info' | 'pagos' | 'proyeccion'>('info');
+  tabActiva = signal<'info' | 'pagos' | 'proyeccion' | 'novedades'>('info');
 
   // Computed: Préstamo ID
   prestamoId = computed(() => {
     return this.route.snapshot.paramMap.get('id') || '';
+  });
+
+  // Computed: si el préstamo está cerrado (no se pueden registrar más pagos ni pronto pago)
+  prestamoCerrado = computed(() => {
+    const p = this.prestamo();
+    return p?.estado === 'cerrado_pronto_pago' || p?.estado === 'completado';
   });
 
   ngOnInit(): void {
@@ -87,6 +107,7 @@ export class PrestamoDetalleComponent implements OnInit {
         this.prestamo.set(prestamo);
         this.pagos.set(pagos);
         this.cargarProyeccion();
+        this.cargarNovedades();
         this.cargando.set(false);
       },
       error: (error) => {
@@ -118,9 +139,22 @@ export class PrestamoDetalleComponent implements OnInit {
   }
 
   /**
+   * Carga el historial de novedades del préstamo
+   */
+  cargarNovedades(): void {
+    const id = this.prestamoId();
+    if (!id) return;
+
+    this.prestamoDataService.getNovedades(id).subscribe({
+      next: (novedades) => this.novedades.set(novedades),
+      error: () => this.novedades.set([])
+    });
+  }
+
+  /**
    * Cambia la pestaña activa
    */
-  cambiarTab(tab: 'info' | 'pagos' | 'proyeccion'): void {
+  cambiarTab(tab: 'info' | 'pagos' | 'proyeccion' | 'novedades'): void {
     this.tabActiva.set(tab);
   }
 
@@ -209,9 +243,10 @@ export class PrestamoDetalleComponent implements OnInit {
 
   /**
    * Devuelve el pago activo más reciente del préstamo (candidato a anulación).
-   * Ordena por fechaPago desc, luego por id desc como desempate.
+   * No aplica para préstamos cerrados.
    */
   pagoAnulable = computed<IPago | null>(() => {
+    if (this.prestamoCerrado()) return null;
     const activos = this.pagos().filter(p => !p.anulado);
     if (activos.length === 0) return null;
     return activos.reduce((prev, curr) => {
@@ -264,9 +299,28 @@ export class PrestamoDetalleComponent implements OnInit {
   /**
    * Maneja el evento de pago registrado exitosamente
    */
-  onPagoRegistrado(pago: IPago): void {
-    // Recargar datos del préstamo
+  onPagoRegistrado(_pago: IPago): void {
     this.cargarPrestamo();
+  }
+
+  /**
+   * Abre el modal de pronto pago
+   */
+  abrirModalProntoPago(): void {
+    const modal = this.modalProntoPago();
+    const prestamo = this.prestamo();
+    if (modal && prestamo) {
+      modal.abrir(prestamo);
+    }
+  }
+
+  /**
+   * Maneja el resultado del pronto pago — recarga el préstamo y muestra novedades
+   */
+  onProntoPagoRealizado(_resultado: IProntoPagoResultado): void {
+    this.cargarPrestamo();
+    // Cambiar a la tab de novedades para ver el registro
+    this.tabActiva.set('novedades');
   }
 
   /**
@@ -304,9 +358,7 @@ export class PrestamoDetalleComponent implements OnInit {
   /**
    * Maneja el evento de préstamo actualizado exitosamente
    */
-  onPrestamoActualizado(prestamo: IPrestamo): void {
-    console.log('Préstamo actualizado:', prestamo);
-    // Recargar datos del préstamo
+  onPrestamoActualizado(_prestamo: IPrestamo): void {
     this.cargarPrestamo();
   }
 
@@ -346,10 +398,23 @@ export class PrestamoDetalleComponent implements OnInit {
 
   /**
    * Maneja el evento de préstamo eliminado exitosamente
-   * El modal se encarga de la navegación, este método es por si necesitamos lógica adicional
    */
-  onPrestamoEliminado(prestamoId: string): void {
-    console.log('Préstamo eliminado:', prestamoId);
-    // El modal ya navega a /prestamos, aquí podríamos agregar lógica adicional si fuera necesario
+  onPrestamoEliminado(_prestamoId: string): void {
+    // El modal ya navega a /prestamos
+  }
+
+  /**
+   * Obtiene el label del badge de estado del préstamo
+   */
+  getBadgeEstado(): { texto: string; clase: string } {
+    const p = this.prestamo();
+    const estado = p?.estadisticas?.estado ?? 'activo';
+    switch (estado) {
+      case 'completado':        return { texto: 'Completado',        clase: 'badge-completado' };
+      case 'cerrado_pronto_pago': return { texto: 'Pronto Pago',     clase: 'badge-pronto-pago' };
+      case 'vencido':           return { texto: 'Vencido',           clase: 'badge-vencido' };
+      case 'mora':              return { texto: 'En Mora',           clase: 'badge-mora' };
+      default:                  return { texto: 'Activo',            clase: 'badge-activo' };
+    }
   }
 }

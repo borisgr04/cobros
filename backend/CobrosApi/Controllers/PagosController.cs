@@ -23,7 +23,8 @@ public class PagosController(CobrosDbContext db) : ControllerBase
         FechaPago       = p.FechaPago,
         Anulado         = p.Anulado,
         FechaAnulacion  = p.FechaAnulacion,
-        MotivoAnulacion = p.MotivoAnulacion
+        MotivoAnulacion = p.MotivoAnulacion,
+        TipoPago        = p.TipoPago
     };
 
     // GET /api/pagos
@@ -91,6 +92,11 @@ public class PagosController(CobrosDbContext db) : ControllerBase
         var prestamo = await db.Prestamos.AnyAsync(p => p.Id == prestamoId);
         if (!prestamo)
             return BadRequest(new ErrorDto { Error = $"Préstamo {input.PrestamoId} no existe" });
+
+        // Rechazar préstamos cerrados por pronto pago
+        var prestamoEnt = await db.Prestamos.AsNoTracking().FirstAsync(p => p.Id == prestamoId);
+        if (prestamoEnt.Estado == "cerrado_pronto_pago" || prestamoEnt.Estado == "completado")
+            return BadRequest(new ErrorDto { Error = "No se pueden registrar pagos en un préstamo cerrado" });
 
         // Cargar cuotas no completamente pagadas, ordenadas por NumeroCuota
         var cuotas = await db.Cuotas

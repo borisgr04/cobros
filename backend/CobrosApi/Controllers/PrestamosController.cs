@@ -24,7 +24,9 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         InteresProyectado = p.InteresProyectado,
         FrecuenciaPago    = p.FrecuenciaPago,
         CantidadCuotas    = p.CantidadCuotas,
-        ValorCuota        = p.ValorCuota
+        ValorCuota        = p.ValorCuota,
+        Estado            = p.Estado,
+        FechaCierre       = p.FechaCierre
     };
 
     // GET /api/prestamos
@@ -41,13 +43,14 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<PrestamoDto>), 200)]
     public async Task<IActionResult> GetActivos()
     {
-        // Activo = suma de pagos < valorTotal
+        // Activo = préstamo no cerrado por pronto pago Y suma de pagos < valorTotal
         var prestamos = await db.Prestamos
             .AsNoTracking()
             .Include(p => p.Pagos)
+            .Where(p => p.Estado != "cerrado_pronto_pago")
             .ToListAsync();
 
-        var activos = prestamos.Where(p => p.Pagos.Sum(pg => pg.Valor) < p.ValorTotal);
+        var activos = prestamos.Where(p => p.Pagos.Where(pg => !pg.Anulado).Sum(pg => pg.Valor) < p.ValorTotal);
         return Ok(activos.Select(ToDto));
     }
 
@@ -220,6 +223,217 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         return NoContent();
     }
 
+    // GET /api/prestamos/{id}/resumen-pronto-pago
+    [HttpGet("{id:int}/resumen-pronto-pago")]
+    [ProducesResponseType(typeof(ProntoPagoResumenDto), 200)]
+    [ProducesResponseType(typeof(ErrorDto), 404)]
+    [ProducesResponseType(typeof(ErrorDto), 400)]
+    public async Task<IActionResult> GetResumenProntoPago(int id)
+    {
+        var prestamo = await db.Prestamos
+            .AsNoTracking()
+            .Include(p => p.Pagos)
+            .Include(p => p.Cuotas)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (prestamo is null)
+            return NotFound(new ErrorDto { Error = $"Préstamo {id} no encontrado" });
+
+        if (prestamo.Estado == "cerrado_pronto_pago")
+            return BadRequest(new ErrorDto { Error = "El préstamo ya fue cerrado por pronto pago" });
+
+        var totalPagado   = prestamo.Pagos.Where(p => !p.Anulado).Sum(p => p.Valor);
+        var saldoPendiente = prestamo.ValorTotal - totalPagado;
+
+        if (saldoPendiente <= 0)
+            return BadRequest(new ErrorDto { Error = "El préstamo no tiene saldo pendiente" });
+
+        var cuotasPendientes = prestamo.Cuotas
+            .Count(c => c.Estado != "pagada" && c.Estado != "cerrada_pronto_pago" && c.SaldoPagado < c.ValorCuota);
+
+        var interesesFuturos = prestamo.CantidadCuotas > 0
+            ? Math.Round(prestamo.InteresProyectado / prestamo.CantidadCuotas * cuotasPendientes, 2)
+            : 0;
+
+        return Ok(new ProntoPagoResumenDto
+        {
+            SaldoPendiente           = saldoPendiente,
+            CuotasPendientes         = cuotasPendientes,
+            InteresesFuturosEstimados = interesesFuturos,
+            ValorSugerido            = saldoPendiente
+        });
+    }
+
+    // POST /api/prestamos/{id}/pronto-pago
+    [HttpPost("{id:int}/pronto-pago")]
+    [ProducesResponseType(typeof(ProntoPagoResultadoDto), 200)]
+    [ProducesResponseType(typeof(ErrorDto), 400)]
+    [ProducesResponseType(typeof(ErrorDto), 404)]
+    public async Task<IActionResult> EjecutarProntoPago(int id, [FromBody] ProntoPagoInputDto input)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(new ErrorDto { Error = "Datos inválidos" });
+
+        // Identificar usuario autenticado
+        var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
+                 ?? User.FindFirst("email")?.Value;
+        var usuario = email is not null
+            ? await db.Usuarios.FirstOrDefaultAsync(u => u.Email == email)
+            : null;
+        if (usuario is null)
+            return BadRequest(new ErrorDto { Error = "Usuario autenticado no encontrado en el sistema" });
+
+        var prestamo = await db.Prestamos
+            .Include(p => p.Pagos)
+            .Include(p => p.Cuotas)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (prestamo is null)
+            return NotFound(new ErrorDto { Error = $"Préstamo {id} no encontrado" });
+
+        if (prestamo.Estado == "cerrado_pronto_pago" || prestamo.Estado == "completado")
+            return BadRequest(new ErrorDto { Error = "El préstamo ya se encuentra cerrado" });
+
+        var totalPagado   = prestamo.Pagos.Where(p => !p.Anulado).Sum(p => p.Valor);
+        var saldoPendiente = prestamo.ValorTotal - totalPagado;
+
+        if (saldoPendiente <= 0)
+            return BadRequest(new ErrorDto { Error = "El préstamo no tiene saldo pendiente" });
+
+        var cuotasPendientesList = prestamo.Cuotas
+            .Where(c => c.Estado != "pagada" && c.Estado != "cerrada_pronto_pago" && c.SaldoPagado < c.ValorCuota)
+            .OrderBy(c => c.NumeroCuota)
+            .ToList();
+
+        if (cuotasPendientesList.Count == 0)
+            return BadRequest(new ErrorDto { Error = "No hay cuotas pendientes para aplicar el pronto pago" });
+
+        if (input.ValorNegociado <= 0)
+            return BadRequest(new ErrorDto { Error = "El valor negociado debe ser mayor a cero" });
+
+        if (input.ValorNegociado > saldoPendiente)
+            return BadRequest(new ErrorDto { Error = $"El valor negociado (${input.ValorNegociado:N0}) supera el saldo pendiente (${saldoPendiente:N0})" });
+
+        // No se puede descontar capital: el mínimo aceptable es capital pendiente
+        var capitalPendiente = Math.Max(0, prestamo.ValorPrestado - totalPagado);
+        if (input.ValorNegociado < capitalPendiente)
+            return BadRequest(new ErrorDto { Error = $"El valor negociado no puede ser menor al capital pendiente (${capitalPendiente:N0}). Solo se pueden descontar intereses futuros." });
+
+        var interesesFuturos = prestamo.CantidadCuotas > 0
+            ? Math.Round(prestamo.InteresProyectado / prestamo.CantidadCuotas * cuotasPendientesList.Count, 2)
+            : 0;
+        var descuento = saldoPendiente - input.ValorNegociado;
+        var fechaCierre = DateTime.UtcNow;
+
+        using var tx = db.Database.IsInMemory()
+            ? null
+            : await db.Database.BeginTransactionAsync();
+
+        // Crear pago de tipo pronto_pago
+        var pago = new Pago
+        {
+            PrestamoId = prestamo.Id,
+            Valor      = input.ValorNegociado,
+            FechaPago  = fechaCierre,
+            TipoPago   = "pronto_pago"
+        };
+        db.Pagos.Add(pago);
+        await db.SaveChangesAsync();
+
+        // Aplicar el pago a las cuotas pendientes (absorbiendo el monto real negociado)
+        var restante = input.ValorNegociado;
+        foreach (var cuota in cuotasPendientesList)
+        {
+            if (restante <= 0) break;
+            var espacio      = cuota.ValorCuota - cuota.SaldoPagado;
+            var valorAplicado = Math.Min(restante, espacio);
+            cuota.SaldoPagado += valorAplicado;
+            cuota.Estado = cuota.SaldoPagado >= cuota.ValorCuota ? "pagada" : "parcial";
+            db.AplicacionesCuota.Add(new AplicacionCuota
+            {
+                PagoId        = pago.Id,
+                CuotaId       = cuota.Id,
+                ValorAplicado = valorAplicado
+            });
+            restante -= valorAplicado;
+        }
+
+        // Cerrar todas las cuotas restantes que no quedaron pagadas
+        foreach (var cuota in cuotasPendientesList.Where(c => c.Estado != "pagada"))
+        {
+            cuota.Estado = "cerrada_pronto_pago";
+        }
+
+        // Registrar la novedad de auditoría
+        var novedad = new NovedadPrestamo
+        {
+            PrestamoId                = prestamo.Id,
+            Tipo                      = "pronto_pago",
+            FechaNovedad              = fechaCierre,
+            UsuarioId                 = usuario.Id,
+            SaldoPendienteOriginal    = saldoPendiente,
+            InteresesFuturosEstimados = interesesFuturos,
+            ValorNegociado            = input.ValorNegociado,
+            DescuentoAplicado         = descuento,
+            PagoId                    = pago.Id,
+            Notas                     = input.Notas
+        };
+        db.NovedadesPrestamo.Add(novedad);
+
+        // Cerrar el préstamo
+        prestamo.Estado      = "cerrado_pronto_pago";
+        prestamo.FechaCierre = fechaCierre;
+
+        await db.SaveChangesAsync();
+        if (tx is not null) await tx.CommitAsync();
+
+        return Ok(new ProntoPagoResultadoDto
+        {
+            NovedadId                 = novedad.Id,
+            PagoId                    = pago.Id,
+            SaldoPendienteOriginal    = saldoPendiente,
+            InteresesFuturosEstimados = interesesFuturos,
+            ValorNegociado            = input.ValorNegociado,
+            DescuentoAplicado         = descuento,
+            FechaCierre               = fechaCierre
+        });
+    }
+
+    // GET /api/prestamos/{id}/novedades
+    [HttpGet("{id:int}/novedades")]
+    [ProducesResponseType(typeof(IEnumerable<NovedadPrestamoDto>), 200)]
+    [ProducesResponseType(typeof(ErrorDto), 404)]
+    public async Task<IActionResult> GetNovedades(int id)
+    {
+        var existeP = await db.Prestamos.AnyAsync(p => p.Id == id);
+        if (!existeP)
+            return NotFound(new ErrorDto { Error = $"Préstamo {id} no encontrado" });
+
+        var novedades = await db.NovedadesPrestamo
+            .AsNoTracking()
+            .Include(n => n.Usuario)
+            .Where(n => n.PrestamoId == id)
+            .OrderByDescending(n => n.FechaNovedad)
+            .ToListAsync();
+
+        return Ok(novedades.Select(n => new NovedadPrestamoDto
+        {
+            Id                        = n.Id,
+            PrestamoId                = n.PrestamoId,
+            Tipo                      = n.Tipo,
+            FechaNovedad              = n.FechaNovedad,
+            UsuarioId                 = n.UsuarioId,
+            UsuarioNombre             = n.Usuario?.Nombre,
+            UsuarioEmail              = n.Usuario?.Email,
+            SaldoPendienteOriginal    = n.SaldoPendienteOriginal,
+            InteresesFuturosEstimados = n.InteresesFuturosEstimados,
+            ValorNegociado            = n.ValorNegociado,
+            DescuentoAplicado         = n.DescuentoAplicado,
+            PagoId                    = n.PagoId,
+            Notas                     = n.Notas
+        }));
+    }
+
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
     private static CuotaDetalleDto ToCuotaDetalleDto(Cuota c) => new()
@@ -229,9 +443,11 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         FechaEsperada = c.FechaEsperada,
         ValorCuota    = c.ValorCuota,
         SaldoPagado   = c.SaldoPagado,
-        Estado        = c.SaldoPagado >= c.ValorCuota ? "pagada"
-                      : c.SaldoPagado > 0             ? "parcial"
-                      :                                 "pendiente"
+        // Prefer explicit Estado if it was set; fall back to computed value for legacy rows
+        Estado        = c.Estado == "cerrada_pronto_pago" ? "cerrada_pronto_pago"
+                      : c.SaldoPagado >= c.ValorCuota     ? "pagada"
+                      : c.SaldoPagado > 0                 ? "parcial"
+                      :                                     "pendiente"
     };
 
     // Fallback para préstamos anteriores al cambio (sin registros en tabla Cuota)

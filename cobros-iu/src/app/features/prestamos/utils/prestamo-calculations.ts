@@ -3,7 +3,7 @@ import type { FrecuenciaPago, IPrestamo, IPago } from '../../core/models';
 /**
  * Tipo para el estado calculado de un préstamo
  */
-export type EstadoPrestamo = 'activo' | 'completado' | 'vencido' | 'mora';
+export type EstadoPrestamo = 'activo' | 'completado' | 'cerrado_pronto_pago' | 'vencido' | 'mora';
 
 /**
  * Interface que espeja el CuotaDetalleDto del backend
@@ -14,7 +14,7 @@ export interface CuotaDetalleDto {
   fechaEsperada: string;
   valorCuota: number;
   saldoPagado: number;
-  estado: 'pendiente' | 'parcial' | 'pagada';
+  estado: 'pendiente' | 'parcial' | 'pagada' | 'cerrada_pronto_pago';
 }
 
 /**
@@ -24,7 +24,7 @@ export interface CuotaProyectada {
   numero: number;
   fechaEsperada: Date;
   valorEsperado: number;
-  estado: 'pagada' | 'parcial' | 'pendiente';
+  estado: 'pagada' | 'parcial' | 'pendiente' | 'cerrada_pronto_pago';
   saldoPagado: number;
   fechaPago?: Date;
   valorPago?: number;
@@ -191,13 +191,19 @@ export function calcularDiasRestantes(fechaFinal: Date): number {
 }
 
 /**
- * Determina el estado del préstamo
+ * Determina el estado del préstamo.
+ * Si se recibe un estado explícito del backend, éste tiene prioridad.
  */
 export function determinarEstadoPrestamo(
   fechaFinal: Date,
   saldoPendiente: number,
-  proximaCuota: Date
+  proximaCuota: Date,
+  estadoExplicito?: string
 ): EstadoPrestamo {
+  // Respetar el estado explícito del backend cuando está disponible
+  if (estadoExplicito === 'cerrado_pronto_pago') return 'cerrado_pronto_pago';
+  if (estadoExplicito === 'completado') return 'completado';
+
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
 
@@ -302,7 +308,7 @@ export function calcularEstadisticasPrestamo(
     cuotasPagadas
   );
   const proximaCuotaValor = calcularProximaCuotaValor(prestamo.valorCuota, saldoPendiente);
-  const estado = determinarEstadoPrestamo(prestamo.fechaFinal, saldoPendiente, proximaCuotaFecha);
+  const estado = determinarEstadoPrestamo(prestamo.fechaFinal, saldoPendiente, proximaCuotaFecha, prestamo.estado);
 
   return {
     totalPrestado: prestamo.valorPrestado,

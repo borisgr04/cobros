@@ -110,6 +110,9 @@ public class PrestamoDto
     public string FrecuenciaPago { get; set; } = string.Empty;
     public int CantidadCuotas { get; set; }
     public decimal ValorCuota { get; set; }
+    /// <summary>"activo" | "completado" | "cerrado_pronto_pago"</summary>
+    public string Estado { get; set; } = "activo";
+    public DateTime? FechaCierre { get; set; }
 }
 
 public class PrestamoInputDto
@@ -153,6 +156,8 @@ public class PagoDto
     public bool Anulado { get; set; }
     public DateTime? FechaAnulacion { get; set; }
     public string? MotivoAnulacion { get; set; }
+    /// <summary>"regular" | "pronto_pago"</summary>
+    public string TipoPago { get; set; } = "regular";
 }
 
 public class PagoInputDto
@@ -334,6 +339,56 @@ public class TotalPagadoDto
     public decimal TotalPagado { get; set; }
 }
 
+// ─── PRONTO PAGO ───────────────────────────────────────────────────────────
+
+public class ProntoPagoInputDto
+{
+    [Required, Range(1, double.MaxValue)]
+    public decimal ValorNegociado { get; set; }
+
+    [MaxLength(1000)]
+    public string? Notas { get; set; }
+}
+
+public class ProntoPagoResumenDto
+{
+    public decimal SaldoPendiente { get; set; }
+    public int CuotasPendientes { get; set; }
+    public decimal InteresesFuturosEstimados { get; set; }
+    public decimal ValorSugerido { get; set; }
+}
+
+public class ProntoPagoResultadoDto
+{
+    public int NovedadId { get; set; }
+    public int PagoId { get; set; }
+    public decimal SaldoPendienteOriginal { get; set; }
+    public decimal InteresesFuturosEstimados { get; set; }
+    public decimal ValorNegociado { get; set; }
+    public decimal DescuentoAplicado { get; set; }
+    public DateTime FechaCierre { get; set; }
+}
+
+// ─── NOVEDAD PRÉSTAMO ──────────────────────────────────────────────────────
+
+public class NovedadPrestamoDto
+{
+    public int Id { get; set; }
+    public int PrestamoId { get; set; }
+    public string Tipo { get; set; } = string.Empty;
+    public DateTime FechaNovedad { get; set; }
+    public int UsuarioId { get; set; }
+    public string? UsuarioNombre { get; set; }
+    public string? UsuarioEmail { get; set; }
+    public decimal SaldoPendienteOriginal { get; set; }
+    public decimal InteresesFuturosEstimados { get; set; }
+    public decimal ValorNegociado { get; set; }
+    public decimal DescuentoAplicado { get; set; }
+    public int? PagoId { get; set; }
+    public string? Notas { get; set; }
+}
+
+
 // ─── CUOTA ─────────────────────────────────────────────────────────────────
 
 public class CuotaDetalleDto
@@ -343,7 +398,7 @@ public class CuotaDetalleDto
     public DateTime FechaEsperada { get; set; }
     public decimal ValorCuota { get; set; }
     public decimal SaldoPagado { get; set; }
-    public string Estado { get; set; } = string.Empty; // "pendiente" | "parcial" | "pagada"
+    public string Estado { get; set; } = string.Empty; // "pendiente" | "parcial" | "pagada" | "cerrada_pronto_pago"
 }
 
 public class AplicacionCuotaDto
