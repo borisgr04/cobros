@@ -21,6 +21,15 @@
         </div>
       </div>
     }
+    <button class="panel-action-btn" type="button" (click)="irAPerfil()">
+      <i class="bi bi-person-circle"></i>
+      <span>Mi perfil</span>
+      @if (biometricAvailable() && !biometric.hasRegisteredLocally()) {
+        <span class="panel-biometric-hint">
+          <i class="bi bi-fingerprint"></i> Activa Face ID / Huella
+        </span>
+      }
+    </button>
     <button class="panel-logout-btn" type="button" (click)="logout()">
       <i class="bi bi-box-arrow-right"></i>
       <span>Cerrar sesión</span>

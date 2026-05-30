@@ -9,4 +9,5 @@ export abstract class AbstractPagoService {
   abstract delete(id: string): Observable<void>;
   abstract getByPrestamo(prestamoId: string): Observable<IPago[]>;
   abstract getTotalByPrestamo(prestamoId: string): Observable<number>;
+  abstract anular(id: string, motivo: string): Observable<IPago>;
 }

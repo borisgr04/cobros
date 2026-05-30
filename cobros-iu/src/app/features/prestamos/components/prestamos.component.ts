@@ -10,6 +10,7 @@ import type { EstadoPrestamo } from '../utils/prestamo-calculations';
 import { RegistroPagoModalComponent } from './registro-pago-modal/registro-pago-modal.component';
 import { RegistroPrestamoModalComponent } from './registro-prestamo-modal/registro-prestamo-modal.component';
 import { EdicionPrestamoModalComponent } from './edicion-prestamo-modal/edicion-prestamo-modal.component';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 
 /**
  * Componente principal para la gestión de préstamos.
@@ -18,7 +19,7 @@ import { EdicionPrestamoModalComponent } from './edicion-prestamo-modal/edicion-
 @Component({
   selector: 'app-prestamos',
   standalone: true,
-  imports: [CommonModule, FormsModule, RegistroPagoModalComponent, RegistroPrestamoModalComponent, EdicionPrestamoModalComponent],
+  imports: [CommonModule, FormsModule, RegistroPagoModalComponent, RegistroPrestamoModalComponent, EdicionPrestamoModalComponent, PageHeaderComponent],
   templateUrl: './prestamos.component.html',
   styleUrl: './prestamos.component.scss',
 })
@@ -333,6 +334,7 @@ export class PrestamosComponent implements OnInit {
       completado: 'Completados',
       vencido: 'Vencidos',
       mora: 'En Mora',
+      cerrado_pronto_pago: 'Pronto Pago',
     };
     return textos[estado];
   }

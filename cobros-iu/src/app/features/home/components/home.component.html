@@ -1,11 +1,38 @@
 <div class="home-container">
+  <!-- Biometric activation prompt -->
+  @if (showBiometricPrompt()) {
+    <div class="biometric-banner">
+      <div class="biometric-banner-content">
+        <i class="bi bi-fingerprint biometric-banner-icon"></i>
+        <div class="biometric-banner-text">
+          <strong>Activa Face ID / Huella</strong>
+          <span>Inicia sesión más rápido en este dispositivo con tu biometría.</span>
+        </div>
+      </div>
+      <div class="biometric-banner-actions">
+        <button class="btn btn-sm btn-primary" (click)="activateBiometrics()">
+          Activar
+        </button>
+        <button class="btn btn-sm btn-link" (click)="dismissBiometricPrompt()">
+          Ahora no
+        </button>
+      </div>
+    </div>
+  }
+
   <!-- Header -->
   <div class="home-header">
-    <h1 class="page-title">
-      <i class="bi bi-geo-alt-fill"></i>
-      Resumen por Zona
-    </h1>
-    <p class="page-subtitle">Vista general de clientes, préstamos y cartera por zona geográfica</p>
+    <div class="home-header-content">
+      <h1 class="page-title">
+        <i class="bi bi-geo-alt-fill"></i>
+        Resumen por Zona
+      </h1>
+      <p class="page-subtitle">Vista general de clientes, préstamos y cartera por zona geográfica</p>
+    </div>
+    <button class="btn-nueva-zona" (click)="abrirModalNuevaZona()">
+      <i class="bi bi-plus-circle"></i>
+      Nueva Zona
+    </button>
   </div>
 
   <!-- Loading State -->
@@ -20,10 +47,10 @@
   @if (!cargando() && zonas().length > 0) {
     <div class="zonas-grid">
       @for (zona of zonas(); track zona.zonaId) {
-        <div 
-          class="minimal-card" 
-          [class.clickable]="zona.clientes > 0"
-          (click)="verClientesZona(zona)">
+        <a 
+          class="minimal-card clickable"
+          [routerLink]="['/clientes']"
+          [queryParams]="{ zona: zona.zonaId }">
           
           <!-- Header de la tarjeta -->
           <div class="minimal-header">
@@ -48,7 +75,7 @@
               <span class="minimal-stat-label">Préstamos</span>
             </div>
           </div>
-        </div>
+        </a>
       }
     </div>
 
@@ -81,6 +108,13 @@
       <i class="bi bi-inbox"></i>
       <h3>No hay zonas registradas</h3>
       <p>Agrega zonas para ver el resumen aquí</p>
+      <button class="btn-empty-nueva-zona" (click)="abrirModalNuevaZona()">
+        <i class="bi bi-plus-circle"></i>
+        Nueva Zona
+      </button>
     </div>
   }
+
+  <!-- Modal Nueva Zona -->
+  <app-zona-modal (guardado)="guardarZona($event)" />
 </div>

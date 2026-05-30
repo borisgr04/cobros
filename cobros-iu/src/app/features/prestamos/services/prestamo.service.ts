@@ -204,7 +204,7 @@ export class PrestamoService {
           diasRestantes: calcularDiasRestantes(prestamo.fechaFinal),
           proximaCuotaFecha,
           proximaCuotaValor: calcularProximaCuotaValor(prestamo.valorCuota, raw.saldoPendiente),
-          estado: determinarEstadoPrestamo(prestamo.fechaFinal, raw.saldoPendiente, proximaCuotaFecha),
+          estado: determinarEstadoPrestamo(prestamo.fechaFinal, raw.saldoPendiente, proximaCuotaFecha, prestamo.estado),
         };
         const { prestamos: _prestamos, ...clienteData } = cliente;
         return { ...prestamo, cliente: clienteData as ICliente, estadisticas } as PrestamoConCliente;

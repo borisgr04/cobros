@@ -1,8 +1,13 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, inject, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { DashboardService } from '../../dashboard/services/dashboard.service';
+import { BiometricAuthService } from '../../auth/services/biometric-auth.service';
+import { AbstractZonaService } from '../../core/services/abstract-zona.service';
+import { ZonaModalComponent } from '../../zonas/components/zona-modal/zona-modal.component';
 import type { ResumenZona } from '../../dashboard/models/dashboard.models';
+import type { IZona } from '../../core/models';
 
 /**
  * Componente Home - Vista principal con resumen por zonas en formato de tarjetas
@@ -10,16 +15,21 @@ import type { ResumenZona } from '../../dashboard/models/dashboard.models';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ZonaModalComponent, RouterLink],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
 export class HomeComponent implements OnInit {
   private dashboardService = inject(DashboardService);
   private router = inject(Router);
+  private biometric = inject(BiometricAuthService);
+  private zonaService = inject(AbstractZonaService);
+
+  modalZona = viewChild(ZonaModalComponent);
 
   zonas = signal<ResumenZona[]>([]);
   cargando = signal<boolean>(false);
+  showBiometricPrompt = signal(false);
 
   // Totales generales
   totales = signal({
@@ -28,8 +38,27 @@ export class HomeComponent implements OnInit {
     cartera: 0
   });
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.cargarResumenZonas();
+    await this.checkBiometricPrompt();
+  }
+
+  private async checkBiometricPrompt(): Promise<void> {
+    if (localStorage.getItem('biometric_prompt_dismissed')) return;
+    if (this.biometric.hasRegisteredLocally()) return;
+    const available = await this.biometric.isPlatformAuthenticatorAvailable();
+    if (!available) return;
+    this.showBiometricPrompt.set(true);
+  }
+
+  dismissBiometricPrompt(): void {
+    localStorage.setItem('biometric_prompt_dismissed', 'true');
+    this.showBiometricPrompt.set(false);
+  }
+
+  activateBiometrics(): void {
+    this.dismissBiometricPrompt();
+    this.router.navigate(['/perfil']);
   }
 
   /**
@@ -57,13 +86,30 @@ export class HomeComponent implements OnInit {
   }
 
   /**
-   * Navega a la vista de clientes filtrados por zona
+   * Abre el modal para crear una nueva zona
    */
-  verClientesZona(zona: ResumenZona): void {
-    if (zona.clientes > 0) {
-      this.router.navigate(['/clientes'], { 
-        queryParams: { zona: zona.zonaId } 
-      });
+  abrirModalNuevaZona(): void {
+    this.modalZona()?.abrirCrear();
+  }
+
+  /**
+   * Guarda la zona creada desde el modal
+   */
+  async guardarZona(zona: Partial<IZona>): Promise<void> {
+    const modal = this.modalZona();
+    try {
+      await firstValueFrom(this.zonaService.create(zona as IZona));
+      if (modal) {
+        modal.procesando.set(false);
+        modal.modalAbierto.set(false);
+      }
+      await this.cargarResumenZonas();
+    } catch (error) {
+      console.error('Error al crear zona:', error);
+      if (modal) {
+        modal.procesando.set(false);
+        modal.error.set('Error al guardar la zona. Por favor, intenta de nuevo.');
+      }
     }
   }
 

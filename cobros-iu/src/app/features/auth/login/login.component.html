@@ -11,6 +11,13 @@
     </div>
 
     <!-- Error -->
+    @if (info()) {
+      <div class="alert-info" role="status">
+        <i class="bi bi-info-circle-fill"></i>
+        <span>{{ info() }}</span>
+      </div>
+    }
+
     @if (error()) {
       <div class="alert-error" role="alert">
         <i class="bi bi-exclamation-circle-fill"></i>
@@ -54,6 +61,25 @@
             <i class="bi bi-box-arrow-in-right me-2"></i>
             Entrar como desarrollador
           }
+        </button>
+      </div>
+    }
+
+    <!-- Biometric login -->
+    @if (biometricAvailable()) {
+      <div class="mt-3">
+        @if (!biometricRegistered()) {
+          <p class="text-center text-muted small mb-2">
+            <i class="bi bi-info-circle me-1"></i>
+            Inicia sesión con Google para activar Face ID / Huella en este dispositivo.
+          </p>
+        }
+        <button
+          class="btn btn-outline-secondary w-100"
+          [disabled]="loading() || !biometricRegistered()"
+          (click)="loginWithBiometrics()">
+          <i class="bi bi-fingerprint me-2"></i>
+          Entrar con Face ID / Huella
         </button>
       </div>
     }

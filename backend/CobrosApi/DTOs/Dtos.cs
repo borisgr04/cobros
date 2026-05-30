@@ -110,6 +110,9 @@ public class PrestamoDto
     public string FrecuenciaPago { get; set; } = string.Empty;
     public int CantidadCuotas { get; set; }
     public decimal ValorCuota { get; set; }
+    /// <summary>"activo" | "completado" | "cerrado_pronto_pago"</summary>
+    public string Estado { get; set; } = "activo";
+    public DateTime? FechaCierre { get; set; }
 }
 
 public class PrestamoInputDto
@@ -150,6 +153,11 @@ public class PagoDto
     public string PrestamoId { get; set; } = string.Empty;
     public decimal Valor { get; set; }
     public DateTime FechaPago { get; set; }
+    public bool Anulado { get; set; }
+    public DateTime? FechaAnulacion { get; set; }
+    public string? MotivoAnulacion { get; set; }
+    /// <summary>"regular" | "pronto_pago"</summary>
+    public string TipoPago { get; set; } = "regular";
 }
 
 public class PagoInputDto
@@ -162,6 +170,12 @@ public class PagoInputDto
 
     [Required]
     public DateTime FechaPago { get; set; }
+}
+
+public class AnularPagoInputDto
+{
+    [Required, MaxLength(500)]
+    public string Motivo { get; set; } = string.Empty;
 }
 
 // ─── CUOTA ─────────────────────────────────────────────────────────────────
@@ -250,11 +264,130 @@ public class ErrorDto
     public string Error { get; set; } = string.Empty;
 }
 
+// ─── WEBAUTHN ──────────────────────────────────────────────────────────────
+
+public class WebAuthnRegisterBeginRequestDto
+{
+    [MaxLength(200)]
+    public string? DeviceName { get; set; }
+}
+
+public class WebAuthnAttestationDataDto
+{
+    public string ClientDataJSON { get; set; } = string.Empty;
+    public string AttestationObject { get; set; } = string.Empty;
+}
+
+public class WebAuthnAttestationCredentialDto
+{
+    public string Id { get; set; } = string.Empty;
+    public string RawId { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty;
+    public WebAuthnAttestationDataDto Response { get; set; } = new();
+}
+
+public class WebAuthnAssertionDataDto
+{
+    public string ClientDataJSON { get; set; } = string.Empty;
+    public string AuthenticatorData { get; set; } = string.Empty;
+    public string Signature { get; set; } = string.Empty;
+    public string? UserHandle { get; set; }
+}
+
+public class WebAuthnAssertionCredentialDto
+{
+    public string Id { get; set; } = string.Empty;
+    public string RawId { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty;
+    public WebAuthnAssertionDataDto Response { get; set; } = new();
+}
+
+public class WebAuthnRegisterCompleteRequestDto
+{
+    [Required]
+    public WebAuthnAttestationCredentialDto AttestationResponse { get; set; } = new();
+
+    [MaxLength(200)]
+    public string? DeviceName { get; set; }
+}
+
+public class WebAuthnAuthBeginRequestDto
+{
+    public List<string> CredentialIds { get; set; } = [];
+
+    [MaxLength(200)]
+    public string? Email { get; set; }
+}
+
+public class WebAuthnAuthCompleteRequestDto
+{
+    [Required]
+    public WebAuthnAssertionCredentialDto AssertionResponse { get; set; } = new();
+}
+
+public class WebAuthnCredentialDto
+{
+    public string Id { get; set; } = string.Empty;
+    public string? DeviceName { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? LastUsedAt { get; set; }
+}
+
 public class TotalPagadoDto
 {
     public string PrestamoId { get; set; } = string.Empty;
     public decimal TotalPagado { get; set; }
 }
+
+// ─── PRONTO PAGO ───────────────────────────────────────────────────────────
+
+public class ProntoPagoInputDto
+{
+    [Required, Range(1, double.MaxValue)]
+    public decimal ValorNegociado { get; set; }
+
+    [MaxLength(1000)]
+    public string? Notas { get; set; }
+}
+
+public class ProntoPagoResumenDto
+{
+    public decimal SaldoPendiente { get; set; }
+    public int CuotasPendientes { get; set; }
+    public decimal InteresesFuturosEstimados { get; set; }
+    public decimal ValorSugerido { get; set; }
+}
+
+public class ProntoPagoResultadoDto
+{
+    public int NovedadId { get; set; }
+    public int PagoId { get; set; }
+    public decimal SaldoPendienteOriginal { get; set; }
+    public decimal InteresesFuturosEstimados { get; set; }
+    public decimal ValorNegociado { get; set; }
+    public decimal DescuentoAplicado { get; set; }
+    public DateTime FechaCierre { get; set; }
+}
+
+// ─── NOVEDAD PRÉSTAMO ──────────────────────────────────────────────────────
+
+public class NovedadPrestamoDto
+{
+    public int Id { get; set; }
+    public int PrestamoId { get; set; }
+    public string Tipo { get; set; } = string.Empty;
+    public DateTime FechaNovedad { get; set; }
+    public int UsuarioId { get; set; }
+    public string? UsuarioNombre { get; set; }
+    public string? UsuarioEmail { get; set; }
+    public decimal SaldoPendienteOriginal { get; set; }
+    public decimal InteresesFuturosEstimados { get; set; }
+    public decimal ValorNegociado { get; set; }
+    public decimal DescuentoAplicado { get; set; }
+    public int? PagoId { get; set; }
+    public string? Notas { get; set; }
+}
+
 
 // ─── CUOTA ─────────────────────────────────────────────────────────────────
 
@@ -265,7 +398,7 @@ public class CuotaDetalleDto
     public DateTime FechaEsperada { get; set; }
     public decimal ValorCuota { get; set; }
     public decimal SaldoPagado { get; set; }
-    public string Estado { get; set; } = string.Empty; // "pendiente" | "parcial" | "pagada"
+    public string Estado { get; set; } = string.Empty; // "pendiente" | "parcial" | "pagada" | "cerrada_pronto_pago"
 }
 
 public class AplicacionCuotaDto
@@ -273,4 +406,73 @@ public class AplicacionCuotaDto
     public int CuotaId { get; set; }
     public int NumeroCuota { get; set; }
     public decimal ValorAplicado { get; set; }
+}
+
+// ─── REPORTES ──────────────────────────────────────────────────────────────
+
+/// <summary>Detalle de un cliente dentro del recaudo de una zona.</summary>
+public class ReporteClienteRecaudoDto
+{
+    public string ClienteId { get; set; } = string.Empty;
+    public string ClienteNombre { get; set; } = string.Empty;
+    public string? ClienteAlias { get; set; }
+    public decimal MontoCobrado { get; set; }
+    public decimal MontoEsperado { get; set; }
+    public int PagosRealizados { get; set; }
+    public double PorcentajeCumplimiento { get; set; }
+}
+
+/// <summary>Recaudo de una zona con el detalle por cliente.</summary>
+public class ReporteRecaudoZonaDto
+{
+    public string ZonaId { get; set; } = string.Empty;
+    public string ZonaNombre { get; set; } = string.Empty;
+    public decimal MontoCobrado { get; set; }
+    public decimal MontoEsperado { get; set; }
+    public int PagosRealizados { get; set; }
+    public double PorcentajeCumplimiento { get; set; }
+    public List<ReporteClienteRecaudoDto> Clientes { get; set; } = [];
+}
+
+/// <summary>Préstamo nuevo (creado en el rango de fechas).</summary>
+public class ReportePrestamoNuevoDto
+{
+    public string PrestamoId { get; set; } = string.Empty;
+    public string ClienteId { get; set; } = string.Empty;
+    public string ClienteNombre { get; set; } = string.Empty;
+    public string ZonaId { get; set; } = string.Empty;
+    public string ZonaNombre { get; set; } = string.Empty;
+    public DateTime FechaPrestamo { get; set; }
+    public decimal ValorPrestado { get; set; }
+    public decimal ValorTotal { get; set; }
+    public string FrecuenciaPago { get; set; } = string.Empty;
+    public int CantidadCuotas { get; set; }
+    public decimal ValorCuota { get; set; }
+}
+
+/// <summary>Préstamo finalizado (su FechaFinal cae en el rango de fechas).</summary>
+public class ReportePrestamoFinalizadoDto
+{
+    public string PrestamoId { get; set; } = string.Empty;
+    public string ClienteId { get; set; } = string.Empty;
+    public string ClienteNombre { get; set; } = string.Empty;
+    public string ZonaId { get; set; } = string.Empty;
+    public string ZonaNombre { get; set; } = string.Empty;
+    public DateTime FechaPrestamo { get; set; }
+    public DateTime FechaFinal { get; set; }
+    public decimal ValorPrestado { get; set; }
+    public decimal ValorTotal { get; set; }
+    public decimal TotalPagado { get; set; }
+    /// <summary>"pagado_completo" | "vencido_sin_pagar"</summary>
+    public string EstadoFinalizacion { get; set; } = string.Empty;
+}
+
+/// <summary>Respuesta completa del endpoint GET /api/reportes.</summary>
+public class ReporteCompletoDto
+{
+    public DateTime FechaInicio { get; set; }
+    public DateTime FechaFin { get; set; }
+    public List<ReportePrestamoNuevoDto> PrestamosNuevos { get; set; } = [];
+    public List<ReportePrestamoFinalizadoDto> PrestamosFinalizados { get; set; } = [];
+    public List<ReporteRecaudoZonaDto> RecaudoPorZona { get; set; } = [];
 }

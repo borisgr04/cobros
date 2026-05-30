@@ -1,6 +1,7 @@
-import { Component, inject, signal, computed, Output, EventEmitter, HostListener } from '@angular/core';
+import { Component, inject, signal, computed, Output, EventEmitter, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { MonedaInputDirective } from '../../../../shared/directives';
 import { AbstractPrestamoService } from '../../../core/services/abstract-prestamo.service';
 import type { IPrestamo, ICliente, FrecuenciaPago } from '../../../core/models';
@@ -18,6 +19,8 @@ import type { IPrestamo, ICliente, FrecuenciaPago } from '../../../core/models';
 })
 export class RegistroPrestamoModalComponent {
   private prestamoService = inject(AbstractPrestamoService);
+  private sanitizer = inject(DomSanitizer);
+  @ViewChild('postPrestamoAcciones') postPrestamoAccionesRef?: ElementRef<HTMLElement>;
 
   // Outputs
   @Output() prestamoRegistrado = new EventEmitter<IPrestamo>();
@@ -53,6 +56,7 @@ export class RegistroPrestamoModalComponent {
   procesando = signal<boolean>(false);
   error = signal<string>('');
   exito = signal<boolean>(false);
+  prestamoCreado = signal<IPrestamo | null>(null);
 
   // Computed: Valor total derivado
   valorTotal = computed(() => this.valorPrestado() + this.valorInteres());
@@ -111,6 +115,32 @@ export class RegistroPrestamoModalComponent {
   // Fecha máxima para el date picker (hoy)
   fechaMaxima = new Date().toISOString().split('T')[0];
 
+  whatsappLink = computed((): SafeUrl | null => {
+    const cliente = this.clienteActual();
+    const prestamo = this.prestamoCreado();
+
+    if (!cliente?.telefono || !prestamo) return null;
+
+    const telefonoLimpio = cliente.telefono.replace(/\D/g, '');
+    if (!telefonoLimpio) return null;
+
+    const telefono = `57${telefonoLimpio}`;
+    const nombre = cliente.nombre ?? 'cliente';
+    const valorPrestamo = this.formatCurrency(prestamo.valorPrestado);
+    const totalPagar = this.formatCurrency(prestamo.valorTotal);
+    const cuota = this.formatCurrency(prestamo.valorCuota);
+    const fecha = this.formatDate(new Date(prestamo.fechaPrestamo));
+    const fechaFinal = this.formatDate(new Date(prestamo.fechaFinal));
+    const clave = cliente.llave || cliente.id;
+    const linkConsulta = clave
+      ? `\n\n🔗 Consultá tu saldo:\n${window.location.origin}/consulta/${clave}`
+      : '';
+
+    const msg = `✅ Hola ${nombre}, registramos tu préstamo de *${valorPrestamo}* (${fecha}).\nTotal a pagar: *${totalPagar}* en ${prestamo.cantidadCuotas} cuotas de ${cuota}, hasta ${fechaFinal}.${linkConsulta}\n\n¡Gracias por confiar en nosotros! 🙌`;
+    const url = `https://wa.me/${telefono}?text=${encodeURIComponent(msg)}`;
+    return this.sanitizer.bypassSecurityTrustUrl(url);
+  });
+
   // Opciones de frecuencia de pago
   frecuencias: Array<{ value: FrecuenciaPago; label: string; icon: string }> = [
     { value: 'diario', label: 'Diario', icon: 'bi-calendar-day' },
@@ -126,6 +156,8 @@ export class RegistroPrestamoModalComponent {
     this.clienteActual.set(cliente);
     this.visible.set(true);
     this.resetearFormulario();
+    // Asegurar que el overlay del modal sea visible independientemente del scroll actual
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
   }
 
   /**
@@ -187,12 +219,11 @@ export class RegistroPrestamoModalComponent {
 
     this.prestamoService.create(nuevoPrestamo as IPrestamo).subscribe({
       next: (prestamo) => {
+        this.procesando.set(false);
+        this.prestamoCreado.set(prestamo);
         this.exito.set(true);
         this.prestamoRegistrado.emit(prestamo);
-
-        setTimeout(() => {
-          this.cerrar();
-        }, 1500);
+        this.desplazarAHitoPostPrestamo();
       },
       error: (err) => {
         this.error.set('Error al registrar préstamo: ' + err.message);
@@ -219,6 +250,7 @@ export class RegistroPrestamoModalComponent {
       this.exito.set(false);
       this.procesando.set(false);
       this.error.set('');
+      this.prestamoCreado.set(null);
     }, 300);
   }
 
@@ -237,6 +269,7 @@ export class RegistroPrestamoModalComponent {
     this.valorCuota.set(0);
     this.frecuenciaPago.set('diario');
     this.error.set('');
+    this.prestamoCreado.set(null);
   }
 
   /**
@@ -256,5 +289,35 @@ export class RegistroPrestamoModalComponent {
    */
   formatDate(date: Date): string {
     return new Intl.DateTimeFormat('es-CO').format(date);
+  }
+
+  private desplazarAHitoPostPrestamo(): void {
+    if (!this.visible() || !this.exito()) return;
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const objetivo = this.postPrestamoAccionesRef?.nativeElement;
+        if (!objetivo || this.estaVisibleEnViewport(objetivo)) return;
+
+        objetivo.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest'
+        });
+      });
+    });
+  }
+
+  private estaVisibleEnViewport(elemento: HTMLElement): boolean {
+    const rect = elemento.getBoundingClientRect();
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+
+    return (
+      rect.top >= 0 &&
+      rect.left >= 0 &&
+      rect.bottom <= viewportHeight &&
+      rect.right <= viewportWidth
+    );
   }
 }

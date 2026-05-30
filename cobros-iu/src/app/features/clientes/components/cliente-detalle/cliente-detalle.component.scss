@@ -517,3 +517,34 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+// ==========================================
+// BOTÓN WHATSAPP (DETALLE)
+// ==========================================
+.btn-whatsapp-detalle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.9rem;
+  background: #E8F8F0;
+  color: #128C7E;
+  border: 2px solid #25D366;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+  flex-shrink: 0;
+  align-self: flex-start;
+
+  i { font-size: 1rem; }
+
+  &:hover {
+    background: #25D366;
+    border-color: #25D366;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+  }
+}

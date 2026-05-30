@@ -11,7 +11,10 @@ public class CobrosDbContext(DbContextOptions<CobrosDbContext> options) : DbCont
     public DbSet<Pago> Pagos => Set<Pago>();
     public DbSet<Cuota> Cuotas => Set<Cuota>();
     public DbSet<AplicacionCuota> AplicacionesCuota => Set<AplicacionCuota>();
+    public DbSet<NovedadPrestamo> NovedadesPrestamo => Set<NovedadPrestamo>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<WebAuthnCredential> WebAuthnCredentials => Set<WebAuthnCredential>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -48,6 +51,23 @@ public class CobrosDbContext(DbContextOptions<CobrosDbContext> options) : DbCont
             .HasIndex(a => a.PagoId);
         modelBuilder.Entity<AplicacionCuota>()
             .HasIndex(a => a.CuotaId);
+
+        // Índices para NovedadPrestamo
+        modelBuilder.Entity<NovedadPrestamo>()
+            .HasIndex(n => n.PrestamoId);
+        modelBuilder.Entity<NovedadPrestamo>()
+            .HasIndex(n => n.UsuarioId);
+
+        // Índice en UsuarioId y TokenHash de RefreshToken
+        modelBuilder.Entity<RefreshToken>()
+            .HasIndex(r => r.UsuarioId);
+        modelBuilder.Entity<RefreshToken>()
+            .HasIndex(r => r.TokenHash)
+            .IsUnique();
+
+        // Índice en UsuarioId de WebAuthnCredential
+        modelBuilder.Entity<WebAuthnCredential>()
+            .HasIndex(w => w.UsuarioId);
 
         // Seed: Zonas
         modelBuilder.Entity<Zona>().HasData(

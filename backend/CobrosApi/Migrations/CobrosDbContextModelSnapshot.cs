@@ -177,6 +177,11 @@ namespace CobrosApi.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
                     b.Property<DateTime>("FechaEsperada")
                         .HasColumnType("timestamp with time zone");
 
@@ -199,6 +204,58 @@ namespace CobrosApi.Migrations
                     b.ToTable("Cuotas");
                 });
 
+            modelBuilder.Entity("CobrosApi.Models.NovedadPrestamo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("DescuentoAplicado")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTime>("FechaNovedad")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("InteresesFuturosEstimados")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("Notas")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<int?>("PagoId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PrestamoId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("SaldoPendienteOriginal")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("ValorNegociado")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PagoId");
+
+                    b.HasIndex("PrestamoId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("NovedadesPrestamo");
+                });
+
             modelBuilder.Entity("CobrosApi.Models.Pago", b =>
                 {
                     b.Property<int>("Id")
@@ -207,11 +264,26 @@ namespace CobrosApi.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Anulado")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("FechaAnulacion")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("FechaPago")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("MotivoAnulacion")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<int>("PrestamoId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("TipoPago")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<decimal>("Valor")
                         .HasColumnType("numeric(18,2)");
@@ -226,57 +298,73 @@ namespace CobrosApi.Migrations
                         new
                         {
                             Id = 1,
+                            Anulado = false,
                             FechaPago = new DateTime(2024, 11, 22, 0, 0, 0, 0, DateTimeKind.Utc),
                             PrestamoId = 1,
+                            TipoPago = "regular",
                             Valor = 46154m
                         },
                         new
                         {
                             Id = 2,
+                            Anulado = false,
                             FechaPago = new DateTime(2024, 11, 29, 0, 0, 0, 0, DateTimeKind.Utc),
                             PrestamoId = 1,
+                            TipoPago = "regular",
                             Valor = 46154m
                         },
                         new
                         {
                             Id = 3,
+                            Anulado = false,
                             FechaPago = new DateTime(2024, 12, 6, 0, 0, 0, 0, DateTimeKind.Utc),
                             PrestamoId = 1,
+                            TipoPago = "regular",
                             Valor = 46154m
                         },
                         new
                         {
                             Id = 4,
+                            Anulado = false,
                             FechaPago = new DateTime(2024, 10, 15, 0, 0, 0, 0, DateTimeKind.Utc),
                             PrestamoId = 2,
+                            TipoPago = "regular",
                             Valor = 50000m
                         },
                         new
                         {
                             Id = 5,
+                            Anulado = false,
                             FechaPago = new DateTime(2024, 11, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             PrestamoId = 2,
+                            TipoPago = "regular",
                             Valor = 50000m
                         },
                         new
                         {
                             Id = 6,
+                            Anulado = false,
                             FechaPago = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             PrestamoId = 3,
+                            TipoPago = "regular",
                             Valor = 150000m
                         },
                         new
                         {
                             Id = 7,
+                            Anulado = false,
                             FechaPago = new DateTime(2025, 1, 17, 0, 0, 0, 0, DateTimeKind.Utc),
                             PrestamoId = 4,
+                            TipoPago = "regular",
                             Valor = 92308m
                         },
                         new
                         {
                             Id = 8,
+                            Anulado = false,
                             FechaPago = new DateTime(2025, 1, 24, 0, 0, 0, 0, DateTimeKind.Utc),
                             PrestamoId = 4,
+                            TipoPago = "regular",
                             Valor = 92308m
                         });
                 });
@@ -294,6 +382,14 @@ namespace CobrosApi.Migrations
 
                     b.Property<int>("ClienteId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<DateTime?>("FechaCierre")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("FechaFinal")
                         .HasColumnType("timestamp with time zone");
@@ -330,6 +426,7 @@ namespace CobrosApi.Migrations
                             Id = 1,
                             CantidadCuotas = 26,
                             ClienteId = 1,
+                            Estado = "activo",
                             FechaFinal = new DateTime(2025, 5, 15, 0, 0, 0, 0, DateTimeKind.Utc),
                             FechaPrestamo = new DateTime(2024, 11, 15, 0, 0, 0, 0, DateTimeKind.Utc),
                             FrecuenciaPago = "semanal",
@@ -343,6 +440,7 @@ namespace CobrosApi.Migrations
                             Id = 2,
                             CantidadCuotas = 12,
                             ClienteId = 2,
+                            Estado = "activo",
                             FechaFinal = new DateTime(2025, 4, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             FechaPrestamo = new DateTime(2024, 10, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             FrecuenciaPago = "quincenal",
@@ -356,6 +454,7 @@ namespace CobrosApi.Migrations
                             Id = 3,
                             CantidadCuotas = 6,
                             ClienteId = 3,
+                            Estado = "activo",
                             FechaFinal = new DateTime(2025, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             FechaPrestamo = new DateTime(2024, 12, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             FrecuenciaPago = "mensual",
@@ -369,6 +468,7 @@ namespace CobrosApi.Migrations
                             Id = 4,
                             CantidadCuotas = 26,
                             ClienteId = 4,
+                            Estado = "activo",
                             FechaFinal = new DateTime(2025, 7, 10, 0, 0, 0, 0, DateTimeKind.Utc),
                             FechaPrestamo = new DateTime(2025, 1, 10, 0, 0, 0, 0, DateTimeKind.Utc),
                             FrecuenciaPago = "semanal",
@@ -382,6 +482,7 @@ namespace CobrosApi.Migrations
                             Id = 5,
                             CantidadCuotas = 180,
                             ClienteId = 1,
+                            Estado = "activo",
                             FechaFinal = new DateTime(2025, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             FechaPrestamo = new DateTime(2025, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             FrecuenciaPago = "diario",
@@ -395,6 +496,7 @@ namespace CobrosApi.Migrations
                             Id = 6,
                             CantidadCuotas = 12,
                             ClienteId = 6,
+                            Estado = "activo",
                             FechaFinal = new DateTime(2025, 9, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             FechaPrestamo = new DateTime(2025, 3, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             FrecuenciaPago = "quincenal",
@@ -403,6 +505,43 @@ namespace CobrosApi.Migrations
                             ValorPrestado = 1500000m,
                             ValorTotal = 1800000m
                         });
+                });
+
+            modelBuilder.Entity("CobrosApi.Models.RefreshToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("Expires")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReplacedByTokenHash")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<bool>("Revoked")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("CobrosApi.Models.Usuario", b =>
@@ -441,6 +580,43 @@ namespace CobrosApi.Migrations
                         .IsUnique();
 
                     b.ToTable("Usuarios");
+                });
+
+            modelBuilder.Entity("CobrosApi.Models.WebAuthnCredential", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<byte[]>("CredentialId")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<string>("DeviceName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("LastUsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<byte[]>("PublicKey")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<long>("SignCount")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("WebAuthnCredentials");
                 });
 
             modelBuilder.Entity("CobrosApi.Models.Zona", b =>
@@ -527,6 +703,31 @@ namespace CobrosApi.Migrations
                     b.Navigation("Prestamo");
                 });
 
+            modelBuilder.Entity("CobrosApi.Models.NovedadPrestamo", b =>
+                {
+                    b.HasOne("CobrosApi.Models.Pago", "Pago")
+                        .WithMany()
+                        .HasForeignKey("PagoId");
+
+                    b.HasOne("CobrosApi.Models.Prestamo", "Prestamo")
+                        .WithMany("Novedades")
+                        .HasForeignKey("PrestamoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CobrosApi.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Pago");
+
+                    b.Navigation("Prestamo");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("CobrosApi.Models.Pago", b =>
                 {
                     b.HasOne("CobrosApi.Models.Prestamo", "Prestamo")
@@ -549,6 +750,28 @@ namespace CobrosApi.Migrations
                     b.Navigation("Cliente");
                 });
 
+            modelBuilder.Entity("CobrosApi.Models.RefreshToken", b =>
+                {
+                    b.HasOne("CobrosApi.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("CobrosApi.Models.WebAuthnCredential", b =>
+                {
+                    b.HasOne("CobrosApi.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("CobrosApi.Models.Cliente", b =>
                 {
                     b.Navigation("Prestamos");
@@ -567,6 +790,8 @@ namespace CobrosApi.Migrations
             modelBuilder.Entity("CobrosApi.Models.Prestamo", b =>
                 {
                     b.Navigation("Cuotas");
+
+                    b.Navigation("Novedades");
 
                     b.Navigation("Pagos");
                 });

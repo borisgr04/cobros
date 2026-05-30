@@ -1,4 +1,28 @@
 /* ============================================
+   APP LOADING SPINNER
+============================================ */
+.app-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: var(--surface-ground, #f8f9fa);
+}
+
+.app-loading__spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(0, 0, 0, 0.12);
+  border-top-color: var(--primary-color, #3b82f6);
+  border-radius: 50%;
+  animation: app-spin 0.75s linear infinite;
+}
+
+@keyframes app-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
    MAIN CONTENT AREA
 ============================================ */
 .main-content {
