@@ -394,6 +394,11 @@ public class NovedadPrestamoDto
     public DateTime? FechaFinalAnterior { get; set; }
     public DateTime? NuevaFechaFinal { get; set; }
     public int? CantidadCuotasNuevas { get; set; }
+
+    // Campos adicionales para "recoger_prestamo"
+    public int? PrestamoDestinoId { get; set; }
+    public decimal? SaldoTrasladado { get; set; }
+    public decimal? DineroAdicional { get; set; }
 }
 
 // ─── AMPLIACIÓN DE PLAZO ───────────────────────────────────────────────────
@@ -532,6 +537,10 @@ public class ReportePrestamoNuevoDto
     public decimal ValorCuota { get; set; }
     /// <summary>Id del préstamo origen si fue creado por recoger; null si es nuevo.</summary>
     public string? PrestamoOrigenId { get; set; }
+    /// <summary>Saldo pendiente trasladado desde el préstamo origen (sólo recoger_prestamo).</summary>
+    public decimal? SaldoTrasladado { get; set; }
+    /// <summary>Dinero adicional entregado al cliente (sólo recoger_prestamo).</summary>
+    public decimal? DineroAdicional { get; set; }
 }
 
 /// <summary>Préstamo finalizado (su FechaFinal cae en el rango de fechas).</summary>

@@ -130,6 +130,10 @@ export interface ReportePrestamoNuevo {
   valorCuota: number;
   /** Id del préstamo origen si fue creado por recoger; null si es préstamo nuevo. */
   prestamoOrigenId?: string | null;
+  /** Saldo pendiente trasladado desde el préstamo origen (sólo recoger_prestamo). */
+  saldoTrasladado?: number | null;
+  /** Dinero adicional entregado al cliente (sólo recoger_prestamo). */
+  dineroAdicional?: number | null;
 }
 
 /** Préstamo finalizado (su fechaFinal cae en el rango) */

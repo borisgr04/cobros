@@ -71,7 +71,8 @@ export class ReportesComponent implements OnInit {
   // ── Inicialización ────────────────────────────────────────────────────────
 
   private inicializarFechasReporte(): void {
-    const hoy = new Date().toISOString().substring(0, 10);
+    const now = new Date();
+    const hoy = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     this.fechaInicioReporte.set(hoy);
     this.fechaFinReporte.set(hoy);
   }
@@ -99,8 +100,8 @@ export class ReportesComponent implements OnInit {
     this.cargandoReporte.set(true);
     this.errorReporte.set(null);
 
-    const fechaInicio = new Date(inicio);
-    const fechaFin = new Date(fin);
+    const fechaInicio = new Date(inicio + 'T00:00:00');
+    const fechaFin = new Date(fin + 'T00:00:00');
     const zonaId = this.zonaFiltroReporte() || undefined;
 
     this.reporteService.getReporteCompleto(fechaInicio, fechaFin, zonaId).subscribe({

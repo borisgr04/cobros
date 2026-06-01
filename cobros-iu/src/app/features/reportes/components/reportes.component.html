@@ -136,6 +136,16 @@
                     <span class="dato-label"><i class="bi bi-cash"></i> Capital</span>
                     <span class="dato-valor monto">{{ formatearMoneda(p.valorPrestado) }}</span>
                   </div>
+                  @if (p.saldoTrasladado) {
+                    <div class="prestamo-dato recoger-info">
+                      <span class="dato-label"><i class="bi bi-arrow-left-right"></i> Saldo trasl.</span>
+                      <span class="dato-valor monto">{{ formatearMoneda(p.saldoTrasladado) }}</span>
+                    </div>
+                    <div class="prestamo-dato recoger-info">
+                      <span class="dato-label"><i class="bi bi-plus-circle"></i> Dinero nuevo</span>
+                      <span class="dato-valor monto">{{ formatearMoneda(p.dineroAdicional ?? 0) }}</span>
+                    </div>
+                  }
                   <div class="prestamo-dato">
                     <span class="dato-label"><i class="bi bi-percent"></i> Intereses</span>
                     <span class="dato-valor monto">{{ formatearMoneda(calcularIntereses(p)) }}</span>
@@ -183,7 +193,15 @@
                     </td>
                     <td><span class="zona-badge">{{ p.zonaNombre }}</span></td>
                     <td>{{ formatearFecha(p.fechaPrestamo) }}</td>
-                    <td class="monto">{{ formatearMoneda(p.valorPrestado) }}</td>
+                    <td class="monto">
+                      {{ formatearMoneda(p.valorPrestado) }}
+                      @if (p.saldoTrasladado) {
+                        <div class="recoger-breakdown">
+                          <span>Trasl: {{ formatearMoneda(p.saldoTrasladado) }}</span>
+                          <span>+Nuevo: {{ formatearMoneda(p.dineroAdicional ?? 0) }}</span>
+                        </div>
+                      }
+                    </td>
                     <td class="monto">{{ formatearMoneda(calcularIntereses(p)) }}</td>
                     <td class="monto">{{ formatearMoneda(p.valorTotal) }}</td>
                     <td>{{ p.frecuenciaPago }}</td>

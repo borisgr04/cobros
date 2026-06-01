@@ -32,15 +32,16 @@ public class ReportesController(CobrosDbContext db) : ControllerBase
         if (fechaFin < fechaInicio)
             return BadRequest(new ErrorDto { Error = "fechaFin debe ser mayor o igual a fechaInicio" });
 
-        // Normalizar a día completo
-        var inicio = fechaInicio.Date;
-        var fin = fechaFin.Date.AddDays(1).AddTicks(-1);
+        // Normalizar a rango local completo del día: inicio exacto enviado por el cliente
+        // (equivale a medianoche local Colombia) y fin exclusivo = +1 día
+        var inicio = fechaInicio;
+        var fin = fechaFin.AddDays(1);
 
         // ── Préstamos nuevos ─────────────────────────────────────────────────
         var qNuevos = db.Prestamos
             .AsNoTracking()
             .Include(p => p.Cliente).ThenInclude(c => c!.Zona)
-            .Where(p => p.FechaPrestamo >= inicio && p.FechaPrestamo <= fin);
+            .Where(p => p.FechaPrestamo >= inicio && p.FechaPrestamo < fin);
 
         if (zonaId.HasValue)
             qNuevos = qNuevos.Where(p => p.Cliente!.ZonaId == zonaId.Value);
@@ -60,7 +61,15 @@ public class ReportesController(CobrosDbContext db) : ControllerBase
                 FrecuenciaPago  = p.FrecuenciaPago,
                 CantidadCuotas  = p.CantidadCuotas,
                 ValorCuota      = p.ValorCuota,
-                PrestamoOrigenId = p.PrestamoOrigenId.HasValue ? p.PrestamoOrigenId.Value.ToString() : null
+                PrestamoOrigenId = p.PrestamoOrigenId.HasValue ? p.PrestamoOrigenId.Value.ToString() : null,
+                SaldoTrasladado  = db.NovedadesPrestamo
+                    .Where(n => n.PrestamoDestinoId == p.Id && n.Tipo == "recoger_prestamo")
+                    .Select(n => (decimal?)n.SaldoTrasladado)
+                    .FirstOrDefault(),
+                DineroAdicional  = db.NovedadesPrestamo
+                    .Where(n => n.PrestamoDestinoId == p.Id && n.Tipo == "recoger_prestamo")
+                    .Select(n => (decimal?)n.DineroAdicional)
+                    .FirstOrDefault()
             })
             .ToListAsync();
 
@@ -69,7 +78,7 @@ public class ReportesController(CobrosDbContext db) : ControllerBase
             .AsNoTracking()
             .Include(p => p.Pagos)
             .Include(p => p.Cliente).ThenInclude(c => c!.Zona)
-            .Where(p => p.FechaFinal >= inicio && p.FechaFinal <= fin);
+            .Where(p => p.FechaFinal >= inicio && p.FechaFinal < fin);
 
         if (zonaId.HasValue)
             qFinalizados = qFinalizados.Where(p => p.Cliente!.ZonaId == zonaId.Value);
@@ -109,7 +118,7 @@ public class ReportesController(CobrosDbContext db) : ControllerBase
         var pagosDelPeriodo = await db.Pagos
             .AsNoTracking()
             .Include(pg => pg.Prestamo).ThenInclude(p => p!.Cliente).ThenInclude(c => c!.Zona)
-            .Where(pg => pg.FechaPago >= inicio && pg.FechaPago <= fin
+            .Where(pg => pg.FechaPago >= inicio && pg.FechaPago < fin
                       && !pg.Anulado
                       && (!zonaId.HasValue || pg.Prestamo!.Cliente!.ZonaId == zonaId.Value))
             .ToListAsync();

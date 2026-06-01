@@ -437,7 +437,10 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
             NuevoSaldo                = n.NuevoSaldo,
             FechaFinalAnterior        = n.FechaFinalAnterior,
             NuevaFechaFinal           = n.NuevaFechaFinal,
-            CantidadCuotasNuevas      = n.CantidadCuotasNuevas
+            CantidadCuotasNuevas      = n.CantidadCuotasNuevas,
+            PrestamoDestinoId         = n.PrestamoDestinoId,
+            SaldoTrasladado           = n.SaldoTrasladado,
+            DineroAdicional           = n.DineroAdicional
         }));
     }
 
