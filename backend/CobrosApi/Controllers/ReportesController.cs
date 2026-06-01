@@ -87,12 +87,12 @@ public class ReportesController(CobrosDbContext db) : ControllerBase
                 FechaFinal     = p.FechaFinal,
                 ValorPrestado  = p.ValorPrestado,
                 ValorTotal     = p.ValorTotal,
-                TotalPagado    = p.Pagos.Sum(pg => pg.Valor),
+                TotalPagado    = p.Pagos.Where(pg => !pg.Anulado).Sum(pg => pg.Valor),
                 EstadoFinalizacion = p.Estado == "refinanciado"
                     ? "refinanciado"
                     : p.Estado == "cerrado_pronto_pago"
                         ? "pronto_pago"
-                        : p.Pagos.Sum(pg => pg.Valor) >= p.ValorTotal
+                        : p.Pagos.Where(pg => !pg.Anulado).Sum(pg => pg.Valor) >= p.ValorTotal
                             ? "pagado_completo"
                             : "vencido_sin_pagar"
             })
@@ -110,16 +110,18 @@ public class ReportesController(CobrosDbContext db) : ControllerBase
             .AsNoTracking()
             .Include(pg => pg.Prestamo).ThenInclude(p => p!.Cliente).ThenInclude(c => c!.Zona)
             .Where(pg => pg.FechaPago >= inicio && pg.FechaPago <= fin
+                      && !pg.Anulado
                       && (!zonaId.HasValue || pg.Prestamo!.Cliente!.ZonaId == zonaId.Value))
             .ToListAsync();
 
         // Préstamos activos en el período (para calcular monto esperado)
-        // Se excluyen préstamos "refinanciado" ya que fueron reemplazados por un nuevo préstamo
+        // Se excluyen préstamos cerrados (refinanciado, pronto pago) ya que no generan cobro pendiente
         var prestamosActivosEnPeriodo = await db.Prestamos
             .AsNoTracking()
             .Include(p => p.Cliente)
             .Where(p => p.FechaFinal >= inicio
                      && p.Estado != "refinanciado"
+                     && p.Estado != "cerrado_pronto_pago"
                      && (!zonaId.HasValue || p.Cliente!.ZonaId == zonaId.Value))
             .ToListAsync();
 

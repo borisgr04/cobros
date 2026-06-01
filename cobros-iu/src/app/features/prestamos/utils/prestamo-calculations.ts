@@ -97,7 +97,7 @@ export function calcularValorCuota(valorTotal: number, cantidadCuotas: number): 
  * Calcula el total pagado sumando todos los pagos
  */
 export function calcularTotalPagado(pagos: IPago[]): number {
-  return pagos.reduce((sum, pago) => sum + pago.valor, 0);
+  return pagos.filter(p => !p.anulado).reduce((sum, pago) => sum + pago.valor, 0);
 }
 
 /**

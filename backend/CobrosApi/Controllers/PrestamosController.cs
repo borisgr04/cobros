@@ -292,7 +292,7 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         if (prestamo is null)
             return NotFound(new ErrorDto { Error = $"Préstamo {id} no encontrado" });
 
-        if (prestamo.Estado == "cerrado_pronto_pago" || prestamo.Estado == "completado")
+        if (prestamo.Estado == "cerrado_pronto_pago" || prestamo.Estado == "completado" || prestamo.Estado == "refinanciado")
             return BadRequest(new ErrorDto { Error = "El préstamo ya se encuentra cerrado" });
 
         var totalPagado   = prestamo.Pagos.Where(p => !p.Anulado).Sum(p => p.Valor);
