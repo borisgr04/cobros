@@ -14,7 +14,7 @@ export interface CuotaDetalleDto {
   fechaEsperada: string;
   valorCuota: number;
   saldoPagado: number;
-  estado: 'pendiente' | 'parcial' | 'pagada' | 'cerrada_pronto_pago';
+  estado: 'pendiente' | 'parcial' | 'pagada' | 'cerrada_pronto_pago' | 'reemplazada_por_ampliacion';
 }
 
 /**
@@ -24,7 +24,7 @@ export interface CuotaProyectada {
   numero: number;
   fechaEsperada: Date;
   valorEsperado: number;
-  estado: 'pagada' | 'parcial' | 'pendiente' | 'cerrada_pronto_pago';
+  estado: 'pagada' | 'parcial' | 'pendiente' | 'cerrada_pronto_pago' | 'reemplazada_por_ampliacion';
   saldoPagado: number;
   fechaPago?: Date;
   valorPago?: number;

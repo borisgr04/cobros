@@ -11,7 +11,7 @@ export type { ICliente, IClienteConPrestamosActivos, IPrestamoConPagos, ICliente
 export type { IZona } from './zona.model';
 export type { IPrestamo } from './prestamo.model';
 export type { IPago } from './pago.model';
-export type { INovedadPrestamo, IProntoPagoResumen, IProntoPagoResultado } from './novedad-prestamo.model';
+export type { INovedadPrestamo, IProntoPagoResumen, IProntoPagoResultado, IAmpliacionPlazoResumen, IAmpliacionPlazoInput, IAmpliacionPlazoResultado } from './novedad-prestamo.model';
 
 // Re-exportación de tipos compartidos
 export type { Estado, FrecuenciaPago } from './types';

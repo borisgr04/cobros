@@ -6,12 +6,13 @@ import { PrestamoService, type PrestamoConCliente } from '../services';
 import { AbstractPrestamoService } from '../../core/services/abstract-prestamo.service';
 import { AbstractPagoService } from '../../core/services/abstract-pago.service';
 import type { CuotaProyectada } from '../utils/prestamo-calculations';
-import type { IPago, IPrestamo, INovedadPrestamo, IProntoPagoResultado } from '../../core/models';
+import type { IPago, IPrestamo, INovedadPrestamo, IProntoPagoResultado, IAmpliacionPlazoResultado } from '../../core/models';
 import { RegistroPagoModalComponent } from './registro-pago-modal/registro-pago-modal.component';
 import { EdicionPrestamoModalComponent } from './edicion-prestamo-modal/edicion-prestamo-modal.component';
 import { ConfirmacionEliminarPrestamoModalComponent } from './confirmacion-eliminar-prestamo-modal/confirmacion-eliminar-prestamo-modal.component';
 import { AnulacionPagoModalComponent } from './anulacion-pago-modal/anulacion-pago-modal.component';
 import { ProntoPagoModalComponent } from './pronto-pago-modal/pronto-pago-modal.component';
+import { AmpliacionPlazoModalComponent } from './ampliar-plazo-modal/ampliar-plazo-modal.component';
 
 /**
  * Componente de detalle de un préstamo individual
@@ -26,7 +27,8 @@ import { ProntoPagoModalComponent } from './pronto-pago-modal/pronto-pago-modal.
     EdicionPrestamoModalComponent,
     ConfirmacionEliminarPrestamoModalComponent,
     AnulacionPagoModalComponent,
-    ProntoPagoModalComponent
+    ProntoPagoModalComponent,
+    AmpliacionPlazoModalComponent
   ],
   templateUrl: './prestamo-detalle.component.html',
   styleUrl: './prestamo-detalle.component.scss',
@@ -53,6 +55,9 @@ export class PrestamoDetalleComponent implements OnInit {
 
   // ViewChild para acceder al modal de pronto pago
   modalProntoPago = viewChild(ProntoPagoModalComponent);
+
+  // ViewChild para acceder al modal de ampliación de plazo
+  modalAmpliacion = viewChild(AmpliacionPlazoModalComponent);
 
   // Signals de datos
   prestamo = signal<PrestamoConCliente | null>(null);
@@ -318,6 +323,26 @@ export class PrestamoDetalleComponent implements OnInit {
    * Maneja el resultado del pronto pago — recarga el préstamo y muestra novedades
    */
   onProntoPagoRealizado(_resultado: IProntoPagoResultado): void {
+    this.cargarPrestamo();
+    // Cambiar a la tab de novedades para ver el registro
+    this.tabActiva.set('novedades');
+  }
+
+  /**
+   * Abre el modal de ampliación de plazo
+   */
+  abrirModalAmpliacion(): void {
+    const modal = this.modalAmpliacion();
+    const prestamo = this.prestamo();
+    if (modal && prestamo) {
+      modal.abrir(prestamo);
+    }
+  }
+
+  /**
+   * Maneja el resultado de la ampliación de plazo — recarga el préstamo y muestra novedades
+   */
+  onAmpliacionRealizada(_resultado: IAmpliacionPlazoResultado): void {
     this.cargarPrestamo();
     // Cambiar a la tab de novedades para ver el registro
     this.tabActiva.set('novedades');

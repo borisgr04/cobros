@@ -430,8 +430,182 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
             ValorNegociado            = n.ValorNegociado,
             DescuentoAplicado         = n.DescuentoAplicado,
             PagoId                    = n.PagoId,
-            Notas                     = n.Notas
+            Notas                     = n.Notas,
+            InteresAdicional          = n.InteresAdicional,
+            NuevoSaldo                = n.NuevoSaldo,
+            FechaFinalAnterior        = n.FechaFinalAnterior,
+            NuevaFechaFinal           = n.NuevaFechaFinal,
+            CantidadCuotasNuevas      = n.CantidadCuotasNuevas
         }));
+    }
+
+    // GET /api/prestamos/{id}/resumen-ampliacion
+    [HttpGet("{id:int}/resumen-ampliacion")]
+    [ProducesResponseType(typeof(AmpliacionPlazoResumenDto), 200)]
+    [ProducesResponseType(typeof(ErrorDto), 404)]
+    [ProducesResponseType(typeof(ErrorDto), 400)]
+    public async Task<IActionResult> GetResumenAmpliacion(int id)
+    {
+        var prestamo = await db.Prestamos
+            .AsNoTracking()
+            .Include(p => p.Pagos)
+            .Include(p => p.Cuotas)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (prestamo is null)
+            return NotFound(new ErrorDto { Error = $"Préstamo {id} no encontrado" });
+
+        if (prestamo.Estado == "cerrado_pronto_pago" || prestamo.Estado == "completado")
+            return BadRequest(new ErrorDto { Error = "El préstamo ya se encuentra cerrado" });
+
+        var totalPagado    = prestamo.Pagos.Where(p => !p.Anulado).Sum(p => p.Valor);
+        var saldoPendiente = prestamo.ValorTotal - totalPagado;
+
+        if (saldoPendiente <= 0)
+            return BadRequest(new ErrorDto { Error = "El préstamo no tiene saldo pendiente" });
+
+        var cuotasPendientes = prestamo.Cuotas.Count(c =>
+            c.Estado != "pagada" &&
+            c.Estado != "cerrada_pronto_pago" &&
+            c.Estado != "reemplazada_por_ampliacion" &&
+            c.SaldoPagado < c.ValorCuota);
+
+        if (cuotasPendientes == 0)
+            return BadRequest(new ErrorDto { Error = "No hay cuotas pendientes para ampliar el plazo" });
+
+        return Ok(new AmpliacionPlazoResumenDto
+        {
+            SaldoPendiente   = saldoPendiente,
+            CuotasPendientes = cuotasPendientes,
+            FechaFinalActual = prestamo.FechaFinal,
+            FrecuenciaPago   = prestamo.FrecuenciaPago
+        });
+    }
+
+    // POST /api/prestamos/{id}/ampliar-plazo
+    [HttpPost("{id:int}/ampliar-plazo")]
+    [ProducesResponseType(typeof(AmpliacionPlazoResultadoDto), 200)]
+    [ProducesResponseType(typeof(ErrorDto), 400)]
+    [ProducesResponseType(typeof(ErrorDto), 404)]
+    public async Task<IActionResult> EjecutarAmpliacionPlazo(int id, [FromBody] AmpliacionPlazoInputDto input)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(new ErrorDto { Error = "Datos inválidos" });
+
+        var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
+                 ?? User.FindFirst("email")?.Value;
+        var usuario = email is not null
+            ? await db.Usuarios.FirstOrDefaultAsync(u => u.Email == email)
+            : null;
+        if (usuario is null)
+            return BadRequest(new ErrorDto { Error = "Usuario autenticado no encontrado en el sistema" });
+
+        var prestamo = await db.Prestamos
+            .Include(p => p.Pagos)
+            .Include(p => p.Cuotas)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (prestamo is null)
+            return NotFound(new ErrorDto { Error = $"Préstamo {id} no encontrado" });
+
+        if (prestamo.Estado == "cerrado_pronto_pago" || prestamo.Estado == "completado")
+            return BadRequest(new ErrorDto { Error = "El préstamo ya se encuentra cerrado" });
+
+        var totalPagado    = prestamo.Pagos.Where(p => !p.Anulado).Sum(p => p.Valor);
+        var saldoPendiente = prestamo.ValorTotal - totalPagado;
+
+        if (saldoPendiente <= 0)
+            return BadRequest(new ErrorDto { Error = "El préstamo no tiene saldo pendiente" });
+
+        if (input.InteresAdicional < 0)
+            return BadRequest(new ErrorDto { Error = "El interés adicional no puede ser negativo" });
+
+        var cuotasPendientesList = prestamo.Cuotas
+            .Where(c =>
+                c.Estado != "pagada" &&
+                c.Estado != "cerrada_pronto_pago" &&
+                c.Estado != "reemplazada_por_ampliacion" &&
+                c.SaldoPagado < c.ValorCuota)
+            .OrderBy(c => c.NumeroCuota)
+            .ToList();
+
+        if (cuotasPendientesList.Count == 0)
+            return BadRequest(new ErrorDto { Error = "No hay cuotas pendientes para ampliar el plazo" });
+
+        var nuevoSaldo         = saldoPendiente + input.InteresAdicional;
+        var valorCuota         = Math.Round(nuevoSaldo / input.CantidadCuotasNuevas, 2);
+        var fechaFinalAnterior = prestamo.FechaFinal;
+        var nuevaFechaFinal    = CalcularFechaCuota(input.FechaInicio, input.FrecuenciaNueva, input.CantidadCuotasNuevas);
+        var ahora              = DateTime.UtcNow;
+
+        using var tx = db.Database.IsInMemory()
+            ? null
+            : await db.Database.BeginTransactionAsync();
+
+        // Marcar cuotas pendientes como reemplazadas
+        foreach (var cuota in cuotasPendientesList)
+        {
+            cuota.Estado = "reemplazada_por_ampliacion";
+        }
+
+        // Determinar el siguiente número de cuota
+        var maxNumeroCuota = prestamo.Cuotas.Max(c => c.NumeroCuota);
+
+        // Generar nuevas cuotas
+        var nuevasCuotas = Enumerable.Range(1, input.CantidadCuotasNuevas).Select(i => new Cuota
+        {
+            PrestamoId    = prestamo.Id,
+            NumeroCuota   = maxNumeroCuota + i,
+            FechaEsperada = CalcularFechaCuota(input.FechaInicio, input.FrecuenciaNueva, i),
+            ValorCuota    = (i == input.CantidadCuotasNuevas)
+                                ? nuevoSaldo - (input.CantidadCuotasNuevas - 1) * valorCuota
+                                : valorCuota,
+            SaldoPagado   = 0
+        });
+        db.Cuotas.AddRange(nuevasCuotas);
+
+        // Actualizar el préstamo
+        prestamo.FechaFinal        = nuevaFechaFinal;
+        prestamo.ValorTotal        = totalPagado + nuevoSaldo;
+        prestamo.InteresProyectado = prestamo.InteresProyectado + input.InteresAdicional;
+        prestamo.CantidadCuotas    = prestamo.CantidadCuotas + input.CantidadCuotasNuevas;
+        prestamo.ValorCuota        = valorCuota;
+        prestamo.FrecuenciaPago    = input.FrecuenciaNueva;
+
+        // Registrar la novedad de auditoría
+        var novedad = new NovedadPrestamo
+        {
+            PrestamoId                = prestamo.Id,
+            Tipo                      = "ampliacion_plazo",
+            FechaNovedad              = ahora,
+            UsuarioId                 = usuario.Id,
+            SaldoPendienteOriginal    = saldoPendiente,
+            InteresesFuturosEstimados = 0,
+            ValorNegociado            = nuevoSaldo,
+            DescuentoAplicado         = 0,
+            Notas                     = input.Observacion,
+            InteresAdicional          = input.InteresAdicional,
+            NuevoSaldo                = nuevoSaldo,
+            FechaFinalAnterior        = fechaFinalAnterior,
+            NuevaFechaFinal           = nuevaFechaFinal,
+            CantidadCuotasNuevas      = input.CantidadCuotasNuevas
+        };
+        db.NovedadesPrestamo.Add(novedad);
+
+        await db.SaveChangesAsync();
+        if (tx is not null) await tx.CommitAsync();
+
+        return Ok(new AmpliacionPlazoResultadoDto
+        {
+            NovedadId              = novedad.Id,
+            SaldoPendienteAnterior = saldoPendiente,
+            InteresAdicional       = input.InteresAdicional,
+            NuevoSaldo             = nuevoSaldo,
+            ValorCuota             = valorCuota,
+            FechaFinalAnterior     = fechaFinalAnterior,
+            NuevaFechaFinal        = nuevaFechaFinal,
+            CantidadCuotasNuevas   = input.CantidadCuotasNuevas
+        });
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
@@ -444,10 +618,11 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         ValorCuota    = c.ValorCuota,
         SaldoPagado   = c.SaldoPagado,
         // Prefer explicit Estado if it was set; fall back to computed value for legacy rows
-        Estado        = c.Estado == "cerrada_pronto_pago" ? "cerrada_pronto_pago"
-                      : c.SaldoPagado >= c.ValorCuota     ? "pagada"
-                      : c.SaldoPagado > 0                 ? "parcial"
-                      :                                     "pendiente"
+        Estado        = c.Estado == "cerrada_pronto_pago"         ? "cerrada_pronto_pago"
+                      : c.Estado == "reemplazada_por_ampliacion"  ? "reemplazada_por_ampliacion"
+                      : c.SaldoPagado >= c.ValorCuota             ? "pagada"
+                      : c.SaldoPagado > 0                         ? "parcial"
+                      :                                             "pendiente"
     };
 
     // Fallback para préstamos anteriores al cambio (sin registros en tabla Cuota)

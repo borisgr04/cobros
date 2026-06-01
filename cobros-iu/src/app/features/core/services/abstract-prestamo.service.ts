@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs';
 import type { IPrestamo } from '../models';
-import type { INovedadPrestamo, IProntoPagoResumen, IProntoPagoResultado } from '../models';
+import type { INovedadPrestamo, IProntoPagoResumen, IProntoPagoResultado, IAmpliacionPlazoResumen, IAmpliacionPlazoInput, IAmpliacionPlazoResultado } from '../models';
 
 export abstract class AbstractPrestamoService {
   abstract getAll(): Observable<IPrestamo[]>;
@@ -14,4 +14,6 @@ export abstract class AbstractPrestamoService {
   abstract getResumenProntoPago(id: string): Observable<IProntoPagoResumen>;
   abstract ejecutarProntoPago(id: string, input: { valorNegociado: number; notas?: string }): Observable<IProntoPagoResultado>;
   abstract getNovedades(id: string): Observable<INovedadPrestamo[]>;
+  abstract getResumenAmpliacion(id: string): Observable<IAmpliacionPlazoResumen>;
+  abstract ejecutarAmpliacion(id: string, input: IAmpliacionPlazoInput): Observable<IAmpliacionPlazoResultado>;
 }
