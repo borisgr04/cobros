@@ -648,13 +648,19 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         return cuotas;
     }
 
-    private static DateTime CalcularFechaCuota(DateTime fechaInicio, string frecuencia, int numeroCuota) =>
-        frecuencia switch
+    private static DateTime CalcularFechaCuota(DateTime fechaInicio, string frecuencia, int numeroCuota)
+    {
+        // PostgreSQL timestamp with time zone requiere Kind=Utc
+        var base_ = fechaInicio.Kind == DateTimeKind.Utc
+            ? fechaInicio
+            : DateTime.SpecifyKind(fechaInicio, DateTimeKind.Utc);
+        return frecuencia switch
         {
-            "diario"    => fechaInicio.AddDays(numeroCuota),
-            "semanal"   => fechaInicio.AddDays(numeroCuota * 7),
-            "quincenal" => fechaInicio.AddDays(numeroCuota * 15),
-            "mensual"   => fechaInicio.AddMonths(numeroCuota),
-            _           => fechaInicio.AddDays(numeroCuota * 7)
+            "diario"    => base_.AddDays(numeroCuota),
+            "semanal"   => base_.AddDays(numeroCuota * 7),
+            "quincenal" => base_.AddDays(numeroCuota * 15),
+            "mensual"   => base_.AddMonths(numeroCuota),
+            _           => base_.AddDays(numeroCuota * 7)
         };
+    }
 }

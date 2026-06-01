@@ -137,7 +137,16 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 });
 app.UseSwagger();
 app.UseSwaggerUI(opts => opts.SwaggerEndpoint("/swagger/v1/swagger.json", "CobrosApi v1"));
+// CORS debe ir antes del manejo de excepciones para que los headers
+// se incluyan incluso cuando el servidor responde con un error 5xx
 app.UseCors("CobrosPolicy");
+app.UseExceptionHandler(errApp =>
+    errApp.Run(async ctx =>
+    {
+        ctx.Response.StatusCode  = 500;
+        ctx.Response.ContentType = "application/json";
+        await ctx.Response.WriteAsync("{\"error\":\"Error interno del servidor\"}");
+    }));
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
