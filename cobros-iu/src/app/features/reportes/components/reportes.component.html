@@ -237,20 +237,40 @@
                 {{ contarEstado(prestamosFinalizados(), 'vencido_sin_pagar') }}
               </span>
             </div>
+            <div class="total-item estado-refinanciado">
+              <span class="total-label">Recogidos</span>
+              <span class="total-valor">
+                {{ contarEstado(prestamosFinalizados(), 'refinanciado') }}
+              </span>
+            </div>
+            <div class="total-item estado-pronto-pago">
+              <span class="total-label">Pronto Pago</span>
+              <span class="total-valor">
+                {{ contarEstado(prestamosFinalizados(), 'pronto_pago') }}
+              </span>
+            </div>
           </div>
 
           <!-- Vista de TARJETAS (móvil) -->
           <div class="prestamos-cards-list mobile-only">
             @for (p of prestamosFinalizados(); track p.prestamoId) {
               <div class="prestamo-card" [class.prestamo-card-ok]="p.estadoFinalizacion === 'pagado_completo'"
-                                         [class.prestamo-card-vencido]="p.estadoFinalizacion === 'vencido_sin_pagar'">
+                                         [class.prestamo-card-vencido]="p.estadoFinalizacion === 'vencido_sin_pagar'"
+                                         [class.prestamo-card-refinanciado]="p.estadoFinalizacion === 'refinanciado'"
+                                         [class.prestamo-card-pronto-pago]="p.estadoFinalizacion === 'pronto_pago'">
                 <div class="prestamo-card-header">
                   <strong class="prestamo-cliente">{{ p.clienteNombre }}</strong>
                   <span class="estado-chip"
                         [class.chip-ok]="p.estadoFinalizacion === 'pagado_completo'"
-                        [class.chip-vencido]="p.estadoFinalizacion === 'vencido_sin_pagar'">
+                        [class.chip-vencido]="p.estadoFinalizacion === 'vencido_sin_pagar'"
+                        [class.chip-refinanciado]="p.estadoFinalizacion === 'refinanciado'"
+                        [class.chip-pronto-pago]="p.estadoFinalizacion === 'pronto_pago'">
                     @if (p.estadoFinalizacion === 'pagado_completo') {
                       <i class="bi bi-check-circle-fill"></i> Pagado
+                    } @else if (p.estadoFinalizacion === 'refinanciado') {
+                      <i class="bi bi-arrow-repeat"></i> Recogido
+                    } @else if (p.estadoFinalizacion === 'pronto_pago') {
+                      <i class="bi bi-lightning-charge-fill"></i> Pronto Pago
                     } @else {
                       <i class="bi bi-x-circle-fill"></i> Vencido
                     }
@@ -313,9 +333,15 @@
                     <td>
                       <span class="estado-chip"
                             [class.chip-ok]="p.estadoFinalizacion === 'pagado_completo'"
-                            [class.chip-vencido]="p.estadoFinalizacion === 'vencido_sin_pagar'">
+                            [class.chip-vencido]="p.estadoFinalizacion === 'vencido_sin_pagar'"
+                            [class.chip-refinanciado]="p.estadoFinalizacion === 'refinanciado'"
+                            [class.chip-pronto-pago]="p.estadoFinalizacion === 'pronto_pago'">
                         @if (p.estadoFinalizacion === 'pagado_completo') {
                           <i class="bi bi-check-circle-fill"></i> Pagado
+                        } @else if (p.estadoFinalizacion === 'refinanciado') {
+                          <i class="bi bi-arrow-repeat"></i> Recogido
+                        } @else if (p.estadoFinalizacion === 'pronto_pago') {
+                          <i class="bi bi-lightning-charge-fill"></i> Pronto Pago
                         } @else {
                           <i class="bi bi-x-circle-fill"></i> Vencido
                         }

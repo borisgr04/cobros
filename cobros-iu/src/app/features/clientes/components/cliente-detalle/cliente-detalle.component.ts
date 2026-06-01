@@ -113,7 +113,11 @@ export class ClienteDetalleComponent implements OnInit {
     if (!c) return;
 
     const zona = this.getNombreZona(c.zonaId);
-    const prestamosActivos = this.prestamos().filter(p => p.estadisticas?.estado !== 'completado');
+    const prestamosActivos = this.prestamos().filter(
+      p => p.estadisticas?.estado !== 'completado' &&
+           p.estadisticas?.estado !== 'refinanciado' &&
+           p.estadisticas?.estado !== 'cerrado_pronto_pago'
+    );
     const saldoTotal = prestamosActivos.reduce((sum, p) => sum + (p.estadisticas?.totalPorCobrar || 0), 0);
 
     let texto = `👤 *Cliente: ${c.nombre}*\n`;

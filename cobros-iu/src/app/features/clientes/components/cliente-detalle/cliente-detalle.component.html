@@ -136,6 +136,12 @@
                       @case ('completado') {
                         <span class="badge-estado completado"><i class="bi bi-check-circle-fill"></i> Pagado</span>
                       }
+                      @case ('refinanciado') {
+                        <span class="badge-estado refinanciado"><i class="bi bi-arrow-repeat"></i> Recogido</span>
+                      }
+                      @case ('cerrado_pronto_pago') {
+                        <span class="badge-estado completado"><i class="bi bi-check-circle-fill"></i> Pronto pago</span>
+                      }
                     }
                     <span class="badge-freq">{{ getTextoFrecuencia(prestamo.frecuenciaPago) }}</span>
                   </div>
@@ -179,7 +185,9 @@
                     <i class="bi bi-eye"></i>
                     <span>Ver Detalle</span>
                   </button>
-                  @if (prestamo.estadisticas?.estado !== 'completado') {
+                  @if (prestamo.estadisticas?.estado !== 'completado' &&
+                       prestamo.estadisticas?.estado !== 'refinanciado' &&
+                       prestamo.estadisticas?.estado !== 'cerrado_pronto_pago') {
                     <button
                       class="btn-pagar"
                       (click)="abrirPago(prestamo)"

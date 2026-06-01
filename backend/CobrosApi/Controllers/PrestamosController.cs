@@ -44,11 +44,11 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<PrestamoDto>), 200)]
     public async Task<IActionResult> GetActivos()
     {
-        // Activo = préstamo no cerrado por pronto pago Y suma de pagos < valorTotal
+        // Activo = préstamo con estado activo (mora/vencido son estados derivados del frontend)
         var prestamos = await db.Prestamos
             .AsNoTracking()
             .Include(p => p.Pagos)
-            .Where(p => p.Estado != "cerrado_pronto_pago")
+            .Where(p => p.Estado == "activo")
             .ToListAsync();
 
         var activos = prestamos.Where(p => p.Pagos.Where(pg => !pg.Anulado).Sum(pg => pg.Valor) < p.ValorTotal);
@@ -384,6 +384,7 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         // Cerrar el préstamo
         prestamo.Estado      = "cerrado_pronto_pago";
         prestamo.FechaCierre = fechaCierre;
+        prestamo.FechaFinal  = fechaCierre.Date;
 
         await db.SaveChangesAsync();
         if (tx is not null) await tx.CommitAsync();

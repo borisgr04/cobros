@@ -93,9 +93,9 @@ public class PagosController(CobrosDbContext db) : ControllerBase
         if (!prestamo)
             return BadRequest(new ErrorDto { Error = $"Préstamo {input.PrestamoId} no existe" });
 
-        // Rechazar préstamos cerrados por pronto pago
+        // Rechazar préstamos cerrados
         var prestamoEnt = await db.Prestamos.AsNoTracking().FirstAsync(p => p.Id == prestamoId);
-        if (prestamoEnt.Estado == "cerrado_pronto_pago" || prestamoEnt.Estado == "completado")
+        if (prestamoEnt.Estado == "cerrado_pronto_pago" || prestamoEnt.Estado == "completado" || prestamoEnt.Estado == "refinanciado")
             return BadRequest(new ErrorDto { Error = "No se pueden registrar pagos en un préstamo cerrado" });
 
         // Cargar cuotas no completamente pagadas, ordenadas por NumeroCuota

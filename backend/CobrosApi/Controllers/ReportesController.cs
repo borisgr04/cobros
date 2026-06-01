@@ -49,17 +49,18 @@ public class ReportesController(CobrosDbContext db) : ControllerBase
             .OrderBy(p => p.FechaPrestamo)
             .Select(p => new ReportePrestamoNuevoDto
             {
-                PrestamoId    = p.Id.ToString(),
-                ClienteId     = p.ClienteId.ToString(),
-                ClienteNombre = p.Cliente!.Nombre,
-                ZonaId        = p.Cliente.ZonaId.ToString(),
-                ZonaNombre    = p.Cliente.Zona!.Nombre,
-                FechaPrestamo = p.FechaPrestamo,
-                ValorPrestado = p.ValorPrestado,
-                ValorTotal    = p.ValorTotal,
-                FrecuenciaPago = p.FrecuenciaPago,
-                CantidadCuotas = p.CantidadCuotas,
-                ValorCuota    = p.ValorCuota
+                PrestamoId      = p.Id.ToString(),
+                ClienteId       = p.ClienteId.ToString(),
+                ClienteNombre   = p.Cliente!.Nombre,
+                ZonaId          = p.Cliente.ZonaId.ToString(),
+                ZonaNombre      = p.Cliente.Zona!.Nombre,
+                FechaPrestamo   = p.FechaPrestamo,
+                ValorPrestado   = p.ValorPrestado,
+                ValorTotal      = p.ValorTotal,
+                FrecuenciaPago  = p.FrecuenciaPago,
+                CantidadCuotas  = p.CantidadCuotas,
+                ValorCuota      = p.ValorCuota,
+                PrestamoOrigenId = p.PrestamoOrigenId.HasValue ? p.PrestamoOrigenId.Value.ToString() : null
             })
             .ToListAsync();
 
@@ -87,9 +88,13 @@ public class ReportesController(CobrosDbContext db) : ControllerBase
                 ValorPrestado  = p.ValorPrestado,
                 ValorTotal     = p.ValorTotal,
                 TotalPagado    = p.Pagos.Sum(pg => pg.Valor),
-                EstadoFinalizacion = p.Pagos.Sum(pg => pg.Valor) >= p.ValorTotal
-                    ? "pagado_completo"
-                    : "vencido_sin_pagar"
+                EstadoFinalizacion = p.Estado == "refinanciado"
+                    ? "refinanciado"
+                    : p.Estado == "cerrado_pronto_pago"
+                        ? "pronto_pago"
+                        : p.Pagos.Sum(pg => pg.Valor) >= p.ValorTotal
+                            ? "pagado_completo"
+                            : "vencido_sin_pagar"
             })
             .ToListAsync();
 

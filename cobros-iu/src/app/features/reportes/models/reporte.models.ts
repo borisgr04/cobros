@@ -128,6 +128,8 @@ export interface ReportePrestamoNuevo {
   frecuenciaPago: string;
   cantidadCuotas: number;
   valorCuota: number;
+  /** Id del préstamo origen si fue creado por recoger; null si es préstamo nuevo. */
+  prestamoOrigenId?: string | null;
 }
 
 /** Préstamo finalizado (su fechaFinal cae en el rango) */
@@ -142,7 +144,7 @@ export interface ReportePrestamoFinalizado {
   valorPrestado: number;
   valorTotal: number;
   totalPagado: number;
-  /** 'pagado_completo' | 'vencido_sin_pagar' */
+  /** 'pagado_completo' | 'vencido_sin_pagar' | 'refinanciado' | 'pronto_pago' */
   estadoFinalizacion: string;
 }
 

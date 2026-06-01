@@ -1,9 +1,10 @@
 import {
-  Component, inject, signal, computed,
+  Component, inject, signal, computed, effect, untracked,
   Output, EventEmitter, HostListener
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MonedaInputDirective } from '../../../../shared/directives/moneda-input.directive';
 import { AbstractPrestamoService } from '../../../core/services/abstract-prestamo.service';
 import type { IProntoPagoResumen, IProntoPagoResultado } from '../../../core/models';
 import type { PrestamoConCliente } from '../../services/prestamo.service';
@@ -19,7 +20,7 @@ type Paso = 'resumen' | 'confirmacion' | 'resultado';
 @Component({
   selector: 'app-pronto-pago-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MonedaInputDirective],
   templateUrl: './pronto-pago-modal.component.html',
   styleUrl: './pronto-pago-modal.component.scss',
 })
@@ -42,6 +43,17 @@ export class ProntoPagoModalComponent {
 
   valorNegociado  = signal(0);
   notas           = signal('');
+
+  constructor() {
+    // Clamp valorNegociado to saldoPendiente when user types more than available
+    effect(() => {
+      const r = this.resumen();
+      const v = this.valorNegociado();
+      if (r && v > r.saldoPendiente) {
+        untracked(() => this.valorNegociado.set(r.saldoPendiente));
+      }
+    });
+  }
 
   // ─── Computados ───────────────────────────────────────────────────────────
   descuento = computed(() => {

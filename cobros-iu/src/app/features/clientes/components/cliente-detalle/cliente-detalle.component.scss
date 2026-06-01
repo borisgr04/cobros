@@ -385,6 +385,7 @@
   &.mora      { background: #FFF8E1; color: var(--warning-color); }
   &.vencido   { background: #FFEBEE; color: var(--danger-color); }
   &.completado { background: #E3F2FD; color: #1565C0; }
+  &.refinanciado { background: #F3E5F5; color: #6A1B9A; }
 }
 
 .badge-freq {

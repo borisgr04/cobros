@@ -530,6 +530,8 @@ public class ReportePrestamoNuevoDto
     public string FrecuenciaPago { get; set; } = string.Empty;
     public int CantidadCuotas { get; set; }
     public decimal ValorCuota { get; set; }
+    /// <summary>Id del préstamo origen si fue creado por recoger; null si es nuevo.</summary>
+    public string? PrestamoOrigenId { get; set; }
 }
 
 /// <summary>Préstamo finalizado (su FechaFinal cae en el rango de fechas).</summary>
@@ -545,7 +547,7 @@ public class ReportePrestamoFinalizadoDto
     public decimal ValorPrestado { get; set; }
     public decimal ValorTotal { get; set; }
     public decimal TotalPagado { get; set; }
-    /// <summary>"pagado_completo" | "vencido_sin_pagar"</summary>
+    /// <summary>"pagado_completo" | "vencido_sin_pagar" | "refinanciado" | "pronto_pago"</summary>
     public string EstadoFinalizacion { get; set; } = string.Empty;
 }
 

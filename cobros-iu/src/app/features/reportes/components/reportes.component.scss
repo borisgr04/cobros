@@ -1005,6 +1005,8 @@ app-page-header {
 
   &.estado-ok .total-valor { color: #16a34a; }
   &.estado-vencido .total-valor { color: #dc2626; }
+  &.estado-refinanciado .total-valor { color: #6A1B9A; }
+  &.estado-pronto-pago .total-valor { color: #0077B6; }
 }
 
 .total-label {
@@ -1089,6 +1091,16 @@ app-page-header {
   &.chip-vencido {
     background: #fee2e2;
     color: #b91c1c;
+  }
+
+  &.chip-refinanciado {
+    background: #F3E5F5;
+    color: #6A1B9A;
+  }
+
+  &.chip-pronto-pago {
+    background: #E1F5FE;
+    color: #0077B6;
   }
 }
 
@@ -1307,6 +1319,8 @@ app-page-header {
 
   &.prestamo-card-ok     { border-left-color: #16a34a; }
   &.prestamo-card-vencido { border-left-color: var(--danger-color, #FF5252); }
+  &.prestamo-card-refinanciado { border-left-color: #6A1B9A; }
+  &.prestamo-card-pronto-pago  { border-left-color: #0077B6; }
 }
 
 .prestamo-card-header {

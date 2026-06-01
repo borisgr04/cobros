@@ -147,7 +147,7 @@ public class ClientesController(CobrosDbContext db) : ControllerBase
             return NotFound(new ErrorDto { Error = $"Cliente {id} no encontrado" });
 
         var prestamosActivos = cliente.Prestamos
-            .Where(p => p.Pagos.Sum(pg => pg.Valor) < p.ValorTotal)
+            .Where(p => p.Estado == "activo")
             .ToList();
 
         return Ok(new ClienteConPrestamosActivosDto

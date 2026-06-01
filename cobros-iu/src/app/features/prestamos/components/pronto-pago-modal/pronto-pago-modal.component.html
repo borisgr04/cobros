@@ -70,12 +70,9 @@
                 Valor negociado para cerrar el préstamo:
               </label>
               <input
-                class="input-valor"
-                type="number"
-                [value]="valorNegociado()"
-                (input)="onValorNegociadoChange($any($event.target).value)"
-                [max]="resumen()!.saldoPendiente"
-                min="1"
+                appMoneda
+                class="input-moneda"
+                [(appMoneda)]="valorNegociado"
                 placeholder="$ 0">
 
               <div class="descuento-preview">
