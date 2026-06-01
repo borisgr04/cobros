@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, delay, throwError } from 'rxjs';
 import type { IPrestamo } from '../../core/models';
-import type { INovedadPrestamo, IProntoPagoResumen, IProntoPagoResultado } from '../../core/models';
+import type { INovedadPrestamo, IProntoPagoResumen, IProntoPagoResultado, IAmpliacionPlazoResumen, IAmpliacionPlazoInput, IAmpliacionPlazoResultado } from '../../core/models';
 import { AbstractPrestamoService } from '../../core/services/abstract-prestamo.service';
 
 /**
@@ -214,6 +214,28 @@ export class PrestamoMockService implements AbstractPrestamoService {
 
   getNovedades(_id: string): Observable<INovedadPrestamo[]> {
     return of([]).pipe(delay(this.MOCK_DELAY));
+  }
+
+  getResumenAmpliacion(_id: string): Observable<IAmpliacionPlazoResumen> {
+    return of({
+      saldoPendiente: 400000,
+      cuotasPendientes: 2,
+      fechaFinalActual: new Date('2026-06-15'),
+      frecuenciaPago: 'semanal'
+    }).pipe(delay(this.MOCK_DELAY));
+  }
+
+  ejecutarAmpliacion(_id: string, _input: IAmpliacionPlazoInput): Observable<IAmpliacionPlazoResultado> {
+    return of({
+      novedadId: 1,
+      saldoPendienteAnterior: 400000,
+      interesAdicional: 100000,
+      nuevoSaldo: 500000,
+      valorCuota: 50000,
+      fechaFinalAnterior: new Date('2026-06-15'),
+      nuevaFechaFinal: new Date('2026-09-30'),
+      cantidadCuotasNuevas: 10
+    }).pipe(delay(this.MOCK_DELAY));
   }
 
   private calcularFechaCuota(fechaInicio: Date, frecuencia: string, n: number): Date {

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import type { IPrestamo } from '../models';
-import type { INovedadPrestamo, IProntoPagoResumen, IProntoPagoResultado } from '../models';
+import type { INovedadPrestamo, IProntoPagoResumen, IProntoPagoResultado, IAmpliacionPlazoResumen, IAmpliacionPlazoInput, IAmpliacionPlazoResultado } from '../models';
 import { BaseService } from './base.service';
 import { AbstractPrestamoService } from './abstract-prestamo.service';
 
@@ -122,5 +122,24 @@ export class PrestamoService extends BaseService<IPrestamo> implements AbstractP
    */
   getNovedades(id: string): Observable<INovedadPrestamo[]> {
     return this.http.get<INovedadPrestamo[]>(`${this.apiUrl}/${id}/novedades`);
+  }
+
+  /**
+   * Obtiene el resumen actual del préstamo para una ampliación de plazo.
+   * @param id - Identificador del préstamo
+   * @returns Observable con saldo pendiente, cuotas pendientes y fecha final actual
+   */
+  getResumenAmpliacion(id: string): Observable<IAmpliacionPlazoResumen> {
+    return this.http.get<IAmpliacionPlazoResumen>(`${this.apiUrl}/${id}/resumen-ampliacion`);
+  }
+
+  /**
+   * Ejecuta la ampliación de plazo de un préstamo.
+   * @param id - Identificador del préstamo
+   * @param input - Datos de la ampliación (interés adicional, cuotas, frecuencia, fecha inicio, observación)
+   * @returns Observable con el resultado de la operación
+   */
+  ejecutarAmpliacion(id: string, input: IAmpliacionPlazoInput): Observable<IAmpliacionPlazoResultado> {
+    return this.http.post<IAmpliacionPlazoResultado>(`${this.apiUrl}/${id}/ampliar-plazo`, input);
   }
 }

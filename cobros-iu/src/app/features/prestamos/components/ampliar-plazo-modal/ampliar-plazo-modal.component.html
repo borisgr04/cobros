@@ -1,0 +1,343 @@
+@if (visible()) {
+  <div class="modal-overlay">
+    <div class="modal-container">
+
+      <!-- HEADER -->
+      <div class="modal-header">
+        <h2 class="modal-title">
+          <i class="bi bi-calendar-plus-fill"></i>
+          Ampliar Plazo
+        </h2>
+        <button class="btn-close" (click)="cerrar()" [disabled]="procesando()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- BODY -->
+      <div class="modal-body">
+
+        <!-- Loading inicial -->
+        @if (procesando() && !resumen()) {
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Cargando información del préstamo...</p>
+          </div>
+        }
+
+        <!-- Error de carga -->
+        @if (error() && !resumen()) {
+          <div class="alert-error">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            {{ error() }}
+          </div>
+        }
+
+        <!-- PASO 1: Formulario -->
+        @if (paso() === 'formulario' && resumen()) {
+          <div class="paso-formulario">
+
+            <!-- Información actual -->
+            <div class="resumen-actual">
+              <h4 class="seccion-subtitulo">
+                <i class="bi bi-info-circle"></i> Estado actual del préstamo
+              </h4>
+              <div class="resumen-financiero">
+                <div class="resumen-item">
+                  <span class="label">Saldo pendiente actual:</span>
+                  <span class="value primary">{{ formatCurrency(resumen()!.saldoPendiente) }}</span>
+                </div>
+                <div class="resumen-item">
+                  <span class="label">Cuotas pendientes actuales:</span>
+                  <span class="value">{{ resumen()!.cuotasPendientes }}</span>
+                </div>
+                <div class="resumen-item">
+                  <span class="label">Fecha final actual:</span>
+                  <span class="value">{{ formatDate(resumen()!.fechaFinalActual) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Formulario de ampliación -->
+            <div class="form-ampliacion">
+              <h4 class="seccion-subtitulo">
+                <i class="bi bi-pencil-square"></i> Nuevas condiciones
+              </h4>
+
+              <div class="form-campo">
+                <label class="campo-label">
+                  <i class="bi bi-plus-circle"></i>
+                  Interés adicional:
+                </label>
+                <input
+                  class="input-campo"
+                  type="number"
+                  [value]="interesAdicional()"
+                  (input)="interesAdicional.set(+$any($event.target).value || 0)"
+                  min="0"
+                  placeholder="$ 0">
+                @if (interesAdicional() < 0) {
+                  <span class="campo-error">El interés adicional no puede ser negativo</span>
+                }
+              </div>
+
+              <div class="form-campo">
+                <label class="campo-label">
+                  <i class="bi bi-list-ol"></i>
+                  Cantidad de nuevas cuotas:
+                </label>
+                <input
+                  class="input-campo"
+                  type="number"
+                  [value]="cantidadCuotasNuevas()"
+                  (input)="cantidadCuotasNuevas.set(+$any($event.target).value || 1)"
+                  min="1"
+                  placeholder="10">
+                @if (cantidadCuotasNuevas() < 1) {
+                  <span class="campo-error">Debe ingresar al menos 1 cuota</span>
+                }
+              </div>
+
+              <div class="form-campo">
+                <label class="campo-label">
+                  <i class="bi bi-arrow-repeat"></i>
+                  Frecuencia de pagos:
+                </label>
+                <select
+                  class="input-campo"
+                  [value]="frecuenciaNueva()"
+                  (change)="frecuenciaNueva.set($any($event.target).value)">
+                  <option value="diario">Diario</option>
+                  <option value="semanal">Semanal</option>
+                  <option value="quincenal">Quincenal</option>
+                  <option value="mensual">Mensual</option>
+                </select>
+              </div>
+
+              <div class="form-campo">
+                <label class="campo-label">
+                  <i class="bi bi-calendar3"></i>
+                  Fecha inicio del nuevo plan:
+                </label>
+                <input
+                  class="input-campo"
+                  type="date"
+                  [value]="fechaInicio()"
+                  (input)="fechaInicio.set($any($event.target).value)">
+              </div>
+
+              <div class="form-campo">
+                <label class="campo-label">
+                  <i class="bi bi-chat-text"></i>
+                  Observación (opcional):
+                </label>
+                <textarea
+                  class="input-notas"
+                  [value]="observacion()"
+                  (input)="observacion.set($any($event.target).value)"
+                  rows="2"
+                  placeholder="Motivo de la ampliación, observaciones...">
+                </textarea>
+              </div>
+            </div>
+
+            <!-- Resultado calculado -->
+            @if (formularioValido()) {
+              <div class="resultado-calculado">
+                <h4 class="seccion-subtitulo">
+                  <i class="bi bi-calculator"></i> Resultado calculado
+                </h4>
+                <div class="resumen-financiero">
+                  <div class="resumen-item">
+                    <span class="label">Saldo pendiente:</span>
+                    <span class="value">{{ formatCurrency(resumen()!.saldoPendiente) }}</span>
+                  </div>
+                  <div class="resumen-item">
+                    <span class="label">Interés adicional:</span>
+                    <span class="value warning">+ {{ formatCurrency(interesAdicional()) }}</span>
+                  </div>
+                  <div class="resumen-item destacado">
+                    <span class="label">Nuevo saldo:</span>
+                    <span class="value primary">{{ formatCurrency(nuevoSaldo()) }}</span>
+                  </div>
+                  <div class="resumen-item">
+                    <span class="label">Valor cuota estimado:</span>
+                    <span class="value">{{ formatCurrency(valorCuotaEstimado()) }}</span>
+                  </div>
+                  @if (nuevaFechaFinalEstimada()) {
+                    <div class="resumen-item destacado">
+                      <span class="label">Nueva fecha final:</span>
+                      <span class="value success">{{ formatDate(nuevaFechaFinalEstimada()!) }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (error()) {
+              <div class="alert-error">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                {{ error() }}
+              </div>
+            }
+          </div>
+        }
+
+        <!-- PASO 2: Confirmación -->
+        @if (paso() === 'confirmacion' && resumen()) {
+          <div class="paso-confirmacion">
+            <div class="confirmacion-resumen">
+              <h3 class="confirmacion-titulo">Resumen de Ampliación de Plazo</h3>
+
+              <div class="confirmacion-item">
+                <span class="label">Cliente:</span>
+                <span class="value">{{ prestamo()?.cliente?.nombre }}</span>
+              </div>
+              <div class="confirmacion-item">
+                <span class="label">Saldo pendiente actual:</span>
+                <span class="value">{{ formatCurrency(resumen()!.saldoPendiente) }}</span>
+              </div>
+              <div class="confirmacion-item">
+                <span class="label">Interés adicional:</span>
+                <span class="value warning">{{ formatCurrency(interesAdicional()) }}</span>
+              </div>
+              <div class="confirmacion-item destacado">
+                <span class="label">Nuevo saldo total:</span>
+                <span class="value primary">{{ formatCurrency(nuevoSaldo()) }}</span>
+              </div>
+              <div class="confirmacion-item">
+                <span class="label">Nuevas cuotas:</span>
+                <span class="value">{{ cantidadCuotasNuevas() }} cuotas {{ getTextoFrecuencia(frecuenciaNueva()) | lowercase }}</span>
+              </div>
+              <div class="confirmacion-item">
+                <span class="label">Valor por cuota estimado:</span>
+                <span class="value">{{ formatCurrency(valorCuotaEstimado()) }}</span>
+              </div>
+              <div class="confirmacion-item">
+                <span class="label">Fecha inicio nuevo plan:</span>
+                <span class="value">{{ formatDate(fechaInicio()) }}</span>
+              </div>
+              @if (nuevaFechaFinalEstimada()) {
+                <div class="confirmacion-item destacado">
+                  <span class="label">Nueva fecha final:</span>
+                  <span class="value success">{{ formatDate(nuevaFechaFinalEstimada()!) }}</span>
+                </div>
+              }
+              @if (observacion()) {
+                <div class="confirmacion-item">
+                  <span class="label">Observación:</span>
+                  <span class="value italic">{{ observacion() }}</span>
+                </div>
+              }
+            </div>
+
+            <div class="advertencia-reemplazo">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              Esta operación reemplazará las cuotas pendientes actuales y generará un nuevo plan de pagos.
+            </div>
+
+            <label class="checkbox-confirmacion">
+              <input type="checkbox" [checked]="confirmado()" (change)="confirmado.set($any($event.target).checked)">
+              Entiendo que las cuotas pendientes serán reemplazadas por el nuevo plan
+            </label>
+
+            @if (error()) {
+              <div class="alert-error">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                {{ error() }}
+              </div>
+            }
+
+            @if (procesando()) {
+              <div class="alert-info">
+                <div class="spinner-small"></div>
+                Procesando ampliación de plazo...
+              </div>
+            }
+          </div>
+        }
+
+        <!-- PASO 3: Resultado exitoso -->
+        @if (paso() === 'resultado' && resultado()) {
+          <div class="paso-resultado">
+            <div class="resultado-icon">
+              <i class="bi bi-check-circle-fill"></i>
+            </div>
+            <h3 class="resultado-titulo">¡Ampliación Registrada!</h3>
+            <p class="resultado-subtitle">El plan de pagos ha sido actualizado exitosamente.</p>
+
+            <div class="resultado-detalle">
+              <div class="resultado-item">
+                <span class="label">Novedad #{{ resultado()!.novedadId }}</span>
+              </div>
+              <div class="resultado-item">
+                <span class="label">Saldo anterior:</span>
+                <span class="value">{{ formatCurrency(resultado()!.saldoPendienteAnterior) }}</span>
+              </div>
+              <div class="resultado-item">
+                <span class="label">Interés adicional:</span>
+                <span class="value warning">{{ formatCurrency(resultado()!.interesAdicional) }}</span>
+              </div>
+              <div class="resultado-item">
+                <span class="label">Nuevo saldo:</span>
+                <span class="value primary">{{ formatCurrency(resultado()!.nuevoSaldo) }}</span>
+              </div>
+              <div class="resultado-item">
+                <span class="label">Valor cuota:</span>
+                <span class="value">{{ formatCurrency(resultado()!.valorCuota) }}</span>
+              </div>
+              <div class="resultado-item">
+                <span class="label">Nueva fecha final:</span>
+                <span class="value success">{{ formatDate(resultado()!.nuevaFechaFinal) }}</span>
+              </div>
+              <div class="resultado-item">
+                <span class="label">Nuevas cuotas generadas:</span>
+                <span class="value">{{ resultado()!.cantidadCuotasNuevas }}</span>
+              </div>
+            </div>
+          </div>
+        }
+
+      </div>
+
+      <!-- FOOTER -->
+      <div class="modal-footer">
+        @if (paso() === 'formulario') {
+          <button class="btn-secondary" (click)="cerrar()" [disabled]="procesando()">
+            Cancelar
+          </button>
+          <button
+            class="btn-primary"
+            (click)="avanzarAConfirmacion()"
+            [disabled]="!formularioValido() || procesando()">
+            <i class="bi bi-arrow-right"></i>
+            Continuar
+          </button>
+        }
+        @if (paso() === 'confirmacion') {
+          <button class="btn-secondary" (click)="volverAFormulario()" [disabled]="procesando()">
+            <i class="bi bi-arrow-left"></i>
+            Volver
+          </button>
+          <button
+            class="btn-warning"
+            (click)="confirmarAmpliacion()"
+            [disabled]="!confirmado() || procesando()">
+            @if (procesando()) {
+              <span class="spinner-btn"></span>
+            } @else {
+              <i class="bi bi-calendar-plus-fill"></i>
+            }
+            Confirmar Ampliación
+          </button>
+        }
+        @if (paso() === 'resultado') {
+          <button class="btn-primary" (click)="cerrar()">
+            <i class="bi bi-check2"></i>
+            Cerrar
+          </button>
+        }
+      </div>
+
+    </div>
+  </div>
+}

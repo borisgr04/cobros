@@ -233,6 +233,12 @@
                     <i class="bi bi-lightning-charge-fill"></i>
                     Pronto Pago
                   </button>
+                  <button 
+                    class="btn-accion btn-ampliar-plazo"
+                    (click)="abrirModalAmpliacion()">
+                    <i class="bi bi-calendar-plus-fill"></i>
+                    Ampliar Plazo
+                  </button>
                 }
                 <button 
                   class="btn-accion btn-editar" 
@@ -349,7 +355,7 @@
                     </thead>
                     <tbody>
                       @for (cuota of proyeccion(); track $index) {
-                       <tr [class.fila-pagada]="cuota.estado === 'pagada'" [class.fila-parcial]="cuota.estado === 'parcial'" [class.fila-pendiente]="cuota.estado === 'pendiente'" [class.fila-cerrada]="cuota.estado === 'cerrada_pronto_pago'">
+                       <tr [class.fila-pagada]="cuota.estado === 'pagada'" [class.fila-parcial]="cuota.estado === 'parcial'" [class.fila-pendiente]="cuota.estado === 'pendiente'" [class.fila-cerrada]="cuota.estado === 'cerrada_pronto_pago'" [class.fila-reemplazada]="cuota.estado === 'reemplazada_por_ampliacion'">
                           <td><strong>{{ cuota.numero }}</strong></td>
                           <td>{{ formatDate(cuota.fechaEsperada) }}</td>
                           <td class="monto">{{ formatCurrency(cuota.valorEsperado) }}</td>
@@ -373,6 +379,10 @@
                              <span class="badge-pronto-pago">
                                <i class="bi bi-lightning-charge-fill"></i> Pronto Pago
                               </span>
+                           } @else if (cuota.estado === 'reemplazada_por_ampliacion') {
+                             <span class="badge-reemplazada">
+                              <i class="bi bi-calendar-plus-fill"></i> Ampliada
+                             </span>
                            } @else {
                              <span class="badge-pendiente">
                                <i class="bi bi-clock"></i> Pendiente
@@ -399,32 +409,81 @@
                 <div class="novedades-timeline">
                   @for (novedad of novedades(); track novedad.id) {
                     <div class="novedad-card">
-                      <div class="novedad-icon">
-                        <i class="bi bi-lightning-charge-fill"></i>
+                      <div class="novedad-icon" [class.novedad-icon-ampliacion]="novedad.tipo === 'ampliacion_plazo'">
+                        @if (novedad.tipo === 'ampliacion_plazo') {
+                          <i class="bi bi-calendar-plus-fill"></i>
+                        } @else {
+                          <i class="bi bi-lightning-charge-fill"></i>
+                        }
                       </div>
                       <div class="novedad-body">
                         <div class="novedad-header">
-                          <span class="novedad-tipo">Pronto Pago</span>
+                          <span class="novedad-tipo">
+                            @if (novedad.tipo === 'ampliacion_plazo') {
+                              Ampliación de Plazo
+                            } @else {
+                              Pronto Pago
+                            }
+                          </span>
                           <span class="novedad-fecha">{{ formatDate(novedad.fechaNovedad) }}</span>
                         </div>
-                        <div class="novedad-grid">
-                          <div class="novedad-dato">
-                            <span class="dato-label">Saldo pendiente original</span>
-                            <span class="dato-value">{{ formatCurrency(novedad.saldoPendienteOriginal) }}</span>
+
+                        @if (novedad.tipo === 'ampliacion_plazo') {
+                          <!-- Datos de ampliación de plazo -->
+                          <div class="novedad-grid">
+                            <div class="novedad-dato">
+                              <span class="dato-label">Saldo pendiente anterior</span>
+                              <span class="dato-value">{{ formatCurrency(novedad.saldoPendienteOriginal) }}</span>
+                            </div>
+                            <div class="novedad-dato highlight">
+                              <span class="dato-label">Interés adicional</span>
+                              <span class="dato-value warning">{{ formatCurrency(novedad.interesAdicional ?? 0) }}</span>
+                            </div>
+                            <div class="novedad-dato highlight">
+                              <span class="dato-label">Nuevo saldo</span>
+                              <span class="dato-value success">{{ formatCurrency(novedad.nuevoSaldo ?? 0) }}</span>
+                            </div>
+                            @if (novedad.fechaFinalAnterior) {
+                              <div class="novedad-dato">
+                                <span class="dato-label">Fecha final anterior</span>
+                                <span class="dato-value">{{ formatDate(novedad.fechaFinalAnterior) }}</span>
+                              </div>
+                            }
+                            @if (novedad.nuevaFechaFinal) {
+                              <div class="novedad-dato highlight">
+                                <span class="dato-label">Nueva fecha final</span>
+                                <span class="dato-value success">{{ formatDate(novedad.nuevaFechaFinal) }}</span>
+                              </div>
+                            }
+                            @if (novedad.cantidadCuotasNuevas) {
+                              <div class="novedad-dato">
+                                <span class="dato-label">Nuevas cuotas generadas</span>
+                                <span class="dato-value">{{ novedad.cantidadCuotasNuevas }}</span>
+                              </div>
+                            }
                           </div>
-                          <div class="novedad-dato">
-                            <span class="dato-label">Intereses futuros estimados</span>
-                            <span class="dato-value">{{ formatCurrency(novedad.interesesFuturosEstimados) }}</span>
+                        } @else {
+                          <!-- Datos de pronto pago -->
+                          <div class="novedad-grid">
+                            <div class="novedad-dato">
+                              <span class="dato-label">Saldo pendiente original</span>
+                              <span class="dato-value">{{ formatCurrency(novedad.saldoPendienteOriginal) }}</span>
+                            </div>
+                            <div class="novedad-dato">
+                              <span class="dato-label">Intereses futuros estimados</span>
+                              <span class="dato-value">{{ formatCurrency(novedad.interesesFuturosEstimados) }}</span>
+                            </div>
+                            <div class="novedad-dato highlight">
+                              <span class="dato-label">Valor negociado</span>
+                              <span class="dato-value success">{{ formatCurrency(novedad.valorNegociado) }}</span>
+                            </div>
+                            <div class="novedad-dato highlight">
+                              <span class="dato-label">Descuento aplicado</span>
+                              <span class="dato-value discount">{{ formatCurrency(novedad.descuentoAplicado) }}</span>
+                            </div>
                           </div>
-                          <div class="novedad-dato highlight">
-                            <span class="dato-label">Valor negociado</span>
-                            <span class="dato-value success">{{ formatCurrency(novedad.valorNegociado) }}</span>
-                          </div>
-                          <div class="novedad-dato highlight">
-                            <span class="dato-label">Descuento aplicado</span>
-                            <span class="dato-value discount">{{ formatCurrency(novedad.descuentoAplicado) }}</span>
-                          </div>
-                        </div>
+                        }
+
                         <div class="novedad-footer">
                           <span class="novedad-autor">
                             <i class="bi bi-person-fill"></i>
@@ -477,3 +536,8 @@
 <app-pronto-pago-modal
   (prontoPagoRealizado)="onProntoPagoRealizado($event)">
 </app-pronto-pago-modal>
+
+<!-- Modal de Ampliación de Plazo -->
+<app-ampliar-plazo-modal
+  (ampliacionRealizada)="onAmpliacionRealizada($event)">
+</app-ampliar-plazo-modal>

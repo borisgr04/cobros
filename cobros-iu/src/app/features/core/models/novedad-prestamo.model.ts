@@ -7,7 +7,7 @@ export interface INovedadPrestamo {
   id: number;
   /** Identificador del préstamo afectado */
   prestamoId: number;
-  /** Tipo de novedad: "pronto_pago" (extensible) */
+  /** Tipo de novedad: "pronto_pago" | "ampliacion_plazo" */
   tipo: string;
   /** Fecha en que se registró la novedad */
   fechaNovedad: Date;
@@ -29,6 +29,18 @@ export interface INovedadPrestamo {
   pagoId?: number;
   /** Notas libres del cobrador/administrador */
   notas?: string;
+
+  // Campos adicionales para "ampliacion_plazo"
+  /** Interés adicional negociado en la ampliación de plazo */
+  interesAdicional?: number;
+  /** Nuevo saldo calculado: saldoPendienteOriginal + interesAdicional */
+  nuevoSaldo?: number;
+  /** Fecha final del préstamo antes de la ampliación */
+  fechaFinalAnterior?: Date;
+  /** Nueva fecha final del préstamo después de la ampliación */
+  nuevaFechaFinal?: Date;
+  /** Cantidad de nuevas cuotas generadas en la ampliación */
+  cantidadCuotasNuevas?: number;
 }
 
 /**
@@ -56,4 +68,39 @@ export interface IProntoPagoResultado {
   valorNegociado: number;
   descuentoAplicado: number;
   fechaCierre: Date;
+}
+
+/**
+ * Resumen actual del préstamo para mostrar antes de realizar una ampliación de plazo.
+ */
+export interface IAmpliacionPlazoResumen {
+  saldoPendiente: number;
+  cuotasPendientes: number;
+  fechaFinalActual: Date;
+  frecuenciaPago: string;
+}
+
+/**
+ * Datos de entrada para ejecutar una ampliación de plazo.
+ */
+export interface IAmpliacionPlazoInput {
+  interesAdicional: number;
+  cantidadCuotasNuevas: number;
+  frecuenciaNueva: string;
+  fechaInicio: string;
+  observacion?: string;
+}
+
+/**
+ * Resultado de ejecutar una ampliación de plazo exitosamente.
+ */
+export interface IAmpliacionPlazoResultado {
+  novedadId: number;
+  saldoPendienteAnterior: number;
+  interesAdicional: number;
+  nuevoSaldo: number;
+  valorCuota: number;
+  fechaFinalAnterior: Date;
+  nuevaFechaFinal: Date;
+  cantidadCuotasNuevas: number;
 }

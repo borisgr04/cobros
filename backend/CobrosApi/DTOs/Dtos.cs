@@ -386,6 +386,53 @@ public class NovedadPrestamoDto
     public decimal DescuentoAplicado { get; set; }
     public int? PagoId { get; set; }
     public string? Notas { get; set; }
+
+    // Campos adicionales para "ampliacion_plazo"
+    public decimal? InteresAdicional { get; set; }
+    public decimal? NuevoSaldo { get; set; }
+    public DateTime? FechaFinalAnterior { get; set; }
+    public DateTime? NuevaFechaFinal { get; set; }
+    public int? CantidadCuotasNuevas { get; set; }
+}
+
+// ─── AMPLIACIÓN DE PLAZO ───────────────────────────────────────────────────
+
+public class AmpliacionPlazoResumenDto
+{
+    public decimal SaldoPendiente { get; set; }
+    public int CuotasPendientes { get; set; }
+    public DateTime FechaFinalActual { get; set; }
+    public string FrecuenciaPago { get; set; } = string.Empty;
+}
+
+public class AmpliacionPlazoInputDto
+{
+    [Required, Range(0.01, double.MaxValue)]
+    public decimal InteresAdicional { get; set; }
+
+    [Required, Range(1, int.MaxValue)]
+    public int CantidadCuotasNuevas { get; set; }
+
+    [Required]
+    public string FrecuenciaNueva { get; set; } = string.Empty;
+
+    [Required]
+    public DateTime FechaInicio { get; set; }
+
+    [MaxLength(1000)]
+    public string? Observacion { get; set; }
+}
+
+public class AmpliacionPlazoResultadoDto
+{
+    public int NovedadId { get; set; }
+    public decimal SaldoPendienteAnterior { get; set; }
+    public decimal InteresAdicional { get; set; }
+    public decimal NuevoSaldo { get; set; }
+    public decimal ValorCuota { get; set; }
+    public DateTime FechaFinalAnterior { get; set; }
+    public DateTime NuevaFechaFinal { get; set; }
+    public int CantidadCuotasNuevas { get; set; }
 }
 
 

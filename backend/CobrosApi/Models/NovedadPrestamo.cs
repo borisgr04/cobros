@@ -39,6 +39,25 @@ public class NovedadPrestamo
     [MaxLength(1000)]
     public string? Notas { get; set; }
 
+    // ─── Campos adicionales para "ampliacion_plazo" ───────────────────────────
+
+    /// <summary>Interés adicional negociado en la ampliación de plazo.</summary>
+    [Column(TypeName = "numeric(18,2)")]
+    public decimal? InteresAdicional { get; set; }
+
+    /// <summary>Nuevo saldo calculado: saldoPendiente + interesAdicional.</summary>
+    [Column(TypeName = "numeric(18,2)")]
+    public decimal? NuevoSaldo { get; set; }
+
+    /// <summary>Fecha final del préstamo antes de la ampliación.</summary>
+    public DateTime? FechaFinalAnterior { get; set; }
+
+    /// <summary>Nueva fecha final del préstamo después de la ampliación.</summary>
+    public DateTime? NuevaFechaFinal { get; set; }
+
+    /// <summary>Cantidad de nuevas cuotas generadas en la ampliación.</summary>
+    public int? CantidadCuotasNuevas { get; set; }
+
     [ForeignKey(nameof(PrestamoId))]
     public Prestamo? Prestamo { get; set; }
 

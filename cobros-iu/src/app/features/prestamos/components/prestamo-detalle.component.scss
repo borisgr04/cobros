@@ -1182,3 +1182,84 @@
 
   i { flex-shrink: 0; }
 }
+
+// ==========================================
+// BADGE REEMPLAZADA POR AMPLIACIÓN (proyección)
+// ==========================================
+.badge-reemplazada {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #E3F2FD;
+  color: #0D47A1;
+
+  i {
+    font-size: 0.625rem;
+  }
+}
+
+// Fila reemplazada por ampliación en proyección
+.fila-reemplazada {
+  background: rgba(227, 242, 253, 0.3);
+  opacity: 0.7;
+  text-decoration: line-through;
+  text-decoration-color: rgba(13, 71, 161, 0.4);
+
+  &:hover {
+    background: rgba(227, 242, 253, 0.5);
+  }
+
+  td.monto {
+    color: var(--text-tertiary) !important;
+  }
+}
+
+// ==========================================
+// BOTÓN AMPLIAR PLAZO
+// ==========================================
+.btn-ampliar-plazo {
+  background: linear-gradient(135deg, #0D47A1 0%, #1565C0 100%);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+
+  &:hover {
+    background: linear-gradient(135deg, #1565C0 0%, #1976D2 100%);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// ==========================================
+// NOVEDAD CARD – VARIANTE AMPLIACIÓN
+// ==========================================
+.novedad-icon-ampliacion {
+  i {
+    color: #1565C0;
+  }
+}
+
+.novedad-card:has(.novedad-icon-ampliacion) {
+  border-left-color: #1565C0;
+}
+
+.dato-value.warning {
+  color: #E65100;
+}
