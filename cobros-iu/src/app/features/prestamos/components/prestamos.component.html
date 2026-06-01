@@ -248,6 +248,16 @@
                       <i class="bi bi-check-circle-fill"></i> Completado
                     </div>
                   }
+                  @case ('cerrado_pronto_pago') {
+                    <div class="badge-estado pronto-pago">
+                      <i class="bi bi-lightning-charge-fill"></i> Pronto Pago
+                    </div>
+                  }
+                  @case ('refinanciado') {
+                    <div class="badge-estado refinanciado">
+                      <i class="bi bi-arrow-repeat"></i> Refinanciado
+                    </div>
+                  }
                   @case ('vencido') {
                     <div class="badge-estado vencido">
                       <i class="bi bi-exclamation-circle-fill"></i> Vencido
@@ -314,7 +324,7 @@
                 <i class="bi bi-eye"></i>
                 <span>Ver Detalles</span>
               </button>
-              @if (prestamo.estadisticas?.estado !== 'completado') {
+              @if (prestamo.estadisticas?.estado !== 'completado' && prestamo.estadisticas?.estado !== 'refinanciado' && prestamo.estadisticas?.estado !== 'cerrado_pronto_pago') {
                 <button 
                   class="btn-simple btn-pay" 
                   (click)="abrirModalPago(prestamo)"
@@ -323,7 +333,7 @@
                   <span>Pagar</span>
                 </button>
               }
-              @if ((prestamo.estadisticas?.cuotasPagadas ?? 0) === 0) {
+              @if ((prestamo.estadisticas?.cuotasPagadas ?? 0) === 0 && prestamo.estadisticas?.estado !== 'refinanciado' && prestamo.estadisticas?.estado !== 'cerrado_pronto_pago' && prestamo.estadisticas?.estado !== 'completado') {
                 <button
                   class="btn-simple btn-edit"
                   (click)="editarPrestamo(prestamo)"

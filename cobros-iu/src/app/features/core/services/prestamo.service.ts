@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import type { IPrestamo } from '../models';
-import type { INovedadPrestamo, IProntoPagoResumen, IProntoPagoResultado, IAmpliacionPlazoResumen, IAmpliacionPlazoInput, IAmpliacionPlazoResultado } from '../models';
+import type { INovedadPrestamo, IProntoPagoResumen, IProntoPagoResultado, IAmpliacionPlazoResumen, IAmpliacionPlazoInput, IAmpliacionPlazoResultado, IRecogerPrestamoInput, IRecogerPrestamoResultado } from '../models';
 import { BaseService } from './base.service';
 import { AbstractPrestamoService } from './abstract-prestamo.service';
 
@@ -141,5 +141,16 @@ export class PrestamoService extends BaseService<IPrestamo> implements AbstractP
    */
   ejecutarAmpliacion(id: string, input: IAmpliacionPlazoInput): Observable<IAmpliacionPlazoResultado> {
     return this.http.post<IAmpliacionPlazoResultado>(`${this.apiUrl}/${id}/ampliar-plazo`, input);
+  }
+
+  /**
+   * Ejecuta la operación "Recoger Préstamo": cierra el préstamo origen y crea uno nuevo
+   * con el saldo pendiente más el dinero adicional.
+   * @param id - Identificador del préstamo origen
+   * @param input - Datos del nuevo préstamo
+   * @returns Observable con los IDs del origen, destino y la novedad registrada
+   */
+  recogerPrestamo(id: string, input: IRecogerPrestamoInput): Observable<IRecogerPrestamoResultado> {
+    return this.http.post<IRecogerPrestamoResultado>(`${this.apiUrl}/${id}/recoger`, input);
   }
 }

@@ -1,0 +1,344 @@
+@if (visible()) {
+  <div class="modal-overlay">
+    <div class="modal-container">
+
+      <!-- HEADER -->
+      <div class="modal-header">
+        <h2 class="modal-title">
+          <i class="bi bi-arrow-repeat"></i>
+          Recoger Préstamo
+        </h2>
+        <button class="btn-close" (click)="cerrar()" [disabled]="procesando()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- BODY -->
+      <div class="modal-body">
+
+        <!-- PASO 1: Formulario -->
+        @if (paso() === 'formulario') {
+          <div class="paso-formulario">
+
+            <!-- Información actual -->
+            <div class="resumen-actual">
+              <h4 class="seccion-subtitulo">
+                <i class="bi bi-info-circle"></i> Saldo pendiente del préstamo
+              </h4>
+              <div class="resumen-financiero">
+                <div class="resumen-item destacado">
+                  <span class="label">Saldo pendiente a trasladar:</span>
+                  <span class="value primary">{{ formatCurrency(saldoPendiente()) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Formulario -->
+            <div class="form-recoger">
+              <h4 class="seccion-subtitulo">
+                <i class="bi bi-pencil-square"></i> Condiciones del nuevo préstamo
+              </h4>
+
+              <div class="form-campo">
+                <label class="campo-label">
+                  <i class="bi bi-cash-coin"></i>
+                  Dinero adicional a entregar:
+                </label>
+                <input
+                  class="input-campo"
+                  [(appMoneda)]="dineroAdicional"
+                  placeholder="$ 0">
+                @if (dineroAdicional() <= 0) {
+                  <span class="campo-error">El dinero adicional debe ser mayor a 0</span>
+                }
+              </div>
+
+              <div class="form-campo">
+                <label class="campo-label">
+                  <i class="bi bi-percent"></i>
+                  Intereses del nuevo préstamo:
+                </label>
+                <input
+                  class="input-campo"
+                  [(appMoneda)]="intereses"
+                  placeholder="$ 0">
+                @if (intereses() < 0) {
+                  <span class="campo-error">Los intereses no pueden ser negativos</span>
+                }
+              </div>
+
+              <div class="form-campo">
+                <label class="campo-label">
+                  <i class="bi bi-list-ol"></i>
+                  Cantidad de cuotas:
+                </label>
+                <input
+                  class="input-campo"
+                  type="number"
+                  [value]="cantidadCuotas()"
+                  (input)="cantidadCuotas.set(+$any($event.target).value || 1)"
+                  min="1"
+                  placeholder="10">
+                @if (cantidadCuotas() < 1) {
+                  <span class="campo-error">Debe ingresar al menos 1 cuota</span>
+                }
+              </div>
+
+              <div class="form-campo">
+                <label class="campo-label">
+                  <i class="bi bi-arrow-repeat"></i>
+                  Frecuencia de pagos:
+                </label>
+                <select
+                  class="input-campo"
+                  [value]="frecuenciaPago()"
+                  (change)="frecuenciaPago.set($any($event.target).value)">
+                  <option value="diario">Diario</option>
+                  <option value="semanal">Semanal</option>
+                  <option value="quincenal">Quincenal</option>
+                  <option value="mensual">Mensual</option>
+                </select>
+              </div>
+
+              <div class="form-campo">
+                <label class="campo-label">
+                  <i class="bi bi-calendar3"></i>
+                  Fecha inicio del nuevo préstamo:
+                </label>
+                <input
+                  class="input-campo"
+                  type="date"
+                  [value]="fechaInicio()"
+                  (input)="fechaInicio.set($any($event.target).value)">
+              </div>
+
+              <div class="form-campo">
+                <label class="campo-label">
+                  <i class="bi bi-chat-text"></i>
+                  Observación (opcional):
+                </label>
+                <textarea
+                  class="input-notas"
+                  [value]="observacion()"
+                  (input)="observacion.set($any($event.target).value)"
+                  rows="2"
+                  placeholder="Motivo, observaciones...">
+                </textarea>
+              </div>
+            </div>
+
+            <!-- Resultado calculado -->
+            @if (formularioValido()) {
+              <div class="resultado-calculado">
+                <h4 class="seccion-subtitulo">
+                  <i class="bi bi-calculator"></i> Resumen del nuevo préstamo
+                </h4>
+                <div class="resumen-financiero">
+                  <div class="resumen-item">
+                    <span class="label">Saldo trasladado:</span>
+                    <span class="value">{{ formatCurrency(saldoPendiente()) }}</span>
+                  </div>
+                  <div class="resumen-item">
+                    <span class="label">Dinero adicional:</span>
+                    <span class="value warning">+ {{ formatCurrency(dineroAdicional()) }}</span>
+                  </div>
+                  <div class="resumen-item">
+                    <span class="label">Capital nuevo:</span>
+                    <span class="value primary">{{ formatCurrency(capitalNuevo()) }}</span>
+                  </div>
+                  <div class="resumen-item">
+                    <span class="label">Intereses:</span>
+                    <span class="value warning">+ {{ formatCurrency(intereses()) }}</span>
+                  </div>
+                  <div class="resumen-item destacado">
+                    <span class="label">Total a cobrar:</span>
+                    <span class="value primary">{{ formatCurrency(totalACobrar()) }}</span>
+                  </div>
+                  <div class="resumen-item">
+                    <span class="label">Valor cuota estimado:</span>
+                    <span class="value">{{ formatCurrency(valorCuotaEstimado()) }}</span>
+                  </div>
+                  @if (nuevaFechaFinalEstimada()) {
+                    <div class="resumen-item destacado">
+                      <span class="label">Fecha final estimada:</span>
+                      <span class="value success">{{ formatDate(nuevaFechaFinalEstimada()!) }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (error()) {
+              <div class="alert-error">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                {{ error() }}
+              </div>
+            }
+          </div>
+        }
+
+        <!-- PASO 2: Confirmación -->
+        @if (paso() === 'confirmacion') {
+          <div class="paso-confirmacion">
+            <div class="confirmacion-resumen">
+              <h3 class="confirmacion-titulo">Resumen — Recoger Préstamo</h3>
+
+              <div class="confirmacion-item">
+                <span class="label">Cliente:</span>
+                <span class="value">{{ prestamo()?.cliente?.nombre }}</span>
+              </div>
+              <div class="confirmacion-item">
+                <span class="label">Saldo trasladado del préstamo anterior:</span>
+                <span class="value">{{ formatCurrency(saldoPendiente()) }}</span>
+              </div>
+              <div class="confirmacion-item">
+                <span class="label">Dinero adicional a entregar:</span>
+                <span class="value warning">{{ formatCurrency(dineroAdicional()) }}</span>
+              </div>
+              <div class="confirmacion-item">
+                <span class="label">Capital nuevo total:</span>
+                <span class="value primary">{{ formatCurrency(capitalNuevo()) }}</span>
+              </div>
+              <div class="confirmacion-item">
+                <span class="label">Intereses:</span>
+                <span class="value warning">{{ formatCurrency(intereses()) }}</span>
+              </div>
+              <div class="confirmacion-item destacado">
+                <span class="label">Total a cobrar:</span>
+                <span class="value primary">{{ formatCurrency(totalACobrar()) }}</span>
+              </div>
+              <div class="confirmacion-item">
+                <span class="label">Plan de pagos:</span>
+                <span class="value">{{ cantidadCuotas() }} cuotas {{ getTextoFrecuencia(frecuenciaPago()) | lowercase }}</span>
+              </div>
+              <div class="confirmacion-item">
+                <span class="label">Valor por cuota estimado:</span>
+                <span class="value">{{ formatCurrency(valorCuotaEstimado()) }}</span>
+              </div>
+              <div class="confirmacion-item">
+                <span class="label">Fecha inicio:</span>
+                <span class="value">{{ formatDate(fechaInicio()) }}</span>
+              </div>
+              @if (nuevaFechaFinalEstimada()) {
+                <div class="confirmacion-item destacado">
+                  <span class="label">Fecha final estimada:</span>
+                  <span class="value success">{{ formatDate(nuevaFechaFinalEstimada()!) }}</span>
+                </div>
+              }
+              @if (observacion()) {
+                <div class="confirmacion-item">
+                  <span class="label">Observación:</span>
+                  <span class="value italic">{{ observacion() }}</span>
+                </div>
+              }
+            </div>
+
+            <div class="advertencia-reemplazo">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              El préstamo actual quedará marcado como <strong>refinanciado</strong> y se creará un nuevo préstamo.
+              Solo se registra egreso de caja por el dinero adicional entregado ({{ formatCurrency(dineroAdicional()) }}).
+              <strong>Esta acción no se puede deshacer.</strong>
+            </div>
+
+            <label class="checkbox-confirmacion">
+              <input type="checkbox" [checked]="confirmado()" (change)="confirmado.set($any($event.target).checked)">
+              Entiendo que el préstamo actual será cerrado y se creará uno nuevo
+            </label>
+
+            @if (error()) {
+              <div class="alert-error">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                {{ error() }}
+              </div>
+            }
+
+            @if (procesando()) {
+              <div class="alert-info">
+                <div class="spinner-small"></div>
+                Procesando operación...
+              </div>
+            }
+          </div>
+        }
+
+        <!-- PASO 3: Resultado -->
+        @if (paso() === 'resultado' && resultado()) {
+          <div class="paso-resultado">
+            <div class="resultado-exito">
+              <div class="exito-icon">
+                <i class="bi bi-check-circle-fill"></i>
+              </div>
+              <h3 class="exito-titulo">¡Préstamo recogido exitosamente!</h3>
+              <p class="exito-descripcion">
+                El préstamo anterior fue marcado como <strong>refinanciado</strong> y se creó un nuevo préstamo.
+              </p>
+            </div>
+
+            <div class="resultado-detalles">
+              <div class="resumen-financiero">
+                <div class="resumen-item">
+                  <span class="label">Saldo trasladado:</span>
+                  <span class="value">{{ formatCurrency(resultado()!.saldoTrasladado) }}</span>
+                </div>
+                <div class="resumen-item">
+                  <span class="label">Dinero adicional entregado:</span>
+                  <span class="value warning">{{ formatCurrency(resultado()!.dineroAdicional) }}</span>
+                </div>
+                <div class="resumen-item destacado">
+                  <span class="label">Total a cobrar del nuevo préstamo:</span>
+                  <span class="value primary">{{ formatCurrency(resultado()!.totalACobrar) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
+      </div><!-- /modal-body -->
+
+      <!-- FOOTER -->
+      <div class="modal-footer">
+        @if (paso() === 'formulario') {
+          <button class="btn-secundario" (click)="cerrar()" [disabled]="procesando()">
+            Cancelar
+          </button>
+          <button
+            class="btn-primario"
+            (click)="avanzarAConfirmacion()"
+            [disabled]="!formularioValido() || procesando()">
+            Continuar
+            <i class="bi bi-arrow-right"></i>
+          </button>
+        }
+
+        @if (paso() === 'confirmacion') {
+          <button class="btn-secundario" (click)="volverAFormulario()" [disabled]="procesando()">
+            <i class="bi bi-arrow-left"></i>
+            Volver
+          </button>
+          <button
+            class="btn-peligro"
+            (click)="confirmarRecoger()"
+            [disabled]="!confirmado() || procesando()">
+            @if (procesando()) {
+              <div class="spinner-small"></div>
+            } @else {
+              <i class="bi bi-check-lg"></i>
+            }
+            Confirmar Recoger
+          </button>
+        }
+
+        @if (paso() === 'resultado') {
+          <button class="btn-secundario" (click)="cerrar()">
+            Cerrar
+          </button>
+          <button class="btn-primario" (click)="irAlNuevoPrestamo()">
+            Ver nuevo préstamo #{{ resultado()?.prestamoDestinoId }}
+            <i class="bi bi-box-arrow-right"></i>
+          </button>
+        }
+      </div>
+
+    </div>
+  </div>
+}

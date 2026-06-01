@@ -3,7 +3,7 @@ import type { FrecuenciaPago, IPrestamo, IPago } from '../../core/models';
 /**
  * Tipo para el estado calculado de un préstamo
  */
-export type EstadoPrestamo = 'activo' | 'completado' | 'cerrado_pronto_pago' | 'vencido' | 'mora';
+export type EstadoPrestamo = 'activo' | 'completado' | 'cerrado_pronto_pago' | 'vencido' | 'mora' | 'refinanciado';
 
 /**
  * Interface que espeja el CuotaDetalleDto del backend
@@ -203,6 +203,7 @@ export function determinarEstadoPrestamo(
   // Respetar el estado explícito del backend cuando está disponible
   if (estadoExplicito === 'cerrado_pronto_pago') return 'cerrado_pronto_pago';
   if (estadoExplicito === 'completado') return 'completado';
+  if (estadoExplicito === 'refinanciado') return 'refinanciado';
 
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);

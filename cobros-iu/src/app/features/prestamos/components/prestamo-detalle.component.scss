@@ -1018,6 +1018,14 @@
 }
 
 // ==========================================
+// BADGE ESTADO GRANDE – REFINANCIADO
+// ==========================================
+.badge-estado-grande.refinanciado {
+  background: linear-gradient(135deg, #1565C0, #1976D2);
+  color: white;
+}
+
+// ==========================================
 // BOTÓN PRONTO PAGO
 // ==========================================
 .btn-pronto-pago {
@@ -1253,6 +1261,59 @@
 .novedad-icon-ampliacion {
   i {
     color: #1565C0;
+  }
+}
+
+// ==========================================
+// NOVEDAD CARD – VARIANTE RECOGER PRÉSTAMO
+// ==========================================
+.novedad-icon-recoger {
+  i {
+    color: #1976D2;
+  }
+}
+
+// ==========================================
+// BOTÓN RECOGER PRÉSTAMO
+// ==========================================
+.btn-recoger-prestamo {
+  background: linear-gradient(135deg, #0277BD 0%, #0288D1 100%);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+
+  &:hover {
+    background: linear-gradient(135deg, #0288D1 0%, #039BE5 100%);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// ==========================================
+// LINK PRÉSTAMO ORIGEN
+// ==========================================
+.link-prestamo-origen {
+  color: #1565C0;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 0.875rem;
+
+  &:hover {
+    text-decoration: underline;
+    color: #1976D2;
   }
 }
 

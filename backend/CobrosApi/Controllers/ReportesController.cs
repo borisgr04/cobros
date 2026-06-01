@@ -109,10 +109,12 @@ public class ReportesController(CobrosDbContext db) : ControllerBase
             .ToListAsync();
 
         // Préstamos activos en el período (para calcular monto esperado)
+        // Se excluyen préstamos "refinanciado" ya que fueron reemplazados por un nuevo préstamo
         var prestamosActivosEnPeriodo = await db.Prestamos
             .AsNoTracking()
             .Include(p => p.Cliente)
             .Where(p => p.FechaFinal >= inicio
+                     && p.Estado != "refinanciado"
                      && (!zonaId.HasValue || p.Cliente!.ZonaId == zonaId.Value))
             .ToListAsync();
 

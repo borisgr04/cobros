@@ -59,6 +59,11 @@
                 <i class="bi bi-lightning-charge-fill"></i> Pronto Pago
               </div>
             }
+            @case ('refinanciado') {
+              <div class="badge-estado-grande refinanciado">
+                <i class="bi bi-arrow-repeat"></i> Refinanciado
+              </div>
+            }
             @case ('vencido') {
               <div class="badge-estado-grande vencido">
                 <i class="bi bi-exclamation-circle-fill"></i> Vencido
@@ -215,6 +220,16 @@
                       <strong>{{ formatDate(prestamo()!.estadisticas!.proximaCuotaFecha!) }}</strong>
                     </div>
                   }
+                  @if (prestamo()!.prestamoOrigenId) {
+                    <div class="detalle-item">
+                      <span class="detalle-label">
+                        <i class="bi bi-arrow-return-left"></i> Origen
+                      </span>
+                      <a class="link-prestamo-origen" [routerLink]="['/prestamos', prestamo()!.prestamoOrigenId]">
+                        Originado por refinanciación del préstamo #{{ prestamo()!.prestamoOrigenId }}
+                      </a>
+                    </div>
+                  }
                 </div>
               </div>
 
@@ -238,6 +253,12 @@
                     (click)="abrirModalAmpliacion()">
                     <i class="bi bi-calendar-plus-fill"></i>
                     Ampliar Plazo
+                  </button>
+                  <button 
+                    class="btn-accion btn-recoger-prestamo"
+                    (click)="abrirModalRecoger()">
+                    <i class="bi bi-arrow-repeat"></i>
+                    Recoger Préstamo
                   </button>
                 }
                 <button 
@@ -409,9 +430,11 @@
                 <div class="novedades-timeline">
                   @for (novedad of novedades(); track novedad.id) {
                     <div class="novedad-card">
-                      <div class="novedad-icon" [class.novedad-icon-ampliacion]="novedad.tipo === 'ampliacion_plazo'">
+                      <div class="novedad-icon" [class.novedad-icon-ampliacion]="novedad.tipo === 'ampliacion_plazo'" [class.novedad-icon-recoger]="novedad.tipo === 'recoger_prestamo'">
                         @if (novedad.tipo === 'ampliacion_plazo') {
                           <i class="bi bi-calendar-plus-fill"></i>
+                        } @else if (novedad.tipo === 'recoger_prestamo') {
+                          <i class="bi bi-arrow-repeat"></i>
                         } @else {
                           <i class="bi bi-lightning-charge-fill"></i>
                         }
@@ -421,6 +444,8 @@
                           <span class="novedad-tipo">
                             @if (novedad.tipo === 'ampliacion_plazo') {
                               Ampliación de Plazo
+                            } @else if (novedad.tipo === 'recoger_prestamo') {
+                              Recoger Préstamo
                             } @else {
                               Pronto Pago
                             }
@@ -459,6 +484,26 @@
                               <div class="novedad-dato">
                                 <span class="dato-label">Nuevas cuotas generadas</span>
                                 <span class="dato-value">{{ novedad.cantidadCuotasNuevas }}</span>
+                              </div>
+                            }
+                          </div>
+                        } @else if (novedad.tipo === 'recoger_prestamo') {
+                          <!-- Datos de recoger préstamo -->
+                          <div class="novedad-grid">
+                            <div class="novedad-dato">
+                              <span class="dato-label">Saldo trasladado</span>
+                              <span class="dato-value">{{ formatCurrency(novedad.saldoTrasladado ?? 0) }}</span>
+                            </div>
+                            <div class="novedad-dato highlight">
+                              <span class="dato-label">Dinero adicional entregado</span>
+                              <span class="dato-value warning">{{ formatCurrency(novedad.dineroAdicional ?? 0) }}</span>
+                            </div>
+                            @if (novedad.prestamoDestinoId) {
+                              <div class="novedad-dato highlight">
+                                <span class="dato-label">Nuevo préstamo creado</span>
+                                <a class="link-prestamo-origen" [routerLink]="['/prestamos', novedad.prestamoDestinoId]">
+                                  Ver préstamo #{{ novedad.prestamoDestinoId }}
+                                </a>
                               </div>
                             }
                           </div>
@@ -541,3 +586,9 @@
 <app-ampliar-plazo-modal
   (ampliacionRealizada)="onAmpliacionRealizada($event)">
 </app-ampliar-plazo-modal>
+
+<!-- Modal de Recoger Préstamo -->
+<app-recoger-prestamo-modal
+  (prestamoRecogido)="onPrestamoRecogido($event)"
+  (modalCerrado)="cargarPrestamo()">
+</app-recoger-prestamo-modal>

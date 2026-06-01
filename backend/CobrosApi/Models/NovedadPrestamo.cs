@@ -58,6 +58,19 @@ public class NovedadPrestamo
     /// <summary>Cantidad de nuevas cuotas generadas en la ampliación.</summary>
     public int? CantidadCuotasNuevas { get; set; }
 
+    // ─── Campos adicionales para "recoger_prestamo" ───────────────────────────
+
+    /// <summary>Préstamo destino creado por la operación "Recoger Préstamo".</summary>
+    public int? PrestamoDestinoId { get; set; }
+
+    /// <summary>Saldo pendiente trasladado del préstamo origen al nuevo.</summary>
+    [Column(TypeName = "numeric(18,2)")]
+    public decimal? SaldoTrasladado { get; set; }
+
+    /// <summary>Dinero adicional entregado al cliente (único movimiento de caja).</summary>
+    [Column(TypeName = "numeric(18,2)")]
+    public decimal? DineroAdicional { get; set; }
+
     [ForeignKey(nameof(PrestamoId))]
     public Prestamo? Prestamo { get; set; }
 
@@ -66,4 +79,7 @@ public class NovedadPrestamo
 
     [ForeignKey(nameof(PagoId))]
     public Pago? Pago { get; set; }
+
+    [ForeignKey(nameof(PrestamoDestinoId))]
+    public Prestamo? PrestamoDestino { get; set; }
 }

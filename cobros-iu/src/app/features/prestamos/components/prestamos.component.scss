@@ -638,6 +638,16 @@
     background: #FFF9E6;
     color: var(--warning-color);
   }
+
+  &.pronto-pago {
+    background: #F3E5F5;
+    color: #6A1B9A;
+  }
+
+  &.refinanciado {
+    background: #E3F2FD;
+    color: #1565C0;
+  }
 }
 
 // Contenedor de estado y frecuencia

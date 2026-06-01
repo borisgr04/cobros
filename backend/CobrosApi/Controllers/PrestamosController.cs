@@ -26,7 +26,8 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         CantidadCuotas    = p.CantidadCuotas,
         ValorCuota        = p.ValorCuota,
         Estado            = p.Estado,
-        FechaCierre       = p.FechaCierre
+        FechaCierre       = p.FechaCierre,
+        PrestamoOrigenId  = p.PrestamoOrigenId
     };
 
     // GET /api/prestamos
@@ -662,5 +663,131 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
             "mensual"   => base_.AddMonths(numeroCuota),
             _           => base_.AddDays(numeroCuota * 7)
         };
+    }
+
+    // POST /api/prestamos/{id}/recoger
+    [HttpPost("{id:int}/recoger")]
+    [ProducesResponseType(typeof(RecogerPrestamoResultadoDto), 200)]
+    [ProducesResponseType(typeof(ErrorDto), 400)]
+    [ProducesResponseType(typeof(ErrorDto), 404)]
+    public async Task<IActionResult> RecogerPrestamo(int id, [FromBody] RecogerPrestamoInputDto input)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(new ErrorDto { Error = "Datos inválidos" });
+
+        var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
+                 ?? User.FindFirst("email")?.Value;
+        var usuario = email is not null
+            ? await db.Usuarios.FirstOrDefaultAsync(u => u.Email == email)
+            : null;
+        if (usuario is null)
+            return BadRequest(new ErrorDto { Error = "Usuario autenticado no encontrado en el sistema" });
+
+        var prestamoOrigen = await db.Prestamos
+            .Include(p => p.Pagos)
+            .Include(p => p.Cuotas)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (prestamoOrigen is null)
+            return NotFound(new ErrorDto { Error = $"Préstamo {id} no encontrado" });
+
+        if (prestamoOrigen.Estado != "activo")
+            return BadRequest(new ErrorDto { Error = "Solo se puede recoger un préstamo activo" });
+
+        var totalPagado    = prestamoOrigen.Pagos.Where(p => !p.Anulado).Sum(p => p.Valor);
+        var saldoPendiente = prestamoOrigen.ValorTotal - totalPagado;
+
+        if (saldoPendiente <= 0)
+            return BadRequest(new ErrorDto { Error = "El préstamo no tiene saldo pendiente" });
+
+        var capitalNuevo  = saldoPendiente + input.DineroAdicional;
+        var totalACobrar  = capitalNuevo + input.Intereses;
+        var valorCuota    = Math.Round(totalACobrar / input.CantidadCuotas, 2);
+        var fechaInicio   = input.FechaInicio.Kind == DateTimeKind.Utc
+                                ? input.FechaInicio
+                                : DateTime.SpecifyKind(input.FechaInicio, DateTimeKind.Utc);
+        var nuevaFechaFinal = CalcularFechaCuota(fechaInicio, input.FrecuenciaPago, input.CantidadCuotas);
+        var ahora           = DateTime.UtcNow;
+
+        using var tx = db.Database.IsInMemory()
+            ? null
+            : await db.Database.BeginTransactionAsync();
+
+        // 1. Marcar préstamo origen como "refinanciado" y cerrarlo
+        prestamoOrigen.Estado = "refinanciado";
+        prestamoOrigen.FechaCierre = ahora;
+
+        // Marcar cuotas pendientes del origen como reemplazadas
+        var cuotasPendientes = prestamoOrigen.Cuotas
+            .Where(c => c.Estado != "pagada" &&
+                        c.Estado != "cerrada_pronto_pago" &&
+                        c.Estado != "reemplazada_por_ampliacion" &&
+                        c.SaldoPagado < c.ValorCuota)
+            .ToList();
+        foreach (var cuota in cuotasPendientes)
+            cuota.Estado = "reemplazada_por_ampliacion";
+
+        // 2. Crear el préstamo destino
+        var prestamoDestino = new Prestamo
+        {
+            ClienteId          = prestamoOrigen.ClienteId,
+            FechaPrestamo      = fechaInicio,
+            FechaFinal         = nuevaFechaFinal,
+            ValorPrestado      = capitalNuevo,
+            ValorTotal         = totalACobrar,
+            InteresProyectado  = input.Intereses,
+            FrecuenciaPago     = input.FrecuenciaPago,
+            CantidadCuotas     = input.CantidadCuotas,
+            ValorCuota         = valorCuota,
+            Estado             = "activo",
+            PrestamoOrigenId   = prestamoOrigen.Id,
+        };
+        db.Prestamos.Add(prestamoDestino);
+        await db.SaveChangesAsync(); // necesario para obtener prestamoDestino.Id
+
+        // 3. Crear cuotas del préstamo destino
+        var nuevasCuotas = Enumerable.Range(1, input.CantidadCuotas).Select(i => new Cuota
+        {
+            PrestamoId    = prestamoDestino.Id,
+            NumeroCuota   = i,
+            FechaEsperada = CalcularFechaCuota(fechaInicio, input.FrecuenciaPago, i),
+            ValorCuota    = (i == input.CantidadCuotas)
+                                ? totalACobrar - (input.CantidadCuotas - 1) * valorCuota
+                                : valorCuota,
+            SaldoPagado   = 0
+        });
+        db.Cuotas.AddRange(nuevasCuotas);
+
+        // 4. Registrar novedad en el préstamo origen
+        var novedad = new NovedadPrestamo
+        {
+            PrestamoId                = prestamoOrigen.Id,
+            Tipo                      = "recoger_prestamo",
+            FechaNovedad              = ahora,
+            UsuarioId                 = usuario.Id,
+            SaldoPendienteOriginal    = saldoPendiente,
+            InteresesFuturosEstimados = input.Intereses,
+            ValorNegociado            = totalACobrar,
+            DescuentoAplicado         = 0,
+            Notas                     = input.Observacion,
+            PrestamoDestinoId         = prestamoDestino.Id,
+            SaldoTrasladado           = saldoPendiente,
+            DineroAdicional           = input.DineroAdicional,
+        };
+        db.NovedadesPrestamo.Add(novedad);
+
+        await db.SaveChangesAsync();
+        if (tx is not null) await tx.CommitAsync();
+
+        return Ok(new RecogerPrestamoResultadoDto
+        {
+            PrestamoOrigenId  = prestamoOrigen.Id,
+            PrestamoDestinoId = prestamoDestino.Id,
+            NovedadId         = novedad.Id,
+            SaldoTrasladado   = saldoPendiente,
+            DineroAdicional   = input.DineroAdicional,
+            CapitalNuevo      = capitalNuevo,
+            TotalACobrar      = totalACobrar,
+        });
     }
 }

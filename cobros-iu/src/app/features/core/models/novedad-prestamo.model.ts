@@ -7,7 +7,7 @@ export interface INovedadPrestamo {
   id: number;
   /** Identificador del préstamo afectado */
   prestamoId: number;
-  /** Tipo de novedad: "pronto_pago" | "ampliacion_plazo" */
+  /** Tipo de novedad: "pronto_pago" | "ampliacion_plazo" | "recoger_prestamo" */
   tipo: string;
   /** Fecha en que se registró la novedad */
   fechaNovedad: Date;
@@ -41,6 +41,14 @@ export interface INovedadPrestamo {
   nuevaFechaFinal?: Date;
   /** Cantidad de nuevas cuotas generadas en la ampliación */
   cantidadCuotasNuevas?: number;
+
+  // Campos adicionales para "recoger_prestamo"
+  /** ID del nuevo préstamo creado (préstamo destino) */
+  prestamoDestinoId?: number;
+  /** Saldo pendiente trasladado al nuevo préstamo */
+  saldoTrasladado?: number;
+  /** Dinero adicional entregado al cliente */
+  dineroAdicional?: number;
 }
 
 /**
@@ -103,4 +111,29 @@ export interface IAmpliacionPlazoResultado {
   fechaFinalAnterior: Date;
   nuevaFechaFinal: Date;
   cantidadCuotasNuevas: number;
+}
+
+/**
+ * Datos de entrada para ejecutar la operación "Recoger Préstamo".
+ */
+export interface IRecogerPrestamoInput {
+  dineroAdicional: number;
+  intereses: number;
+  cantidadCuotas: number;
+  frecuenciaPago: string;
+  fechaInicio: string;
+  observacion?: string;
+}
+
+/**
+ * Resultado de ejecutar "Recoger Préstamo" exitosamente.
+ */
+export interface IRecogerPrestamoResultado {
+  prestamoOrigenId: number;
+  prestamoDestinoId: number;
+  novedadId: number;
+  saldoTrasladado: number;
+  dineroAdicional: number;
+  capitalNuevo: number;
+  totalACobrar: number;
 }

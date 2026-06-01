@@ -34,14 +34,23 @@ public class Prestamo
     [Required, Column(TypeName = "numeric(18,2)")]
     public decimal ValorCuota { get; set; }
 
-    /// <summary>"activo" | "completado" | "cerrado_pronto_pago"</summary>
+    /// <summary>"activo" | "completado" | "cerrado_pronto_pago" | "refinanciado"</summary>
     [Required, MaxLength(30)]
     public string Estado { get; set; } = "activo";
 
     public DateTime? FechaCierre { get; set; }
 
+    /// <summary>
+    /// FK al préstamo origen cuando este préstamo fue creado por la operación "Recoger Préstamo".
+    /// Null si es un préstamo nuevo independiente.
+    /// </summary>
+    public int? PrestamoOrigenId { get; set; }
+
     [ForeignKey(nameof(ClienteId))]
     public Cliente? Cliente { get; set; }
+
+    [ForeignKey(nameof(PrestamoOrigenId))]
+    public Prestamo? PrestamoOrigen { get; set; }
 
     public ICollection<Pago> Pagos { get; set; } = [];
     public ICollection<Cuota> Cuotas { get; set; } = [];

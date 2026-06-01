@@ -1,18 +1,19 @@
 import { Component, OnInit, signal, computed, inject, viewChild } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { PrestamoService, type PrestamoConCliente } from '../services';
 import { AbstractPrestamoService } from '../../core/services/abstract-prestamo.service';
 import { AbstractPagoService } from '../../core/services/abstract-pago.service';
 import type { CuotaProyectada } from '../utils/prestamo-calculations';
-import type { IPago, IPrestamo, INovedadPrestamo, IProntoPagoResultado, IAmpliacionPlazoResultado } from '../../core/models';
+import type { IPago, IPrestamo, INovedadPrestamo, IProntoPagoResultado, IAmpliacionPlazoResultado, IRecogerPrestamoResultado } from '../../core/models';
 import { RegistroPagoModalComponent } from './registro-pago-modal/registro-pago-modal.component';
 import { EdicionPrestamoModalComponent } from './edicion-prestamo-modal/edicion-prestamo-modal.component';
 import { ConfirmacionEliminarPrestamoModalComponent } from './confirmacion-eliminar-prestamo-modal/confirmacion-eliminar-prestamo-modal.component';
 import { AnulacionPagoModalComponent } from './anulacion-pago-modal/anulacion-pago-modal.component';
 import { ProntoPagoModalComponent } from './pronto-pago-modal/pronto-pago-modal.component';
 import { AmpliacionPlazoModalComponent } from './ampliar-plazo-modal/ampliar-plazo-modal.component';
+import { RecogerPrestamoModalComponent } from './recoger-prestamo-modal/recoger-prestamo-modal.component';
 
 /**
  * Componente de detalle de un préstamo individual
@@ -23,12 +24,14 @@ import { AmpliacionPlazoModalComponent } from './ampliar-plazo-modal/ampliar-pla
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     RegistroPagoModalComponent,
     EdicionPrestamoModalComponent,
     ConfirmacionEliminarPrestamoModalComponent,
     AnulacionPagoModalComponent,
     ProntoPagoModalComponent,
-    AmpliacionPlazoModalComponent
+    AmpliacionPlazoModalComponent,
+    RecogerPrestamoModalComponent
   ],
   templateUrl: './prestamo-detalle.component.html',
   styleUrl: './prestamo-detalle.component.scss',
@@ -59,6 +62,9 @@ export class PrestamoDetalleComponent implements OnInit {
   // ViewChild para acceder al modal de ampliación de plazo
   modalAmpliacion = viewChild(AmpliacionPlazoModalComponent);
 
+  // ViewChild para acceder al modal de recoger préstamo
+  modalRecoger = viewChild(RecogerPrestamoModalComponent);
+
   // Signals de datos
   prestamo = signal<PrestamoConCliente | null>(null);
   pagos = signal<IPago[]>([]);
@@ -78,7 +84,7 @@ export class PrestamoDetalleComponent implements OnInit {
   // Computed: si el préstamo está cerrado (no se pueden registrar más pagos ni pronto pago)
   prestamoCerrado = computed(() => {
     const p = this.prestamo();
-    return p?.estado === 'cerrado_pronto_pago' || p?.estado === 'completado';
+    return p?.estado === 'cerrado_pronto_pago' || p?.estado === 'completado' || p?.estado === 'refinanciado';
   });
 
   ngOnInit(): void {
@@ -349,9 +355,29 @@ export class PrestamoDetalleComponent implements OnInit {
   }
 
   /**
-   * Verifica si el préstamo puede ser editado (sin pagos registrados)
+   * Abre el modal de recoger préstamo pasando el saldo pendiente calculado
+   */
+  abrirModalRecoger(): void {
+    const p = this.prestamo();
+    const modal = this.modalRecoger();
+    if (!p || !modal) return;
+    const saldoPendiente = p.estadisticas?.totalPorCobrar ?? 0;
+    modal.abrir(p, saldoPendiente);
+  }
+
+  /**
+   * Maneja el resultado de recoger préstamo
+   */
+  onPrestamoRecogido(_resultado: IRecogerPrestamoResultado): void {
+    this.cargarPrestamo();
+    this.tabActiva.set('novedades');
+  }
+
+  /**
+   * Verifica si el préstamo puede ser editado (sin pagos registrados y no cerrado)
    */
   puedeEditarPrestamo(): boolean {
+    if (this.prestamoCerrado()) return false;
     const totalPagos = this.getTotalPagos();
     return totalPagos === 0;
   }
@@ -360,6 +386,10 @@ export class PrestamoDetalleComponent implements OnInit {
    * Abre el modal de edición del préstamo
    */
   editarPrestamo(): void {
+    if (this.prestamoCerrado()) {
+      alert('No se puede editar un préstamo refinanciado o cerrado');
+      return;
+    }
     const prestamo = this.prestamo();
     const totalPagos = this.getTotalPagos();
 
@@ -388,9 +418,10 @@ export class PrestamoDetalleComponent implements OnInit {
   }
 
   /**
-   * Verifica si el préstamo puede ser eliminado (sin pagos registrados)
+   * Verifica si el préstamo puede ser eliminado (sin pagos registrados y no cerrado)
    */
   puedeEliminarPrestamo(): boolean {
+    if (this.prestamoCerrado()) return false;
     const totalPagos = this.getTotalPagos();
     return totalPagos === 0;
   }
@@ -399,6 +430,10 @@ export class PrestamoDetalleComponent implements OnInit {
    * Abre el modal de confirmación de eliminación del préstamo
    */
   eliminarPrestamo(): void {
+    if (this.prestamoCerrado()) {
+      alert('No se puede eliminar un préstamo refinanciado o cerrado');
+      return;
+    }
     const prestamo = this.prestamo();
     const totalPagos = this.getTotalPagos();
 
@@ -437,6 +472,7 @@ export class PrestamoDetalleComponent implements OnInit {
     switch (estado) {
       case 'completado':        return { texto: 'Completado',        clase: 'badge-completado' };
       case 'cerrado_pronto_pago': return { texto: 'Pronto Pago',     clase: 'badge-pronto-pago' };
+      case 'refinanciado':      return { texto: 'Refinanciado',      clase: 'badge-refinanciado' };
       case 'vencido':           return { texto: 'Vencido',           clase: 'badge-vencido' };
       case 'mora':              return { texto: 'En Mora',           clase: 'badge-mora' };
       default:                  return { texto: 'Activo',            clase: 'badge-activo' };

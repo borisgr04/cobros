@@ -110,9 +110,10 @@ public class PrestamoDto
     public string FrecuenciaPago { get; set; } = string.Empty;
     public int CantidadCuotas { get; set; }
     public decimal ValorCuota { get; set; }
-    /// <summary>"activo" | "completado" | "cerrado_pronto_pago"</summary>
+    /// <summary>"activo" | "completado" | "cerrado_pronto_pago" | "refinanciado"</summary>
     public string Estado { get; set; } = "activo";
     public DateTime? FechaCierre { get; set; }
+    public int? PrestamoOrigenId { get; set; }
 }
 
 public class PrestamoInputDto
@@ -433,6 +434,40 @@ public class AmpliacionPlazoResultadoDto
     public DateTime FechaFinalAnterior { get; set; }
     public DateTime NuevaFechaFinal { get; set; }
     public int CantidadCuotasNuevas { get; set; }
+}
+
+// ─── RECOGER PRÉSTAMO ──────────────────────────────────────────────────────
+
+public class RecogerPrestamoInputDto
+{
+    [Required, Range(0.01, double.MaxValue, ErrorMessage = "El dinero adicional debe ser mayor a 0")]
+    public decimal DineroAdicional { get; set; }
+
+    [Required, Range(0, double.MaxValue, ErrorMessage = "Los intereses no pueden ser negativos")]
+    public decimal Intereses { get; set; }
+
+    [Required, Range(1, int.MaxValue, ErrorMessage = "Debe ingresar al menos 1 cuota")]
+    public int CantidadCuotas { get; set; }
+
+    [Required]
+    public string FrecuenciaPago { get; set; } = string.Empty;
+
+    [Required]
+    public DateTime FechaInicio { get; set; }
+
+    [MaxLength(1000)]
+    public string? Observacion { get; set; }
+}
+
+public class RecogerPrestamoResultadoDto
+{
+    public int PrestamoOrigenId { get; set; }
+    public int PrestamoDestinoId { get; set; }
+    public int NovedadId { get; set; }
+    public decimal SaldoTrasladado { get; set; }
+    public decimal DineroAdicional { get; set; }
+    public decimal CapitalNuevo { get; set; }
+    public decimal TotalACobrar { get; set; }
 }
 
 

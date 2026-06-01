@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, delay, throwError } from 'rxjs';
 import type { IPrestamo } from '../../core/models';
-import type { INovedadPrestamo, IProntoPagoResumen, IProntoPagoResultado, IAmpliacionPlazoResumen, IAmpliacionPlazoInput, IAmpliacionPlazoResultado } from '../../core/models';
+import type { INovedadPrestamo, IProntoPagoResumen, IProntoPagoResultado, IAmpliacionPlazoResumen, IAmpliacionPlazoInput, IAmpliacionPlazoResultado, IRecogerPrestamoInput, IRecogerPrestamoResultado } from '../../core/models';
 import { AbstractPrestamoService } from '../../core/services/abstract-prestamo.service';
 
 /**
@@ -235,6 +235,18 @@ export class PrestamoMockService implements AbstractPrestamoService {
       fechaFinalAnterior: new Date('2026-06-15'),
       nuevaFechaFinal: new Date('2026-09-30'),
       cantidadCuotasNuevas: 10
+    }).pipe(delay(this.MOCK_DELAY));
+  }
+
+  recogerPrestamo(_id: string, _input: IRecogerPrestamoInput): Observable<IRecogerPrestamoResultado> {
+    return of({
+      prestamoOrigenId: 1,
+      prestamoDestinoId: 99,
+      novedadId: 10,
+      saldoTrasladado: 400000,
+      dineroAdicional: 200000,
+      capitalNuevo: 600000,
+      totalACobrar: 720000,
     }).pipe(delay(this.MOCK_DELAY));
   }
 

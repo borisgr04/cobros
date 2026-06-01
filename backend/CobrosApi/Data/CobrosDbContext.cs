@@ -38,6 +38,20 @@ public class CobrosDbContext(DbContextOptions<CobrosDbContext> options) : DbCont
         modelBuilder.Entity<Prestamo>()
             .HasIndex(p => p.ClienteId);
 
+        // FK self-referencial: préstamo destino → préstamo origen (Recoger Préstamo)
+        modelBuilder.Entity<Prestamo>()
+            .HasOne(p => p.PrestamoOrigen)
+            .WithMany()
+            .HasForeignKey(p => p.PrestamoOrigenId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // FK NovedadPrestamo → Prestamo destino (Recoger Préstamo)
+        modelBuilder.Entity<NovedadPrestamo>()
+            .HasOne(n => n.PrestamoDestino)
+            .WithMany()
+            .HasForeignKey(n => n.PrestamoDestinoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // Índice en PrestamoId de Pago
         modelBuilder.Entity<Pago>()
             .HasIndex(p => p.PrestamoId);
