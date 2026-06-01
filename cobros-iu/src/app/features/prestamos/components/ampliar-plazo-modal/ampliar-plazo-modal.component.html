@@ -70,10 +70,7 @@
                 </label>
                 <input
                   class="input-campo"
-                  type="number"
-                  [value]="interesAdicional()"
-                  (input)="interesAdicional.set(+$any($event.target).value || 0)"
-                  min="0"
+                  [(appMoneda)]="interesAdicional"
                   placeholder="$ 0">
                 @if (interesAdicional() < 0) {
                   <span class="campo-error">El interés adicional no puede ser negativo</span>
@@ -321,7 +318,7 @@
           <button
             class="btn-warning"
             (click)="confirmarAmpliacion()"
-            [disabled]="!confirmado() || procesando()">
+            [disabled]="!confirmado() || !formularioValido() || procesando()">
             @if (procesando()) {
               <span class="spinner-btn"></span>
             } @else {

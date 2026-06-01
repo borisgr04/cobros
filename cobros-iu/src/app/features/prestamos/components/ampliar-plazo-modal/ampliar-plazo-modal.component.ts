@@ -4,6 +4,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MonedaInputDirective } from '../../../../shared/directives';
 import { AbstractPrestamoService } from '../../../core/services/abstract-prestamo.service';
 import type { IAmpliacionPlazoResumen, IAmpliacionPlazoResultado } from '../../../core/models';
 import type { PrestamoConCliente } from '../../services/prestamo.service';
@@ -19,7 +20,7 @@ type Paso = 'formulario' | 'confirmacion' | 'resultado';
 @Component({
   selector: 'app-ampliar-plazo-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MonedaInputDirective],
   templateUrl: './ampliar-plazo-modal.component.html',
   styleUrl: './ampliar-plazo-modal.component.scss',
 })
