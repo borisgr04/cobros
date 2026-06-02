@@ -89,15 +89,17 @@
                   <i class="bi bi-arrow-repeat"></i>
                   Frecuencia de pagos:
                 </label>
-                <select
-                  class="input-campo"
-                  [value]="frecuenciaPago()"
-                  (change)="frecuenciaPago.set($any($event.target).value)">
-                  <option value="diario">Diario</option>
-                  <option value="semanal">Semanal</option>
-                  <option value="quincenal">Quincenal</option>
-                  <option value="mensual">Mensual</option>
-                </select>
+                <div class="frecuencia-segmented">
+                  @for (frec of frecuencias; track frec.value) {
+                    <button
+                      type="button"
+                      class="frecuencia-seg-btn"
+                      [class.selected]="frecuenciaPago() === frec.value"
+                      (click)="seleccionarFrecuencia(frec.value)">
+                      {{ frec.label }}
+                    </button>
+                  }
+                </div>
               </div>
 
               <div class="form-campo">
@@ -290,6 +292,21 @@
                 </div>
               </div>
             </div>
+
+            @if (whatsappLink()) {
+              <a class="btn-whatsapp"
+                 [href]="whatsappLink()"
+                 target="_blank"
+                 rel="noopener noreferrer">
+                <i class="bi bi-whatsapp"></i>
+                Notificar al cliente
+              </a>
+            } @else {
+              <p class="sin-telefono">
+                <i class="bi bi-phone-slash"></i>
+                Sin número de teléfono registrado
+              </p>
+            }
           </div>
         }
 

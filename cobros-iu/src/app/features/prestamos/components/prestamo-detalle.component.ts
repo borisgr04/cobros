@@ -2,6 +2,7 @@ import { Component, OnInit, signal, computed, inject, viewChild } from '@angular
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PrestamoService, type PrestamoConCliente } from '../services';
 import { AbstractPrestamoService } from '../../core/services/abstract-prestamo.service';
 import { AbstractPagoService } from '../../core/services/abstract-pago.service';
@@ -88,8 +89,16 @@ export class PrestamoDetalleComponent implements OnInit {
     return !!p?.estado && ESTADOS_TERMINALES.has(p.estado as any);
   });
 
+  constructor() {
+    // Recargar datos cuando cambia el ID en la URL (Angular reutiliza el componente
+    // al navegar entre /prestamos/:id sin destruirlo ni recrearlo)
+    this.route.paramMap.pipe(takeUntilDestroyed()).subscribe(() => {
+      this.cargarPrestamo();
+    });
+  }
+
   ngOnInit(): void {
-    this.cargarPrestamo();
+    // La carga inicial ya la maneja el constructor con paramMap
   }
 
   /**

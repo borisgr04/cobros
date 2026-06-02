@@ -5,11 +5,13 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { MonedaInputDirective } from '../../../../shared/directives';
 import { AbstractPrestamoService } from '../../../core/services/abstract-prestamo.service';
 import type { IRecogerPrestamoInput, IRecogerPrestamoResultado } from '../../../core/models';
 import type { PrestamoConCliente } from '../../services/prestamo.service';
 
+type FrecuenciaPago = 'diario' | 'semanal' | 'quincenal' | 'mensual';
 type Paso = 'formulario' | 'confirmacion' | 'resultado';
 
 /**
@@ -28,6 +30,7 @@ type Paso = 'formulario' | 'confirmacion' | 'resultado';
 export class RecogerPrestamoModalComponent {
   private prestamoService = inject(AbstractPrestamoService);
   private router = inject(Router);
+  private sanitizer = inject(DomSanitizer);
 
   @Output() prestamoRecogido = new EventEmitter<IRecogerPrestamoResultado>();
   @Output() modalCerrado = new EventEmitter<void>();
@@ -91,6 +94,37 @@ export class RecogerPrestamoModalComponent {
     const d = new Date(this.fechaInicio());
     if (isNaN(d.getTime())) return false;
     return true;
+  });
+
+  // Opciones de frecuencia
+  frecuencias: Array<{ value: FrecuenciaPago; label: string }> = [
+    { value: 'diario',    label: 'Diario'    },
+    { value: 'semanal',   label: 'Semanal'   },
+    { value: 'quincenal', label: 'Quincenal' },
+    { value: 'mensual',   label: 'Mensual'   },
+  ];
+
+  whatsappLink = computed((): SafeUrl | null => {
+    const p   = this.prestamo();
+    const res = this.resultado();
+    if (!p || !res || !p.cliente?.telefono) return null;
+
+    const telefonoLimpio = p.cliente.telefono.replace(/\D/g, '');
+    if (!telefonoLimpio) return null;
+    const telefono = `57${telefonoLimpio}`;
+
+    const nombre      = p.cliente.nombre ?? 'cliente';
+    const total       = this.formatCurrency(res.totalACobrar);
+    const cuotas      = res.cantidadCuotas ?? this.cantidadCuotas();
+    const valorCuota  = cuotas > 0 ? this.formatCurrency(Math.round(res.totalACobrar / cuotas)) : '';
+    const clave = p.cliente.llave || p.cliente.id;
+    const linkConsulta = clave
+      ? `\n\n🔗 Consultá tu saldo:\n${window.location.origin}/consulta/${clave}`
+      : '';
+
+    const msg = `🔄 Hola ${nombre}, tu préstamo fue recogido. El nuevo total a cobrar es *${total}* en ${cuotas} cuotas de *${valorCuota}*.${linkConsulta}\n\n📞 \u00a1Gracias por confiar en nosotros!`;
+    const url = `https://wa.me/${telefono}?text=${encodeURIComponent(msg)}`;
+    return this.sanitizer.bypassSecurityTrustUrl(url);
   });
 
   // ─── API pública ──────────────────────────────────────────────────────────
@@ -175,6 +209,10 @@ export class RecogerPrestamoModalComponent {
     if (!res) return;
     this.cerrar();
     this.router.navigate(['/prestamos', res.prestamoDestinoId]);
+  }
+
+  seleccionarFrecuencia(value: FrecuenciaPago): void {
+    this.frecuenciaPago.set(value);
   }
 
   // ─── Helpers de formato ──────────────────────────────────────────────────
