@@ -7,11 +7,17 @@ Display all primary navigation items in the mobile bottom navigation component t
 ## Requirements
 
 ### Requirement: Bottom navigation component includes all primary navigation items
-The mobile bottom navigation component SHALL display all primary navigation items including home, clients, zones, reports, dashboard, and users, ensuring feature parity with the desktop sidebar navigation.
+The app SHALL provide bottom navigation that includes all primary navigation items.
+Navigation entries for Zonas SHALL lead to the Clientes view pre-filtered by zone when a zone is selected, not to the Préstamos view.
 
 #### Scenario: Bottom navigation displays all menu items
 - **WHEN** the bottom navigation component renders on a mobile device
 - **THEN** it displays menu items for Inicio, Clientes, Zonas, Reportes, Tablero, and Usuarios
+
+#### Scenario: Tap en zona navega a clientes de esa zona
+- **WHEN** el usuario toca la card de una zona
+- **THEN** la app navega a `/clientes?zona=<id>` mostrando los clientes de esa zona
+- **AND** el botón de acción redundante "Ver Clientes" no aparece en la card
 
 #### Scenario: Each menu item links to correct route
 - **WHEN** a user clicks any menu item in the bottom navigation
