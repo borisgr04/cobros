@@ -32,10 +32,10 @@ public class ReportesController(CobrosDbContext db) : ControllerBase
         if (fechaFin < fechaInicio)
             return BadRequest(new ErrorDto { Error = "fechaFin debe ser mayor o igual a fechaInicio" });
 
-        // Normalizar a rango local completo del día: inicio exacto enviado por el cliente
-        // (equivale a medianoche local Colombia) y fin exclusivo = +1 día
-        var inicio = fechaInicio;
-        var fin = fechaFin.AddDays(1);
+        // Normalizar a rango completo del día: truncar hora para eliminar desfase de timezone
+        // (el cliente puede enviar T05:00:00Z por UTC-5; .Date lo normaliza a T00:00:00)
+        var inicio = fechaInicio.Date;
+        var fin = fechaFin.Date.AddDays(1);
 
         // ── Préstamos nuevos ─────────────────────────────────────────────────
         var qNuevos = db.Prestamos
@@ -74,11 +74,16 @@ public class ReportesController(CobrosDbContext db) : ControllerBase
             .ToListAsync();
 
         // ── Préstamos finalizados ────────────────────────────────────────────
+        // completado → usa FechaFinal (terminó en fecha programada)
+        // refinanciado / cerrado_pronto_pago → usa FechaCierre (cierre anticipado real)
         var qFinalizados = db.Prestamos
             .AsNoTracking()
             .Include(p => p.Pagos)
             .Include(p => p.Cliente).ThenInclude(c => c!.Zona)
-            .Where(p => p.FechaFinal >= inicio && p.FechaFinal < fin);
+            .Where(p =>
+                (p.Estado == "completado"           && p.FechaFinal  >= inicio && p.FechaFinal  < fin) ||
+                (p.Estado == "cerrado_pronto_pago"  && p.FechaCierre >= inicio && p.FechaCierre < fin) ||
+                (p.Estado == "refinanciado"          && p.FechaCierre >= inicio && p.FechaCierre < fin));
 
         if (zonaId.HasValue)
             qFinalizados = qFinalizados.Where(p => p.Cliente!.ZonaId == zonaId.Value);
