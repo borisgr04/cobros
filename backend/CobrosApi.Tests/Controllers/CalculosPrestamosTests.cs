@@ -25,9 +25,10 @@ public class CalculosPrestamosTests(CobrosWebAppFactory factory)
 
     private async Task<string> CrearCliente(string zonaId)
     {
+        var identificacion = $"C{Guid.NewGuid().ToString("N")[..10].ToUpper()}";
         var r = await _client.PostAsJsonAsync("/api/clientes", new
         {
-            nombre = "Cliente Calc", identificacion = "CALC0001", zonaId, estado = "activo"
+            nombre = "Cliente Calc", identificacion, zonaId, estado = "activo"
         });
         var c = await r.Content.ReadFromJsonAsync<Dictionary<string, object>>();
         return c!["id"].ToString()!;
