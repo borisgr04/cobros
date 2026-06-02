@@ -101,9 +101,11 @@ public class ReportesController(CobrosDbContext db) : ControllerBase
                     ? "refinanciado"
                     : p.Estado == "cerrado_pronto_pago"
                         ? "pronto_pago"
-                        : p.Pagos.Where(pg => !pg.Anulado).Sum(pg => pg.Valor) >= p.ValorTotal
+                        : p.Estado == "completado"
                             ? "pagado_completo"
-                            : "vencido_sin_pagar"
+                            : p.Pagos.Where(pg => !pg.Anulado).Sum(pg => pg.Valor) >= p.ValorTotal
+                                ? "pagado_completo"
+                                : "vencido_sin_pagar"
             })
             .ToListAsync();
 
@@ -131,6 +133,7 @@ public class ReportesController(CobrosDbContext db) : ControllerBase
             .Where(p => p.FechaFinal >= inicio
                      && p.Estado != "refinanciado"
                      && p.Estado != "cerrado_pronto_pago"
+                     && p.Estado != "completado"
                      && (!zonaId.HasValue || p.Cliente!.ZonaId == zonaId.Value))
             .ToListAsync();
 

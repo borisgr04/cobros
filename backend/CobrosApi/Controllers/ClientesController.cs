@@ -39,7 +39,10 @@ public class ClientesController(CobrosDbContext db) : ControllerBase
         InteresProyectado = p.InteresProyectado,
         FrecuenciaPago    = p.FrecuenciaPago,
         CantidadCuotas    = p.CantidadCuotas,
-        ValorCuota        = p.ValorCuota
+        ValorCuota        = p.ValorCuota,
+        Estado            = p.Estado,
+        FechaCierre       = p.FechaCierre,
+        PrestamoOrigenId  = p.PrestamoOrigenId
     };
 
     // GET /api/clientes
@@ -93,6 +96,9 @@ public class ClientesController(CobrosDbContext db) : ControllerBase
                     FrecuenciaPago    = p.FrecuenciaPago,
                     CantidadCuotas    = p.CantidadCuotas,
                     ValorCuota        = p.ValorCuota,
+                    Estado            = p.Estado,
+                    FechaCierre       = p.FechaCierre,
+                    PrestamoOrigenId  = p.PrestamoOrigenId,
                     TotalPagado       = totalPagado,
                     SaldoPendiente    = Math.Max(0, p.ValorTotal - totalPagado)
                 };

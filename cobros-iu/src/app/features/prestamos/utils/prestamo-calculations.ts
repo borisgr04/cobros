@@ -5,6 +5,11 @@ import type { FrecuenciaPago, IPrestamo, IPago } from '../../core/models';
  */
 export type EstadoPrestamo = 'activo' | 'completado' | 'cerrado_pronto_pago' | 'vencido' | 'mora' | 'refinanciado';
 
+/** Estados terminales: no se pueden registrar pagos ni operaciones. */
+export const ESTADOS_TERMINALES: ReadonlySet<EstadoPrestamo> = new Set([
+  'completado', 'cerrado_pronto_pago', 'refinanciado'
+]);
+
 /**
  * Interface que espeja el CuotaDetalleDto del backend
  */

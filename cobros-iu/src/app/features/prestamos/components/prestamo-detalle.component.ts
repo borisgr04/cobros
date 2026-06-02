@@ -6,6 +6,7 @@ import { PrestamoService, type PrestamoConCliente } from '../services';
 import { AbstractPrestamoService } from '../../core/services/abstract-prestamo.service';
 import { AbstractPagoService } from '../../core/services/abstract-pago.service';
 import type { CuotaProyectada } from '../utils/prestamo-calculations';
+import { ESTADOS_TERMINALES } from '../utils/prestamo-calculations';
 import type { IPago, IPrestamo, INovedadPrestamo, IProntoPagoResultado, IAmpliacionPlazoResultado, IRecogerPrestamoResultado } from '../../core/models';
 import { RegistroPagoModalComponent } from './registro-pago-modal/registro-pago-modal.component';
 import { EdicionPrestamoModalComponent } from './edicion-prestamo-modal/edicion-prestamo-modal.component';
@@ -84,7 +85,7 @@ export class PrestamoDetalleComponent implements OnInit {
   // Computed: si el préstamo está cerrado (no se pueden registrar más pagos ni pronto pago)
   prestamoCerrado = computed(() => {
     const p = this.prestamo();
-    return p?.estado === 'cerrado_pronto_pago' || p?.estado === 'completado' || p?.estado === 'refinanciado';
+    return !!p?.estado && ESTADOS_TERMINALES.has(p.estado as any);
   });
 
   ngOnInit(): void {
