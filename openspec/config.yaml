@@ -18,3 +18,125 @@ schema: spec-driven
 #       - Always include a "Non-goals" section
 #     tasks:
 #       - Break tasks into chunks of max 2 hours
+
+
+# openspec.config.yml
+# Sistema de Préstamos — Configuración de arquitectura para agentes de IA
+# Compatible con: GitHub Copilot (.github/agents/) y Claude (stack.md / SKILL context)
+# Última actualización: 2026
+
+project:
+  name: SistemaPrestamos
+  type: brownfield
+  language: csharp
+  framework: aspnet-core
+  orm: ef-core-direct        # Sin repositorio genérico, sin Unit of Work
+  frontend: por-definir      # Controllers o Minimal APIs — decidir al final
+
+# ─────────────────────────────────────────
+# ESTRUCTURA DE CARPETAS
+# ─────────────────────────────────────────
+structure:
+  root: src/SistemaPrestamos
+  folders:
+    - Features/Loans/          # Casos de uso del módulo Préstamos
+    - Features/Payments/       # Casos de uso del módulo Pagos
+    - Features/Refinancing/    # Casos de uso del módulo Refinanciamiento
+    - Features/Collections/    # Casos de uso del módulo Cobros
+    - Features/Shared/         # Queries reutilizables, extensiones, Result<T>
+    - Controllers/             # Solo HTTP — o Endpoints/ si se usa Minimal APIs
+    - Infrastructure/          # DbContext, configuraciones EF Core, migraciones
+
+  conventions:
+    - "Un archivo por caso de uso: CreateLoan.cs, ApplyPayment.cs, RefinanceLoan.cs"
+    - "Queries reutilizables en Features/{Modulo}/{Modulo}Queries.cs como extension methods sobre IQueryable"
+    - "Agrupador opcional: {Modulo}Operations.cs agrupa handlers para reducir inyecciones en Controller"
+    - "Nunca lógica de negocio en Controllers ni en Program.cs"
+
+# ─────────────────────────────────────────
+# PATRÓN DE CASO DE USO
+# ─────────────────────────────────────────
+use_case_pattern:
+  style: one-class-per-operation
+  method_name: ExecuteAsync
+  return_type: "Result<T>"     # Usar tipo Result propio o FluentResults / ErrorOr
+  dependencies: ef-core-direct # El handler recibe AppDbContext directamente vía primary constructor
+
+  template: |
+    public class {OperationName}({Dependencies})
+    {
+        public async Task<Result<{OutputDto}>> ExecuteAsync({InputDto} dto)
+        {
+            // 1. Validar reglas de negocio
+            // 2. Consultar estado actual via DbContext
+            // 3. Aplicar lógica de dominio
+            // 4. Persistir cambios
+            // 5. Retornar Result<T>
+        }
+    }
+
+# ─────────────────────────────────────────
+# REGLAS DE NEGOCIO — FUENTE ÚNICA DE VERDAD
+# ─────────────────────────────────────────
+business_rules:
+  location: "Features/Shared/LoanRules.cs o Features/{Modulo}/{Modulo}Rules.cs"
+  principles:
+    - "Tasas, porcentajes y condiciones financieras NUNCA hardcodeados en handlers"
+    - "Reglas de elegibilidad centralizadas — no duplicadas por endpoint"
+    - "Penalidades y recargos calculados desde un único método"
+
+# ─────────────────────────────────────────
+# ANTIPATRONES — NUNCA GENERAR
+# ─────────────────────────────────────────
+antipatterns:
+  never:
+    - Generic Repository (IRepository<T>)
+    - Unit of Work wrapper sobre EF Core
+    - Interfaces para clases con una sola implementación
+    - Lógica de negocio en Controllers
+    - Lógica de negocio en DTOs o modelos de EF
+    - Consultas LINQ duplicadas — si existe en {Modulo}Queries.cs, reutilizar
+    - Validaciones de negocio duplicadas entre handlers
+    - MediatR salvo que se adopte explícitamente como decisión de equipo
+
+  before_generating:
+    - "Revisar Features/{Modulo}/ para ver si el caso de uso ya existe"
+    - "Revisar {Modulo}Queries.cs antes de escribir una nueva query LINQ"
+    - "Revisar {Modulo}Rules.cs antes de hardcodear una regla financiera"
+
+# ─────────────────────────────────────────
+# MIGRACIONES Y REFACTORIZACIÓN
+# ─────────────────────────────────────────
+migration:
+  strategy: gradual-brownfield
+  principle: "Extraer sin romper — los Controllers existentes siguen funcionando durante la migración"
+  order:
+    1: "Identificar operaciones con lógica duplicada o de alto riesgo"
+    2: "Extraer a handler de caso de uso"
+    3: "El Controller existente delega al handler — sin cambio de contrato HTTP"
+    4: "Una vez estable, limpiar el Controller"
+
+# ─────────────────────────────────────────
+# CONTEXTO PARA AGENTES DE IA
+# ─────────────────────────────────────────
+ai_agents:
+  copilot:
+    agent_file: .github/agents/loan-architect.agent.md
+    context_files:
+      - openspec.config.yml
+      - docs/architecture.md
+      - docs/antipatterns.md
+
+  claude:
+    context_files:
+      - openspec.config.yml
+      - stack.md
+      - architecture.md
+
+  instructions: |
+    Antes de generar cualquier código:
+    1. Leer config.yml para entender la estructura esperada
+    2. Identificar el módulo correcto en Features/
+    3. Verificar si el caso de uso ya existe
+    4. Seguir el patrón use_case_pattern.template
+    5. No introducir abstracciones no listadas en este archivo

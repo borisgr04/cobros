@@ -173,7 +173,7 @@ public class CalculosPrestamosTests(CobrosWebAppFactory factory)
 
         Assert.NotNull(cuotas);
         var cuota = cuotas[numeroCuota - 1]; // 0-indexed
-        var fecha = DateTime.Parse(cuota["fechaEsperada"].ToString()!).ToString("yyyy-MM-dd");
+        var fecha = DateTimeOffset.Parse(cuota["fechaEsperada"].ToString()!).UtcDateTime.ToString("yyyy-MM-dd");
         Assert.Equal(fechaEsperada, fecha);
     }
 
