@@ -14,7 +14,6 @@ public class EjecutarProntoPago(CobrosDbContext db, AplicarPago aplicarPago)
     public async Task<Result<ProntoPagoResultadoDto>> ExecuteAsync(EjecutarProntoPagoDto dto)
     {
         var prestamo = await db.Prestamos
-            .Include(p => p.Pagos)
             .Include(p => p.Cuotas)
             .FirstOrDefaultAsync(p => p.Id == dto.PrestamoId);
 
@@ -24,7 +23,7 @@ public class EjecutarProntoPago(CobrosDbContext db, AplicarPago aplicarPago)
         if (!PagosRules.PrestamoAceptaPagos(prestamo.Estado))
             return Result<ProntoPagoResultadoDto>.Fail("El préstamo ya se encuentra cerrado");
 
-        var totalPagado    = prestamo.Pagos.Where(p => !p.Anulado).Sum(p => p.Valor);
+        var totalPagado    = prestamo.Cuotas.Sum(c => c.SaldoPagado);
         var saldoPendiente = prestamo.ValorTotal - totalPagado;
 
         if (saldoPendiente <= 0)

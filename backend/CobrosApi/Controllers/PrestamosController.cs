@@ -1,6 +1,7 @@
 using CobrosApi.Data;
 using CobrosApi.DTOs;
 using CobrosApi.Features.Liquidacion;
+using CobrosApi.Features.Prestamos;
 using CobrosApi.Features.Shared;
 using CobrosApi.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -49,15 +50,13 @@ public class PrestamosController(
     [ProducesResponseType(typeof(IEnumerable<PrestamoDto>), 200)]
     public async Task<IActionResult> GetActivos()
     {
-        // Activo = préstamo con estado activo (mora/vencido son estados derivados del frontend)
+        // Activo = préstamo con estado activo cuyo saldo (desde cuotas) es menor al valor total
         var prestamos = await db.Prestamos
             .AsNoTracking()
-            .Include(p => p.Pagos)
-            .Where(p => p.Estado == PrestamoEstados.Prestamo.Activo)
+            .GetActivosConSaldo()
             .ToListAsync();
 
-        var activos = prestamos.Where(p => p.Pagos.Where(pg => !pg.Anulado).Sum(pg => pg.Valor) < p.ValorTotal);
-        return Ok(activos.Select(ToDto));
+        return Ok(prestamos.Select(ToDto));
     }
 
     // GET /api/prestamos/cliente/{clienteId}
@@ -275,7 +274,6 @@ public class PrestamosController(
     {
         var prestamo = await db.Prestamos
             .AsNoTracking()
-            .Include(p => p.Pagos)
             .Include(p => p.Cuotas)
             .FirstOrDefaultAsync(p => p.Id == id);
 
@@ -285,7 +283,7 @@ public class PrestamosController(
         if (prestamo.Estado == PrestamoEstados.Prestamo.CerradoProntoPago)
             return BadRequest(new ErrorDto { Error = "El préstamo ya fue cerrado por pronto pago" });
 
-        var totalPagado   = prestamo.Pagos.Where(p => !p.Anulado).Sum(p => p.Valor);
+        var totalPagado    = prestamo.Cuotas.Sum(c => c.SaldoPagado);
         var saldoPendiente = prestamo.ValorTotal - totalPagado;
 
         if (saldoPendiente <= 0)
@@ -389,7 +387,6 @@ public class PrestamosController(
     {
         var prestamo = await db.Prestamos
             .AsNoTracking()
-            .Include(p => p.Pagos)
             .Include(p => p.Cuotas)
             .FirstOrDefaultAsync(p => p.Id == id);
 
@@ -399,7 +396,7 @@ public class PrestamosController(
         if (prestamo.Estado == PrestamoEstados.Prestamo.CerradoProntoPago || prestamo.Estado == PrestamoEstados.Prestamo.Completado)
             return BadRequest(new ErrorDto { Error = "El préstamo ya se encuentra cerrado" });
 
-        var totalPagado    = prestamo.Pagos.Where(p => !p.Anulado).Sum(p => p.Valor);
+        var totalPagado    = prestamo.Cuotas.Sum(c => c.SaldoPagado);
         var saldoPendiente = prestamo.ValorTotal - totalPagado;
 
         if (saldoPendiente <= 0)

@@ -20,7 +20,6 @@ public class EjecutarAmpliacionPlazo(CobrosDbContext db)
     public async Task<Result<AmpliacionPlazoResultadoDto>> ExecuteAsync(EjecutarAmpliacionPlazoDto dto)
     {
         var prestamo = await db.Prestamos
-            .Include(p => p.Pagos)
             .Include(p => p.Cuotas)
             .FirstOrDefaultAsync(p => p.Id == dto.PrestamoId);
 
@@ -30,15 +29,6 @@ public class EjecutarAmpliacionPlazo(CobrosDbContext db)
         if (prestamo.Estado == PrestamoEstados.Prestamo.CerradoProntoPago ||
             prestamo.Estado == PrestamoEstados.Prestamo.Completado)
             return Result<AmpliacionPlazoResultadoDto>.Fail("El préstamo ya se encuentra cerrado");
-
-        var totalPagado    = prestamo.Pagos.Where(p => !p.Anulado).Sum(p => p.Valor);
-        var saldoPendiente = prestamo.ValorTotal - totalPagado;
-
-        if (saldoPendiente <= 0)
-            return Result<AmpliacionPlazoResultadoDto>.Fail("El préstamo no tiene saldo pendiente");
-
-        if (dto.InteresAdicional < 0)
-            return Result<AmpliacionPlazoResultadoDto>.Fail("El interés adicional no puede ser negativo");
 
         var cuotasPendientesList = prestamo.Cuotas
             .Where(c =>
@@ -51,6 +41,15 @@ public class EjecutarAmpliacionPlazo(CobrosDbContext db)
 
         if (cuotasPendientesList.Count == 0)
             return Result<AmpliacionPlazoResultadoDto>.Fail("No hay cuotas pendientes para ampliar el plazo");
+
+        var totalPagado    = prestamo.Cuotas.Sum(c => c.SaldoPagado);
+        var saldoPendiente = prestamo.ValorTotal - totalPagado;
+
+        if (saldoPendiente <= 0)
+            return Result<AmpliacionPlazoResultadoDto>.Fail("El préstamo no tiene saldo pendiente");
+
+        if (dto.InteresAdicional < 0)
+            return Result<AmpliacionPlazoResultadoDto>.Fail("El interés adicional no puede ser negativo");
 
         var nuevoSaldo         = saldoPendiente + dto.InteresAdicional;
         var valorCuota         = Math.Round(nuevoSaldo / dto.CantidadCuotasNuevas, 2);

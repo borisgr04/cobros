@@ -68,6 +68,53 @@ public class PrestamosControllerTests(CobrosWebAppFactory factory)
         Assert.True(prestamos.Count <= 6);
     }
 
+    [Fact]
+    public async Task GetActivos_UsaCuotasNoIncludePagos_ExcluirPrestamoConCuotasTotalmentePagadas()
+    {
+        _client.SetBearerToken();
+
+        // Crear cliente y préstamo nuevo con cuotas completamente pagadas
+        var clienteResp = await _client.PostAsJsonAsync("/api/clientes", new
+        {
+            nombre         = "Cliente Pagado",
+            identificacion = $"CPAGADO{Guid.NewGuid():N}",
+            zonaId         = "1",
+            estado         = "activo"
+        });
+        var cliente = await clienteResp.Content.ReadFromJsonAsync<Dictionary<string, object>>();
+        var clienteId = cliente!["id"].ToString();
+
+        // Crear préstamo de 1 cuota de 100
+        var prestamoResp = await _client.PostAsJsonAsync("/api/prestamos", new
+        {
+            clienteId         = clienteId,
+            fechaPrestamo     = "2025-01-01T00:00:00Z",
+            fechaFinal        = "2025-02-01T00:00:00Z",
+            valorPrestado     = 100,
+            valorTotal        = 100,
+            interesProyectado = 0,
+            frecuenciaPago    = "mensual",
+            cantidadCuotas    = 1,
+            valorCuota        = 100
+        });
+        Assert.Equal(System.Net.HttpStatusCode.Created, prestamoResp.StatusCode);
+        var prestamo = await prestamoResp.Content.ReadFromJsonAsync<Dictionary<string, object>>();
+        var prestamoId = prestamo!["id"].ToString();
+
+        // Registrar un pago que cubre la única cuota (SaldoPagado = ValorCuota)
+        await _client.PostAsJsonAsync("/api/pagos", new
+        {
+            prestamoId = prestamoId,
+            valor      = 100,
+            fechaPago  = "2025-01-08T00:00:00Z"
+        });
+
+        // El préstamo completamente pagado NO debe aparecer en /activos
+        var activos = await _client.GetFromJsonAsync<List<Dictionary<string, object>>>("/api/prestamos/activos");
+        Assert.NotNull(activos);
+        Assert.DoesNotContain(activos, p => p["id"].ToString() == prestamoId);
+    }
+
     // ── Por cliente ───────────────────────────────────────────────────────
 
     [Fact]

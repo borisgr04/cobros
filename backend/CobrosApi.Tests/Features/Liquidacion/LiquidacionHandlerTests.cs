@@ -251,4 +251,33 @@ public class LiquidacionHandlerTests
             DateTimeOffset.Parse("2025-02-03T00:00:00Z"),
             new DateTimeOffset(fecha4, TimeSpan.Zero));
     }
+
+    [Fact]
+    public async Task EjecutarProntoPago_SaldoPendiente_CalculadoDesdeCuotas()
+    {
+        // Préstamo: 3 cuotas de 110, capital 300, total 330
+        // Una cuota ya tiene SaldoPagado = 110 (cuota 1 pagada)
+        var (db, prestamo, usuario) = await SeedAsync(cantidadCuotas: 3, valorCuota: 110m, valorPrestado: 300m);
+        prestamo.ValorTotal = 330m;
+        await db.SaveChangesAsync();
+
+        var cuota1 = await db.Cuotas.FirstAsync(c => c.PrestamoId == prestamo.Id && c.NumeroCuota == 1);
+        cuota1.SaldoPagado = 110m;
+        cuota1.Estado      = PrestamoEstados.Cuota.Pagada;
+        await db.SaveChangesAsync();
+
+        // SaldoPendiente = 330 - 110 = 220, capital = 300 - 110 = 190
+        // ValorNegociado = 200 > capitalPendiente 190 → debe ser válido
+        var handler = new EjecutarProntoPago(db, new AplicarPago(db));
+        var result  = await handler.ExecuteAsync(
+            new EjecutarProntoPagoDto(prestamo.Id, ValorNegociado: 200m, Notas: null, UsuarioId: usuario.Id));
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+
+        // SaldoPendienteOriginal en la novedad debe ser 220 (calculado desde cuotas)
+        Assert.Equal(220m, result.Value!.SaldoPendienteOriginal);
+        Assert.Equal(200m, result.Value.ValorNegociado);
+        Assert.Equal(20m,  result.Value.DescuentoAplicado);
+    }
 }
