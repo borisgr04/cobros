@@ -62,6 +62,8 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<CobrosApi.Features.Pagos.AplicarPago>();
 builder.Services.AddScoped<CobrosApi.Features.Pagos.AnularPago>();
+builder.Services.AddScoped<CobrosApi.Features.Liquidacion.EjecutarProntoPago>();
+builder.Services.AddScoped<CobrosApi.Features.Liquidacion.EjecutarAmpliacionPlazo>();
 
 // ─── Distributed Cache (in-memory; swap for Redis in production) ────────────
 builder.Services.AddDistributedMemoryCache();

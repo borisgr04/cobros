@@ -1,10 +1,11 @@
 ### Requirement: Registro de pago con distribución atómica
-El endpoint `POST /api/pagos` SHALL persistir exactamente 1 registro `Pago` (trazabilidad de la transacción real), distribuir el valor en cuotas pendientes/parciales en orden ascendente, actualizar `SaldoPagado` y crear los registros `AplicacionCuota` correspondientes — todo en una única transacción de base de datos.
+El endpoint `POST /api/pagos` SHALL persistir exactamente 1 registro `Pago`, distribuir el valor en cuotas pendientes/parciales en orden ascendente, actualizar `SaldoPagado`, `Estado` y crear los registros `AplicacionCuota` correspondientes — todo en una única transacción de base de datos. La lógica de negocio SHALL residir en el handler `AplicarPago`, no en el controlador.
 
 #### Scenario: Pago registrado con trazabilidad completa
-- **WHEN** se registra un abono válido
-- **THEN** se persiste 1 registro `Pago` con el valor real del abono
-- **AND** se actualizan los `SaldoPagado` de las cuotas afectadas
+- **WHEN** se registra un abono válido via `POST /api/pagos`
+- **THEN** el controlador delega en `AplicarPago.ExecuteAsync`
+- **AND** se persiste 1 registro `Pago` con el valor real del abono
+- **AND** se actualizan los `SaldoPagado` y `Estado` de las cuotas afectadas
 - **AND** se crean registros `AplicacionCuota` vinculando el pago con cada cuota cubierta
 - **AND** la respuesta HTTP 201 retorna el `PagoDto` del pago creado
 

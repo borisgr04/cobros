@@ -1,5 +1,6 @@
 using CobrosApi.Data;
 using CobrosApi.DTOs;
+using CobrosApi.Features.Liquidacion;
 using CobrosApi.Features.Shared;
 using CobrosApi.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -12,7 +13,10 @@ namespace CobrosApi.Controllers;
 [Route("api/prestamos")]
 [Authorize]
 [Produces("application/json")]
-public class PrestamosController(CobrosDbContext db) : ControllerBase
+public class PrestamosController(
+    CobrosDbContext         db,
+    EjecutarProntoPago      _ejProntoPago,
+    EjecutarAmpliacionPlazo _ejAmpliacion) : ControllerBase
 {
     private static PrestamoDto ToDto(Prestamo p) => new()
     {
@@ -189,16 +193,13 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         await db.SaveChangesAsync();
 
         // Generar registros Cuota para el préstamo recién creado
-        var cuotas = Enumerable.Range(1, prestamo.CantidadCuotas).Select(i => new Cuota
-        {
-            PrestamoId    = prestamo.Id,
-            NumeroCuota   = i,
-            FechaEsperada = CalcularFechaCuota(prestamo.FechaPrestamo, prestamo.FrecuenciaPago, i),
-            ValorCuota    = (i == prestamo.CantidadCuotas)
-                                ? prestamo.ValorTotal - (prestamo.CantidadCuotas - 1) * prestamo.ValorCuota
-                                : prestamo.ValorCuota,
-            SaldoPagado   = 0
-        });
+        var cuotas = CuotasService.GenerarCuotas(
+            prestamoId:     prestamo.Id,
+            cantidadCuotas: prestamo.CantidadCuotas,
+            valorTotal:     prestamo.ValorTotal,
+            valorCuota:     prestamo.ValorCuota,
+            fechaInicio:    prestamo.FechaPrestamo,
+            frecuencia:     prestamo.FrecuenciaPago);
         db.Cuotas.AddRange(cuotas);
         await db.SaveChangesAsync();
 
@@ -325,121 +326,15 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         if (usuario is null)
             return BadRequest(new ErrorDto { Error = "Usuario autenticado no encontrado en el sistema" });
 
-        var prestamo = await db.Prestamos
-            .Include(p => p.Pagos)
-            .Include(p => p.Cuotas)
-            .FirstOrDefaultAsync(p => p.Id == id);
+        var result = await _ejProntoPago.ExecuteAsync(
+            new Features.Liquidacion.EjecutarProntoPagoDto(id, input.ValorNegociado, input.Notas, usuario.Id));
 
-        if (prestamo is null)
-            return NotFound(new ErrorDto { Error = $"Préstamo {id} no encontrado" });
-
-        if (prestamo.Estado == PrestamoEstados.Prestamo.CerradoProntoPago || prestamo.Estado == PrestamoEstados.Prestamo.Completado || prestamo.Estado == PrestamoEstados.Prestamo.Refinanciado)
-            return BadRequest(new ErrorDto { Error = "El préstamo ya se encuentra cerrado" });
-
-        var totalPagado   = prestamo.Pagos.Where(p => !p.Anulado).Sum(p => p.Valor);
-        var saldoPendiente = prestamo.ValorTotal - totalPagado;
-
-        if (saldoPendiente <= 0)
-            return BadRequest(new ErrorDto { Error = "El préstamo no tiene saldo pendiente" });
-
-        var cuotasPendientesList = prestamo.Cuotas
-            .Where(c => c.Estado != PrestamoEstados.Cuota.Pagada && c.Estado != PrestamoEstados.Cuota.CerradaProntoPago && c.SaldoPagado < c.ValorCuota)
-            .OrderBy(c => c.NumeroCuota)
-            .ToList();
-
-        if (cuotasPendientesList.Count == 0)
-            return BadRequest(new ErrorDto { Error = "No hay cuotas pendientes para aplicar el pronto pago" });
-
-        if (input.ValorNegociado <= 0)
-            return BadRequest(new ErrorDto { Error = "El valor negociado debe ser mayor a cero" });
-
-        if (input.ValorNegociado > saldoPendiente)
-            return BadRequest(new ErrorDto { Error = $"El valor negociado (${input.ValorNegociado:N0}) supera el saldo pendiente (${saldoPendiente:N0})" });
-
-        // No se puede descontar capital: el mínimo aceptable es capital pendiente
-        var capitalPendiente = Math.Max(0, prestamo.ValorPrestado - totalPagado);
-        if (input.ValorNegociado < capitalPendiente)
-            return BadRequest(new ErrorDto { Error = $"El valor negociado no puede ser menor al capital pendiente (${capitalPendiente:N0}). Solo se pueden descontar intereses futuros." });
-
-        var interesesFuturos = prestamo.CantidadCuotas > 0
-            ? Math.Round(prestamo.InteresProyectado / prestamo.CantidadCuotas * cuotasPendientesList.Count, 2)
-            : 0;
-        var descuento = saldoPendiente - input.ValorNegociado;
-        var fechaCierre = DateTime.UtcNow;
-
-        using var tx = db.Database.IsInMemory()
-            ? null
-            : await db.Database.BeginTransactionAsync();
-
-        // Crear pago de tipo pronto_pago
-        var pago = new Pago
+        return result.StatusCode switch
         {
-            PrestamoId = prestamo.Id,
-            Valor      = input.ValorNegociado,
-            FechaPago  = fechaCierre,
-            TipoPago   = "pronto_pago"
+            200 => Ok(result.Value),
+            404 => NotFound(new ErrorDto  { Error = result.Error! }),
+            _   => BadRequest(new ErrorDto { Error = result.Error! })
         };
-        db.Pagos.Add(pago);
-        await db.SaveChangesAsync();
-
-        // Aplicar el pago a las cuotas pendientes (absorbiendo el monto real negociado)
-        var restante = input.ValorNegociado;
-        foreach (var cuota in cuotasPendientesList)
-        {
-            if (restante <= 0) break;
-            var espacio      = cuota.ValorCuota - cuota.SaldoPagado;
-            var valorAplicado = Math.Min(restante, espacio);
-            cuota.SaldoPagado += valorAplicado;
-            cuota.Estado = cuota.SaldoPagado >= cuota.ValorCuota ? PrestamoEstados.Cuota.Pagada : PrestamoEstados.Cuota.Parcial;
-            db.AplicacionesCuota.Add(new AplicacionCuota
-            {
-                PagoId        = pago.Id,
-                CuotaId       = cuota.Id,
-                ValorAplicado = valorAplicado
-            });
-            restante -= valorAplicado;
-        }
-
-        // Cerrar todas las cuotas restantes que no quedaron pagadas
-        foreach (var cuota in cuotasPendientesList.Where(c => c.Estado != PrestamoEstados.Cuota.Pagada))
-        {
-            cuota.Estado = PrestamoEstados.Cuota.CerradaProntoPago;
-        }
-
-        // Registrar la novedad de auditoría
-        var novedad = new NovedadPrestamo
-        {
-            PrestamoId                = prestamo.Id,
-            Tipo                      = "pronto_pago",
-            FechaNovedad              = fechaCierre,
-            UsuarioId                 = usuario.Id,
-            SaldoPendienteOriginal    = saldoPendiente,
-            InteresesFuturosEstimados = interesesFuturos,
-            ValorNegociado            = input.ValorNegociado,
-            DescuentoAplicado         = descuento,
-            PagoId                    = pago.Id,
-            Notas                     = input.Notas
-        };
-        db.NovedadesPrestamo.Add(novedad);
-
-        // Cerrar el préstamo
-        prestamo.Estado      = PrestamoEstados.Prestamo.CerradoProntoPago;
-        prestamo.FechaCierre = fechaCierre;
-        prestamo.FechaFinal  = fechaCierre.Date;
-
-        await db.SaveChangesAsync();
-        if (tx is not null) await tx.CommitAsync();
-
-        return Ok(new ProntoPagoResultadoDto
-        {
-            NovedadId                 = novedad.Id,
-            PagoId                    = pago.Id,
-            SaldoPendienteOriginal    = saldoPendiente,
-            InteresesFuturosEstimados = interesesFuturos,
-            ValorNegociado            = input.ValorNegociado,
-            DescuentoAplicado         = descuento,
-            FechaCierre               = fechaCierre
-        });
     }
 
     // GET /api/prestamos/{id}/novedades
@@ -546,112 +441,22 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         if (usuario is null)
             return BadRequest(new ErrorDto { Error = "Usuario autenticado no encontrado en el sistema" });
 
-        var prestamo = await db.Prestamos
-            .Include(p => p.Pagos)
-            .Include(p => p.Cuotas)
-            .FirstOrDefaultAsync(p => p.Id == id);
+        var result = await _ejAmpliacion.ExecuteAsync(
+            new Features.Liquidacion.EjecutarAmpliacionPlazoDto(
+                id,
+                input.InteresAdicional,
+                input.CantidadCuotasNuevas,
+                input.FechaInicio,
+                input.FrecuenciaNueva,
+                input.Observacion,
+                usuario.Id));
 
-        if (prestamo is null)
-            return NotFound(new ErrorDto { Error = $"Préstamo {id} no encontrado" });
-
-        if (prestamo.Estado == PrestamoEstados.Prestamo.CerradoProntoPago || prestamo.Estado == PrestamoEstados.Prestamo.Completado)
-            return BadRequest(new ErrorDto { Error = "El préstamo ya se encuentra cerrado" });
-
-        var totalPagado    = prestamo.Pagos.Where(p => !p.Anulado).Sum(p => p.Valor);
-        var saldoPendiente = prestamo.ValorTotal - totalPagado;
-
-        if (saldoPendiente <= 0)
-            return BadRequest(new ErrorDto { Error = "El préstamo no tiene saldo pendiente" });
-
-        if (input.InteresAdicional < 0)
-            return BadRequest(new ErrorDto { Error = "El interés adicional no puede ser negativo" });
-
-        var cuotasPendientesList = prestamo.Cuotas
-            .Where(c =>
-                c.Estado != PrestamoEstados.Cuota.Pagada &&
-                c.Estado != PrestamoEstados.Cuota.CerradaProntoPago &&
-                c.Estado != PrestamoEstados.Cuota.ReemplazadaAmpliacion &&
-                c.SaldoPagado < c.ValorCuota)
-            .OrderBy(c => c.NumeroCuota)
-            .ToList();
-
-        if (cuotasPendientesList.Count == 0)
-            return BadRequest(new ErrorDto { Error = "No hay cuotas pendientes para ampliar el plazo" });
-
-        var nuevoSaldo         = saldoPendiente + input.InteresAdicional;
-        var valorCuota         = Math.Round(nuevoSaldo / input.CantidadCuotasNuevas, 2);
-        var fechaFinalAnterior = prestamo.FechaFinal;
-        var nuevaFechaFinal    = CalcularFechaCuota(input.FechaInicio, input.FrecuenciaNueva, input.CantidadCuotasNuevas);
-        var ahora              = DateTime.UtcNow;
-
-        using var tx = db.Database.IsInMemory()
-            ? null
-            : await db.Database.BeginTransactionAsync();
-
-        // Marcar cuotas pendientes como reemplazadas
-        foreach (var cuota in cuotasPendientesList)
+        return result.StatusCode switch
         {
-            cuota.Estado = PrestamoEstados.Cuota.ReemplazadaAmpliacion;
-        }
-
-        // Determinar el siguiente número de cuota
-        var maxNumeroCuota = prestamo.Cuotas.Max(c => c.NumeroCuota);
-
-        // Generar nuevas cuotas
-        var nuevasCuotas = Enumerable.Range(1, input.CantidadCuotasNuevas).Select(i => new Cuota
-        {
-            PrestamoId    = prestamo.Id,
-            NumeroCuota   = maxNumeroCuota + i,
-            FechaEsperada = CalcularFechaCuota(input.FechaInicio, input.FrecuenciaNueva, i),
-            ValorCuota    = (i == input.CantidadCuotasNuevas)
-                                ? nuevoSaldo - (input.CantidadCuotasNuevas - 1) * valorCuota
-                                : valorCuota,
-            SaldoPagado   = 0
-        });
-        db.Cuotas.AddRange(nuevasCuotas);
-
-        // Actualizar el préstamo
-        prestamo.FechaFinal        = nuevaFechaFinal;
-        prestamo.ValorTotal        = totalPagado + nuevoSaldo;
-        prestamo.InteresProyectado = prestamo.InteresProyectado + input.InteresAdicional;
-        prestamo.CantidadCuotas    = prestamo.CantidadCuotas + input.CantidadCuotasNuevas;
-        prestamo.ValorCuota        = valorCuota;
-        prestamo.FrecuenciaPago    = input.FrecuenciaNueva;
-
-        // Registrar la novedad de auditoría
-        var novedad = new NovedadPrestamo
-        {
-            PrestamoId                = prestamo.Id,
-            Tipo                      = "ampliacion_plazo",
-            FechaNovedad              = ahora,
-            UsuarioId                 = usuario.Id,
-            SaldoPendienteOriginal    = saldoPendiente,
-            InteresesFuturosEstimados = 0,
-            ValorNegociado            = nuevoSaldo,
-            DescuentoAplicado         = 0,
-            Notas                     = input.Observacion,
-            InteresAdicional          = input.InteresAdicional,
-            NuevoSaldo                = nuevoSaldo,
-            FechaFinalAnterior        = fechaFinalAnterior,
-            NuevaFechaFinal           = nuevaFechaFinal,
-            CantidadCuotasNuevas      = input.CantidadCuotasNuevas
+            200 => Ok(result.Value),
+            404 => NotFound(new ErrorDto  { Error = result.Error! }),
+            _   => BadRequest(new ErrorDto { Error = result.Error! })
         };
-        db.NovedadesPrestamo.Add(novedad);
-
-        await db.SaveChangesAsync();
-        if (tx is not null) await tx.CommitAsync();
-
-        return Ok(new AmpliacionPlazoResultadoDto
-        {
-            NovedadId              = novedad.Id,
-            SaldoPendienteAnterior = saldoPendiente,
-            InteresAdicional       = input.InteresAdicional,
-            NuevoSaldo             = nuevoSaldo,
-            ValorCuota             = valorCuota,
-            FechaFinalAnterior     = fechaFinalAnterior,
-            NuevaFechaFinal        = nuevaFechaFinal,
-            CantidadCuotasNuevas   = input.CantidadCuotasNuevas
-        });
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
@@ -680,7 +485,7 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
 
         for (int i = 1; i <= prestamo.CantidadCuotas; i++)
         {
-            var fechaEsperada = CalcularFechaCuota(prestamo.FechaPrestamo, prestamo.FrecuenciaPago, i);
+            var fechaEsperada = CuotasService.CalcularFechaCuota(prestamo.FechaPrestamo, prestamo.FrecuenciaPago, i);
             acumulado += prestamo.ValorCuota;
 
             cuotas.Add(new CuotaDto
@@ -692,22 +497,6 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
             });
         }
         return cuotas;
-    }
-
-    private static DateTime CalcularFechaCuota(DateTime fechaInicio, string frecuencia, int numeroCuota)
-    {
-        // PostgreSQL timestamp with time zone requiere Kind=Utc
-        var base_ = fechaInicio.Kind == DateTimeKind.Utc
-            ? fechaInicio
-            : DateTime.SpecifyKind(fechaInicio, DateTimeKind.Utc);
-        return frecuencia switch
-        {
-            "diario"    => base_.AddDays(numeroCuota),
-            "semanal"   => base_.AddDays(numeroCuota * 7),
-            "quincenal" => base_.AddDays(numeroCuota * 15),
-            "mensual"   => base_.AddMonths(numeroCuota),
-            _           => base_.AddDays(numeroCuota * 7)
-        };
     }
 
     // POST /api/prestamos/{id}/recoger
@@ -751,7 +540,7 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         var fechaInicio   = input.FechaInicio.Kind == DateTimeKind.Utc
                                 ? input.FechaInicio
                                 : DateTime.SpecifyKind(input.FechaInicio, DateTimeKind.Utc);
-        var nuevaFechaFinal = CalcularFechaCuota(fechaInicio, input.FrecuenciaPago, input.CantidadCuotas);
+        var nuevaFechaFinal = CuotasService.CalcularFechaCuota(fechaInicio, input.FrecuenciaPago, input.CantidadCuotas);
         var ahora           = DateTime.UtcNow;
 
         using var tx = db.Database.IsInMemory()
@@ -795,7 +584,7 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         {
             PrestamoId    = prestamoDestino.Id,
             NumeroCuota   = i,
-            FechaEsperada = CalcularFechaCuota(fechaInicio, input.FrecuenciaPago, i),
+            FechaEsperada = CuotasService.CalcularFechaCuota(fechaInicio, input.FrecuenciaPago, i),
             ValorCuota    = (i == input.CantidadCuotas)
                                 ? totalACobrar - (input.CantidadCuotas - 1) * valorCuota
                                 : valorCuota,
