@@ -67,10 +67,10 @@
       <div 
         class="zona-card" 
         [class.inactiva]="zona.estado === 'inactivo'"
-        (click)="verPrestamosZona(zona)"
+        (click)="verClientesZona(zona)"
         role="button"
         tabindex="0"
-        [title]="'Ver préstamos de ' + zona.nombre">
+        [title]="'Ver clientes de ' + zona.nombre">
         
         <!-- Header de la card -->
         <div class="zona-card-header">
@@ -97,14 +97,6 @@
 
         <!-- Acciones -->
         <div class="zona-acciones">
-          <button
-            class="btn-accion btn-ver"
-            (click)="verClientesZona(zona); $event.stopPropagation()"
-            [disabled]="contarClientes(zona.id) === 0"
-            title="Ver clientes de esta zona">
-            <i class="bi bi-eye-fill"></i>
-            Ver Clientes
-          </button>
           <button
             class="btn-accion btn-editar"
             (click)="abrirModalEditar(zona); $event.stopPropagation()"

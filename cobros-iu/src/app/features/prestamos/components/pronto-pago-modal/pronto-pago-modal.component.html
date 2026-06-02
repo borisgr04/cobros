@@ -69,10 +69,17 @@
                 <i class="bi bi-currency-dollar"></i>
                 Valor negociado para cerrar el préstamo:
               </label>
-              <input
-                class="input-moneda"
-                [(appMoneda)]="valorNegociado"
-                placeholder="$ 0">
+              <div class="monto-libre-row">
+                <input
+                  class="monto-libre-input"
+                  [(appMoneda)]="valorNegociado"
+                  placeholder="$ 0">
+                <button class="monto-libre-clear"
+                        type="button"
+                        (click)="valorNegociado.set(0)">
+                  <i class="bi bi-x-circle"></i>
+                </button>
+              </div>
 
               <div class="descuento-preview">
                 <span class="descuento-label">Descuento aplicado:</span>
@@ -198,6 +205,21 @@
                 <span class="value">{{ formatDate(resultado()!.fechaCierre) }}</span>
               </div>
             </div>
+
+            @if (whatsappLink()) {
+              <a class="btn-whatsapp"
+                 [href]="whatsappLink()"
+                 target="_blank"
+                 rel="noopener noreferrer">
+                <i class="bi bi-whatsapp"></i>
+                Notificar al cliente
+              </a>
+            } @else {
+              <p class="sin-telefono">
+                <i class="bi bi-phone-slash"></i>
+                Sin número de teléfono registrado
+              </p>
+            }
           </div>
         }
 

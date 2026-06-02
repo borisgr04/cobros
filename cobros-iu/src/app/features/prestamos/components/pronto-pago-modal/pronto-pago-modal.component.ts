@@ -4,6 +4,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { MonedaInputDirective } from '../../../../shared/directives/moneda-input.directive';
 import { AbstractPrestamoService } from '../../../core/services/abstract-prestamo.service';
 import type { IProntoPagoResumen, IProntoPagoResultado } from '../../../core/models';
@@ -26,6 +27,7 @@ type Paso = 'resumen' | 'confirmacion' | 'resultado';
 })
 export class ProntoPagoModalComponent {
   private prestamoService = inject(AbstractPrestamoService);
+  private sanitizer = inject(DomSanitizer);
 
   @Output() prontoPagoRealizado = new EventEmitter<IProntoPagoResultado>();
   @Output() modalCerrado = new EventEmitter<void>();
@@ -73,6 +75,30 @@ export class ProntoPagoModalComponent {
     const r = this.resumen();
     if (!r) return false;
     return this.descuento() > r.interesesFuturosEstimados;
+  });
+
+  whatsappLink = computed((): SafeUrl | null => {
+    const p    = this.prestamo();
+    const res  = this.resultado();
+    if (!p || !res || !p.cliente?.telefono) return null;
+
+    const telefonoLimpio = p.cliente.telefono.replace(/\D/g, '');
+    if (!telefonoLimpio) return null;
+    const telefono = `57${telefonoLimpio}`;
+
+    const nombre       = p.cliente.nombre ?? 'cliente';
+    const valorPagado  = this.formatCurrency(res.valorNegociado);
+    const descuento    = res.descuentoAplicado > 0
+      ? `\nDescuento aplicado: *${this.formatCurrency(res.descuentoAplicado)}*`
+      : '';
+    const clave = p.cliente.llave || p.cliente.id;
+    const linkConsulta = clave
+      ? `\n\n🔗 Consultá tu saldo:\n${window.location.origin}/consulta/${clave}`
+      : '';
+
+    const msg = `✅ Hola ${nombre}, tu préstamo fue cancelado por *${valorPagado}*.${descuento}${linkConsulta}\n\n🎉 ¡Gracias por saldar tu deuda con nosotros!`;
+    const url = `https://wa.me/${telefono}?text=${encodeURIComponent(msg)}`;
+    return this.sanitizer.bypassSecurityTrustUrl(url);
   });
 
   // ─── API pública ──────────────────────────────────────────────────────────
