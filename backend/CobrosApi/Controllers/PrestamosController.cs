@@ -1,5 +1,6 @@
 using CobrosApi.Data;
 using CobrosApi.DTOs;
+using CobrosApi.Features.Shared;
 using CobrosApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -48,7 +49,7 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         var prestamos = await db.Prestamos
             .AsNoTracking()
             .Include(p => p.Pagos)
-            .Where(p => p.Estado == "activo")
+            .Where(p => p.Estado == PrestamoEstados.Prestamo.Activo)
             .ToListAsync();
 
         var activos = prestamos.Where(p => p.Pagos.Where(pg => !pg.Anulado).Sum(pg => pg.Valor) < p.ValorTotal);
@@ -94,7 +95,7 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
             return NotFound(new ErrorDto { Error = $"Préstamo {id} no encontrado" });
 
         var totalPagado      = prestamo.Cuotas.Sum(c => c.SaldoPagado);
-        var cuotasPagadas    = prestamo.Cuotas.Count(c => c.Estado == "pagada" || c.Estado == "cerrada_pronto_pago");
+        var cuotasPagadas    = prestamo.Cuotas.Count(c => c.Estado == PrestamoEstados.Cuota.Pagada || c.Estado == PrestamoEstados.Cuota.CerradaProntoPago);
         var cuotasPendientes = prestamo.CantidadCuotas - cuotasPagadas;
 
         return Ok(new PrestamoConPagosDto
@@ -151,7 +152,7 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
             NumeroCuota   = c.NumeroCuota,
             FechaEsperada = c.FechaEsperada,
             ValorCuota    = c.ValorCuota,
-            SaldoPagado   = c.Estado == "pagada" ? c.ValorCuota : 0,
+            SaldoPagado   = c.Estado == PrestamoEstados.Cuota.Pagada ? c.ValorCuota : 0,
             Estado        = c.Estado
         }));
     }
@@ -280,7 +281,7 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         if (prestamo is null)
             return NotFound(new ErrorDto { Error = $"Préstamo {id} no encontrado" });
 
-        if (prestamo.Estado == "cerrado_pronto_pago")
+        if (prestamo.Estado == PrestamoEstados.Prestamo.CerradoProntoPago)
             return BadRequest(new ErrorDto { Error = "El préstamo ya fue cerrado por pronto pago" });
 
         var totalPagado   = prestamo.Pagos.Where(p => !p.Anulado).Sum(p => p.Valor);
@@ -290,7 +291,7 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
             return BadRequest(new ErrorDto { Error = "El préstamo no tiene saldo pendiente" });
 
         var cuotasPendientes = prestamo.Cuotas
-            .Count(c => c.Estado != "pagada" && c.Estado != "cerrada_pronto_pago" && c.SaldoPagado < c.ValorCuota);
+            .Count(c => c.Estado != PrestamoEstados.Cuota.Pagada && c.Estado != PrestamoEstados.Cuota.CerradaProntoPago && c.SaldoPagado < c.ValorCuota);
 
         var interesesFuturos = prestamo.CantidadCuotas > 0
             ? Math.Round(prestamo.InteresProyectado / prestamo.CantidadCuotas * cuotasPendientes, 2)
@@ -332,7 +333,7 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         if (prestamo is null)
             return NotFound(new ErrorDto { Error = $"Préstamo {id} no encontrado" });
 
-        if (prestamo.Estado == "cerrado_pronto_pago" || prestamo.Estado == "completado" || prestamo.Estado == "refinanciado")
+        if (prestamo.Estado == PrestamoEstados.Prestamo.CerradoProntoPago || prestamo.Estado == PrestamoEstados.Prestamo.Completado || prestamo.Estado == PrestamoEstados.Prestamo.Refinanciado)
             return BadRequest(new ErrorDto { Error = "El préstamo ya se encuentra cerrado" });
 
         var totalPagado   = prestamo.Pagos.Where(p => !p.Anulado).Sum(p => p.Valor);
@@ -342,7 +343,7 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
             return BadRequest(new ErrorDto { Error = "El préstamo no tiene saldo pendiente" });
 
         var cuotasPendientesList = prestamo.Cuotas
-            .Where(c => c.Estado != "pagada" && c.Estado != "cerrada_pronto_pago" && c.SaldoPagado < c.ValorCuota)
+            .Where(c => c.Estado != PrestamoEstados.Cuota.Pagada && c.Estado != PrestamoEstados.Cuota.CerradaProntoPago && c.SaldoPagado < c.ValorCuota)
             .OrderBy(c => c.NumeroCuota)
             .ToList();
 
@@ -389,7 +390,7 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
             var espacio      = cuota.ValorCuota - cuota.SaldoPagado;
             var valorAplicado = Math.Min(restante, espacio);
             cuota.SaldoPagado += valorAplicado;
-            cuota.Estado = cuota.SaldoPagado >= cuota.ValorCuota ? "pagada" : "parcial";
+            cuota.Estado = cuota.SaldoPagado >= cuota.ValorCuota ? PrestamoEstados.Cuota.Pagada : PrestamoEstados.Cuota.Parcial;
             db.AplicacionesCuota.Add(new AplicacionCuota
             {
                 PagoId        = pago.Id,
@@ -400,9 +401,9 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         }
 
         // Cerrar todas las cuotas restantes que no quedaron pagadas
-        foreach (var cuota in cuotasPendientesList.Where(c => c.Estado != "pagada"))
+        foreach (var cuota in cuotasPendientesList.Where(c => c.Estado != PrestamoEstados.Cuota.Pagada))
         {
-            cuota.Estado = "cerrada_pronto_pago";
+            cuota.Estado = PrestamoEstados.Cuota.CerradaProntoPago;
         }
 
         // Registrar la novedad de auditoría
@@ -422,7 +423,7 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         db.NovedadesPrestamo.Add(novedad);
 
         // Cerrar el préstamo
-        prestamo.Estado      = "cerrado_pronto_pago";
+        prestamo.Estado      = PrestamoEstados.Prestamo.CerradoProntoPago;
         prestamo.FechaCierre = fechaCierre;
         prestamo.FechaFinal  = fechaCierre.Date;
 
@@ -500,7 +501,7 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         if (prestamo is null)
             return NotFound(new ErrorDto { Error = $"Préstamo {id} no encontrado" });
 
-        if (prestamo.Estado == "cerrado_pronto_pago" || prestamo.Estado == "completado")
+        if (prestamo.Estado == PrestamoEstados.Prestamo.CerradoProntoPago || prestamo.Estado == PrestamoEstados.Prestamo.Completado)
             return BadRequest(new ErrorDto { Error = "El préstamo ya se encuentra cerrado" });
 
         var totalPagado    = prestamo.Pagos.Where(p => !p.Anulado).Sum(p => p.Valor);
@@ -510,9 +511,9 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
             return BadRequest(new ErrorDto { Error = "El préstamo no tiene saldo pendiente" });
 
         var cuotasPendientes = prestamo.Cuotas.Count(c =>
-            c.Estado != "pagada" &&
-            c.Estado != "cerrada_pronto_pago" &&
-            c.Estado != "reemplazada_por_ampliacion" &&
+            c.Estado != PrestamoEstados.Cuota.Pagada &&
+            c.Estado != PrestamoEstados.Cuota.CerradaProntoPago &&
+            c.Estado != PrestamoEstados.Cuota.ReemplazadaAmpliacion &&
             c.SaldoPagado < c.ValorCuota);
 
         if (cuotasPendientes == 0)
@@ -553,7 +554,7 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         if (prestamo is null)
             return NotFound(new ErrorDto { Error = $"Préstamo {id} no encontrado" });
 
-        if (prestamo.Estado == "cerrado_pronto_pago" || prestamo.Estado == "completado")
+        if (prestamo.Estado == PrestamoEstados.Prestamo.CerradoProntoPago || prestamo.Estado == PrestamoEstados.Prestamo.Completado)
             return BadRequest(new ErrorDto { Error = "El préstamo ya se encuentra cerrado" });
 
         var totalPagado    = prestamo.Pagos.Where(p => !p.Anulado).Sum(p => p.Valor);
@@ -567,9 +568,9 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
 
         var cuotasPendientesList = prestamo.Cuotas
             .Where(c =>
-                c.Estado != "pagada" &&
-                c.Estado != "cerrada_pronto_pago" &&
-                c.Estado != "reemplazada_por_ampliacion" &&
+                c.Estado != PrestamoEstados.Cuota.Pagada &&
+                c.Estado != PrestamoEstados.Cuota.CerradaProntoPago &&
+                c.Estado != PrestamoEstados.Cuota.ReemplazadaAmpliacion &&
                 c.SaldoPagado < c.ValorCuota)
             .OrderBy(c => c.NumeroCuota)
             .ToList();
@@ -590,7 +591,7 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         // Marcar cuotas pendientes como reemplazadas
         foreach (var cuota in cuotasPendientesList)
         {
-            cuota.Estado = "reemplazada_por_ampliacion";
+            cuota.Estado = PrestamoEstados.Cuota.ReemplazadaAmpliacion;
         }
 
         // Determinar el siguiente número de cuota
@@ -663,11 +664,11 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         ValorCuota    = c.ValorCuota,
         SaldoPagado   = c.SaldoPagado,
         // Prefer explicit Estado if it was set; fall back to computed value for legacy rows
-        Estado        = c.Estado == "cerrada_pronto_pago"         ? "cerrada_pronto_pago"
-                      : c.Estado == "reemplazada_por_ampliacion"  ? "reemplazada_por_ampliacion"
-                      : c.SaldoPagado >= c.ValorCuota             ? "pagada"
-                      : c.SaldoPagado > 0                         ? "parcial"
-                      :                                             "pendiente"
+        Estado        = c.Estado == PrestamoEstados.Cuota.CerradaProntoPago        ? PrestamoEstados.Cuota.CerradaProntoPago
+                      : c.Estado == PrestamoEstados.Cuota.ReemplazadaAmpliacion    ? PrestamoEstados.Cuota.ReemplazadaAmpliacion
+                      : c.SaldoPagado >= c.ValorCuota                              ? PrestamoEstados.Cuota.Pagada
+                      : c.SaldoPagado > 0                                          ? PrestamoEstados.Cuota.Parcial
+                      :                                                              PrestamoEstados.Cuota.Pendiente
     };
 
     // Fallback para préstamos anteriores al cambio (sin registros en tabla Cuota)
@@ -687,7 +688,7 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
                 NumeroCuota   = i,
                 FechaEsperada = fechaEsperada,
                 ValorCuota    = prestamo.ValorCuota,
-                Estado        = acumulado <= totalPagado ? "pagada" : "pendiente"
+                Estado        = acumulado <= totalPagado ? PrestamoEstados.Cuota.Pagada : PrestamoEstados.Cuota.Pendiente
             });
         }
         return cuotas;
@@ -735,7 +736,7 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         if (prestamoOrigen is null)
             return NotFound(new ErrorDto { Error = $"Préstamo {id} no encontrado" });
 
-        if (prestamoOrigen.Estado != "activo")
+        if (prestamoOrigen.Estado != PrestamoEstados.Prestamo.Activo)
             return BadRequest(new ErrorDto { Error = "Solo se puede recoger un préstamo activo" });
 
         var totalPagado    = prestamoOrigen.Pagos.Where(p => !p.Anulado).Sum(p => p.Valor);
@@ -758,18 +759,18 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
             : await db.Database.BeginTransactionAsync();
 
         // 1. Marcar préstamo origen como "refinanciado" y cerrarlo
-        prestamoOrigen.Estado = "refinanciado";
+        prestamoOrigen.Estado = PrestamoEstados.Prestamo.Refinanciado;
         prestamoOrigen.FechaCierre = ahora;
 
         // Marcar cuotas pendientes del origen como reemplazadas
         var cuotasPendientes = prestamoOrigen.Cuotas
-            .Where(c => c.Estado != "pagada" &&
-                        c.Estado != "cerrada_pronto_pago" &&
-                        c.Estado != "reemplazada_por_ampliacion" &&
+            .Where(c => c.Estado != PrestamoEstados.Cuota.Pagada &&
+                        c.Estado != PrestamoEstados.Cuota.CerradaProntoPago &&
+                        c.Estado != PrestamoEstados.Cuota.ReemplazadaAmpliacion &&
                         c.SaldoPagado < c.ValorCuota)
             .ToList();
         foreach (var cuota in cuotasPendientes)
-            cuota.Estado = "reemplazada_por_ampliacion";
+            cuota.Estado = PrestamoEstados.Cuota.ReemplazadaAmpliacion;
 
         // 2. Crear el préstamo destino
         var prestamoDestino = new Prestamo
@@ -783,7 +784,7 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
             FrecuenciaPago     = input.FrecuenciaPago,
             CantidadCuotas     = input.CantidadCuotas,
             ValorCuota         = valorCuota,
-            Estado             = "activo",
+            Estado             = PrestamoEstados.Prestamo.Activo,
             PrestamoOrigenId   = prestamoOrigen.Id,
         };
         db.Prestamos.Add(prestamoDestino);

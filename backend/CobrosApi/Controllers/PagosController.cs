@@ -1,5 +1,6 @@
 using CobrosApi.Data;
 using CobrosApi.DTOs;
+using CobrosApi.Features.Shared;
 using CobrosApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +16,11 @@ namespace CobrosApi.Controllers;
 [Produces("application/json")]
 public class PagosController(CobrosDbContext db) : ControllerBase
 {
+    private static string RecalcularEstadoCuota(Cuota cuota) =>
+        cuota.SaldoPagado >= cuota.ValorCuota ? PrestamoEstados.Cuota.Pagada
+        : cuota.SaldoPagado > 0              ? PrestamoEstados.Cuota.Parcial
+        :                                      PrestamoEstados.Cuota.Pendiente;
+
     private static PagoDto ToDto(Pago p) => new()
     {
         Id              = p.Id.ToString(),
@@ -95,7 +101,9 @@ public class PagosController(CobrosDbContext db) : ControllerBase
 
         // Rechazar préstamos cerrados
         var prestamoEnt = await db.Prestamos.AsNoTracking().FirstAsync(p => p.Id == prestamoId);
-        if (prestamoEnt.Estado == "cerrado_pronto_pago" || prestamoEnt.Estado == "completado" || prestamoEnt.Estado == "refinanciado")
+        if (prestamoEnt.Estado == PrestamoEstados.Prestamo.CerradoProntoPago
+            || prestamoEnt.Estado == PrestamoEstados.Prestamo.Completado
+            || prestamoEnt.Estado == PrestamoEstados.Prestamo.Refinanciado)
             return BadRequest(new ErrorDto { Error = "No se pueden registrar pagos en un préstamo cerrado" });
 
         // Cargar cuotas no completamente pagadas, ordenadas por NumeroCuota
@@ -132,6 +140,7 @@ public class PagosController(CobrosDbContext db) : ControllerBase
             var valorAplicado = Math.Min(restante, espacio);
 
             cuota.SaldoPagado += valorAplicado;
+            cuota.Estado      = RecalcularEstadoCuota(cuota);
             db.AplicacionesCuota.Add(new AplicacionCuota
             {
                 PagoId        = pago.Id,
@@ -213,7 +222,10 @@ public class PagosController(CobrosDbContext db) : ControllerBase
         foreach (var aplicacion in aplicaciones)
         {
             if (aplicacion.Cuota is not null)
+            {
                 aplicacion.Cuota.SaldoPagado -= aplicacion.ValorAplicado;
+                aplicacion.Cuota.Estado       = RecalcularEstadoCuota(aplicacion.Cuota);
+            }
         }
 
         // Marcar el pago como anulado
