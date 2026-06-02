@@ -65,7 +65,7 @@ public class ClientesController(CobrosDbContext db) : ControllerBase
         var clientes = await db.Clientes
             .AsNoTracking()
             .Include(c => c.Prestamos)
-                .ThenInclude(p => p.Pagos)
+                .ThenInclude(p => p.Cuotas)
             .ToListAsync();
 
         var result = clientes.Select(c => new ClienteConPrestamosDto
@@ -83,7 +83,9 @@ public class ClientesController(CobrosDbContext db) : ControllerBase
             TienePrestamos = c.Prestamos.Count > 0,
             Prestamos      = c.Prestamos.Select(p =>
             {
-                var totalPagado = p.Pagos.Sum(pg => pg.Valor);
+                var totalPagado      = p.Cuotas.Sum(c => c.SaldoPagado);
+                var cuotasPagadas    = p.Cuotas.Count(c => c.Estado == "pagada" || c.Estado == "cerrada_pronto_pago");
+                var cuotasPendientes = p.CantidadCuotas - cuotasPagadas;
                 return new PrestamoConPagosDto
                 {
                     Id                = p.Id.ToString(),
@@ -100,7 +102,9 @@ public class ClientesController(CobrosDbContext db) : ControllerBase
                     FechaCierre       = p.FechaCierre,
                     PrestamoOrigenId  = p.PrestamoOrigenId,
                     TotalPagado       = totalPagado,
-                    SaldoPendiente    = Math.Max(0, p.ValorTotal - totalPagado)
+                    SaldoPendiente    = Math.Max(0, p.ValorTotal - totalPagado),
+                    CuotasPagadas     = cuotasPagadas,
+                    CuotasPendientes  = cuotasPendientes
                 };
             }).ToList()
         });

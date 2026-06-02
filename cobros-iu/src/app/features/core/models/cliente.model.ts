@@ -39,14 +39,18 @@ export interface IClienteConPrestamosActivos extends ICliente {
 }
 
 /**
- * Préstamo con totales de pago calculados server-side.
- * Devuelto por GET /api/clientes/con-prestamos.
+ * Préstamo con totales de pago calculados server-side desde la tabla Cuotas.
+ * Devuelto por GET /api/clientes/con-prestamos y GET /api/prestamos/{id}/estadisticas.
  */
 export interface IPrestamoConPagos extends IPrestamo {
-  /** Total de pagos registrados para este préstamo */
+  /** Suma de Cuota.SaldoPagado (excluye anulados automáticamente). */
   totalPagado: number;
-  /** Saldo pendiente (valorTotal - totalPagado) */
+  /** Saldo pendiente (valorTotal - totalPagado). */
   saldoPendiente: number;
+  /** Cuotas con estado "pagada" o "cerrada_pronto_pago". */
+  cuotasPagadas: number;
+  /** cantidadCuotas - cuotasPagadas. */
+  cuotasPendientes: number;
 }
 
 /**

@@ -68,14 +68,26 @@ export class PrestamoService {
 
   getPrestamoConDatos(id: string): Observable<PrestamoConCliente> {
     return combineLatest([
-      this.prestamoDataService.getById(id),
-      this.pagoService.getByPrestamo(id),
+      this.prestamoDataService.getEstadisticas(id),
       this.clienteService.getAll(),
     ]).pipe(
-      map(([raw, pagos, clientes]) => {
+      map(([raw, clientes]) => {
         const prestamo = this.parsePrestamo(raw);
         const cliente = clientes.find(c => c.id === prestamo.clienteId);
-        const estadisticas = calcularEstadisticasPrestamo(prestamo, pagos);
+        const proximaCuotaFecha = calcularProximaCuotaFecha(prestamo.fechaPrestamo, prestamo.frecuenciaPago, raw.cuotasPagadas);
+        const estadisticas: EstadisticasPrestamo = {
+          totalPrestado:     prestamo.valorPrestado,
+          totalPorCobrar:    raw.saldoPendiente,
+          totalPagado:       raw.totalPagado,
+          porcentajePagado:  calcularPorcentajePagado(prestamo.valorTotal, raw.totalPagado),
+          cuotasPagadas:     raw.cuotasPagadas,
+          cuotasPendientes:  raw.cuotasPendientes,
+          diasTranscurridos: calcularDiasTranscurridos(prestamo.fechaPrestamo),
+          diasRestantes:     calcularDiasRestantes(prestamo.fechaFinal),
+          proximaCuotaFecha,
+          proximaCuotaValor: calcularProximaCuotaValor(prestamo.valorCuota, raw.saldoPendiente),
+          estado:            determinarEstadoPrestamo(prestamo.fechaFinal, raw.saldoPendiente, proximaCuotaFecha, prestamo.estado),
+        };
         return { ...prestamo, cliente, estadisticas };
       })
     );
@@ -188,20 +200,16 @@ export class PrestamoService {
     for (const cliente of clientes) {
       cache[cliente.id] = cliente.prestamos.map(raw => {
         const prestamo = this.parsePrestamo(raw);
-        const cuotasPagadas = prestamo.valorCuota > 0
-          ? Math.round(raw.totalPagado / prestamo.valorCuota)
-          : 0;
-        const cuotasPendientes = Math.max(0, prestamo.cantidadCuotas - cuotasPagadas);
-        const proximaCuotaFecha = calcularProximaCuotaFecha(prestamo.fechaPrestamo, prestamo.frecuenciaPago, cuotasPagadas);
+        const proximaCuotaFecha = calcularProximaCuotaFecha(prestamo.fechaPrestamo, prestamo.frecuenciaPago, raw.cuotasPagadas);
         const estadisticas: EstadisticasPrestamo = {
-          totalPrestado: prestamo.valorPrestado,
-          totalPorCobrar: raw.saldoPendiente,
-          totalPagado: raw.totalPagado,
-          porcentajePagado: calcularPorcentajePagado(prestamo.valorTotal, raw.totalPagado),
-          cuotasPagadas,
-          cuotasPendientes,
+          totalPrestado:     prestamo.valorPrestado,
+          totalPorCobrar:    raw.saldoPendiente,
+          totalPagado:       raw.totalPagado,
+          porcentajePagado:  calcularPorcentajePagado(prestamo.valorTotal, raw.totalPagado),
+          cuotasPagadas:     raw.cuotasPagadas,
+          cuotasPendientes:  raw.cuotasPendientes,
           diasTranscurridos: calcularDiasTranscurridos(prestamo.fechaPrestamo),
-          diasRestantes: calcularDiasRestantes(prestamo.fechaFinal),
+          diasRestantes:     calcularDiasRestantes(prestamo.fechaFinal),
           proximaCuotaFecha,
           proximaCuotaValor: calcularProximaCuotaValor(prestamo.valorCuota, raw.saldoPendiente),
           estado: determinarEstadoPrestamo(prestamo.fechaFinal, raw.saldoPendiente, proximaCuotaFecha, prestamo.estado),

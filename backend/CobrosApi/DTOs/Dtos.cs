@@ -53,11 +53,15 @@ public class ClienteConPrestamosActivosDto
     public List<PrestamoDto> PrestamosActivos { get; set; } = [];
 }
 
-/// <summary>Préstamo con totales de pago calculados server-side.</summary>
+/// <summary>Préstamo con totales de pago calculados server-side desde la tabla Cuotas.</summary>
 public class PrestamoConPagosDto : PrestamoDto
 {
+    /// <summary>Suma de Cuota.SaldoPagado (excluye anulados automáticamente).</summary>
     public decimal TotalPagado { get; set; }
     public decimal SaldoPendiente { get; set; }
+    /// <summary>Cuotas con Estado "pagada" o "cerrada_pronto_pago".</summary>
+    public int CuotasPagadas { get; set; }
+    public int CuotasPendientes { get; set; }
 }
 
 /// <summary>Cliente con todos sus préstamos e información de pagos. Devuelto por GET /api/clientes/con-prestamos.</summary>

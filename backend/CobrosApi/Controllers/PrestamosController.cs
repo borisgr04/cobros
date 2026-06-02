@@ -79,6 +79,46 @@ public class PrestamosController(CobrosDbContext db) : ControllerBase
         return Ok(ToDto(prestamo));
     }
 
+    // GET /api/prestamos/{id}/estadisticas — stats calculadas desde Cuotas (fuente de verdad)
+    [HttpGet("{id:int}/estadisticas")]
+    [ProducesResponseType(typeof(PrestamoConPagosDto), 200)]
+    [ProducesResponseType(typeof(ErrorDto), 404)]
+    public async Task<IActionResult> GetEstadisticas(int id)
+    {
+        var prestamo = await db.Prestamos
+            .AsNoTracking()
+            .Include(p => p.Cuotas)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (prestamo is null)
+            return NotFound(new ErrorDto { Error = $"Préstamo {id} no encontrado" });
+
+        var totalPagado      = prestamo.Cuotas.Sum(c => c.SaldoPagado);
+        var cuotasPagadas    = prestamo.Cuotas.Count(c => c.Estado == "pagada" || c.Estado == "cerrada_pronto_pago");
+        var cuotasPendientes = prestamo.CantidadCuotas - cuotasPagadas;
+
+        return Ok(new PrestamoConPagosDto
+        {
+            Id                = prestamo.Id.ToString(),
+            ClienteId         = prestamo.ClienteId.ToString(),
+            FechaPrestamo     = prestamo.FechaPrestamo,
+            FechaFinal        = prestamo.FechaFinal,
+            ValorPrestado     = prestamo.ValorPrestado,
+            ValorTotal        = prestamo.ValorTotal,
+            InteresProyectado = prestamo.InteresProyectado,
+            FrecuenciaPago    = prestamo.FrecuenciaPago,
+            CantidadCuotas    = prestamo.CantidadCuotas,
+            ValorCuota        = prestamo.ValorCuota,
+            Estado            = prestamo.Estado,
+            FechaCierre       = prestamo.FechaCierre,
+            PrestamoOrigenId  = prestamo.PrestamoOrigenId,
+            TotalPagado       = totalPagado,
+            SaldoPendiente    = Math.Max(0, prestamo.ValorTotal - totalPagado),
+            CuotasPagadas     = cuotasPagadas,
+            CuotasPendientes  = cuotasPendientes
+        });
+    }
+
     // GET /api/prestamos/{id}/cuotas
     [HttpGet("{id:int}/cuotas")]
     [ProducesResponseType(typeof(IEnumerable<CuotaDetalleDto>), 200)]

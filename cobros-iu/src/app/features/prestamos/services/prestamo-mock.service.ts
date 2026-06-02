@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, delay, throwError } from 'rxjs';
-import type { IPrestamo } from '../../core/models';
+import type { IPrestamo, IPrestamoConPagos } from '../../core/models';
 import type { INovedadPrestamo, IProntoPagoResumen, IProntoPagoResultado, IAmpliacionPlazoResumen, IAmpliacionPlazoInput, IAmpliacionPlazoResultado, IRecogerPrestamoInput, IRecogerPrestamoResultado } from '../../core/models';
 import { AbstractPrestamoService } from '../../core/services/abstract-prestamo.service';
 
@@ -148,6 +148,25 @@ export class PrestamoMockService implements AbstractPrestamoService {
     };
     const activos = this.prestamos.filter(p => (totalPagado[p.id] ?? 0) < p.valorTotal);
     return of([...activos]).pipe(delay(this.MOCK_DELAY));
+  }
+
+  getEstadisticas(id: string): Observable<IPrestamoConPagos> {
+    const prestamo = this.prestamos.find(p => p.id === id);
+    if (!prestamo) {
+      return throwError(() => new Error('Préstamo no encontrado')).pipe(delay(this.MOCK_DELAY));
+    }
+    const totalPagadoMock: Record<string, number> = {
+      '1': 46154 * 8, '2': 200000, '3': 0, '4': 5500 * 60, '5': 5323 * 5, '6': 4889 * 10,
+    };
+    const totalPagado = totalPagadoMock[id] ?? 0;
+    const cuotasPagadas = prestamo.valorCuota > 0 ? Math.floor(totalPagado / prestamo.valorCuota) : 0;
+    return of({
+      ...prestamo,
+      totalPagado,
+      saldoPendiente: Math.max(0, prestamo.valorTotal - totalPagado),
+      cuotasPagadas,
+      cuotasPendientes: Math.max(0, prestamo.cantidadCuotas - cuotasPagadas),
+    } as IPrestamoConPagos).pipe(delay(this.MOCK_DELAY));
   }
 
   calcularCuotas(id: string): Observable<any[]> {

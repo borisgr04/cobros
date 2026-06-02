@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import type { IPrestamo } from '../models';
+import type { IPrestamo, IPrestamoConPagos } from '../models';
 import type { INovedadPrestamo, IProntoPagoResumen, IProntoPagoResultado, IAmpliacionPlazoResumen, IAmpliacionPlazoInput, IAmpliacionPlazoResultado, IRecogerPrestamoInput, IRecogerPrestamoResultado } from '../models';
 import { BaseService } from './base.service';
 import { AbstractPrestamoService } from './abstract-prestamo.service';
@@ -94,6 +94,11 @@ export class PrestamoService extends BaseService<IPrestamo> implements AbstractP
    */
   calcularCuotas(id: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/${id}/cuotas`);
+  }
+
+  /** Estadísticas server-side del préstamo calculadas desde la tabla Cuotas. */
+  getEstadisticas(id: string): Observable<IPrestamoConPagos> {
+    return this.http.get<IPrestamoConPagos>(`${this.apiUrl}/${id}/estadisticas`);
   }
 
   /**

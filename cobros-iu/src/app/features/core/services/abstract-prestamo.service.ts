@@ -1,10 +1,12 @@
 import { Observable } from 'rxjs';
-import type { IPrestamo } from '../models';
+import type { IPrestamo, IPrestamoConPagos } from '../models';
 import type { INovedadPrestamo, IProntoPagoResumen, IProntoPagoResultado, IAmpliacionPlazoResumen, IAmpliacionPlazoInput, IAmpliacionPlazoResultado, IRecogerPrestamoInput, IRecogerPrestamoResultado } from '../models';
 
 export abstract class AbstractPrestamoService {
   abstract getAll(): Observable<IPrestamo[]>;
   abstract getById(id: string): Observable<IPrestamo>;
+  /** Devuelve el préstamo con estadísticas calculadas server-side desde Cuotas. */
+  abstract getEstadisticas(id: string): Observable<IPrestamoConPagos>;
   abstract create(prestamo: IPrestamo): Observable<IPrestamo>;
   abstract update(id: string, prestamo: IPrestamo): Observable<IPrestamo>;
   abstract delete(id: string): Observable<void>;

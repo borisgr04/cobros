@@ -114,6 +114,56 @@
           <!-- TAB: INFORMACIÓN -->
           @if (tabActiva() === 'info') {
             <div class="tab-info">
+              <!-- Acciones -->
+              <div class="seccion-acciones">
+                @if (!prestamoCerrado()) {
+                  <button 
+                    class="btn-accion btn-registrar-pago"
+                    (click)="abrirModalPago()">
+                    <i class="bi bi-cash-stack"></i>
+                    Registrar Pago
+                  </button>
+                  <button 
+                    class="btn-accion btn-pronto-pago"
+                    (click)="abrirModalProntoPago()">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                    Pronto Pago
+                  </button>
+                  <button 
+                    class="btn-accion btn-ampliar-plazo"
+                    (click)="abrirModalAmpliacion()">
+                    <i class="bi bi-calendar-plus-fill"></i>
+                    Ampliar Plazo
+                  </button>
+                  <button 
+                    class="btn-accion btn-recoger-prestamo"
+                    (click)="abrirModalRecoger()">
+                    <i class="bi bi-arrow-repeat"></i>
+                    Recoger Préstamo
+                  </button>
+                }
+                <button 
+                  class="btn-accion btn-editar" 
+                  [disabled]="!puedeEditarPrestamo()"
+                  [title]="!puedeEditarPrestamo() ? 'No se puede editar un préstamo con pagos registrados' : 'Editar préstamo'"
+                  (click)="editarPrestamo()">
+                  <i class="bi bi-pencil"></i>
+                  Editar Préstamo
+                </button>
+                @if (puedeEliminarPrestamo()) {
+                  <button 
+                    class="btn-accion btn-eliminar" 
+                    (click)="eliminarPrestamo()">
+                    <i class="bi bi-trash"></i>
+                    Eliminar
+                  </button>
+                }
+                <button class="btn-accion btn-imprimir">
+                  <i class="bi bi-printer"></i>
+                  Imprimir
+                </button>
+              </div>
+
               <!-- Resumen Financiero -->
               <div class="seccion">
                 <h3 class="seccion-titulo">
@@ -231,56 +281,6 @@
                     </div>
                   }
                 </div>
-              </div>
-
-              <!-- Acciones -->
-              <div class="seccion-acciones">
-                @if (!prestamoCerrado()) {
-                  <button 
-                    class="btn-accion btn-registrar-pago"
-                    (click)="abrirModalPago()">
-                    <i class="bi bi-cash-stack"></i>
-                    Registrar Pago
-                  </button>
-                  <button 
-                    class="btn-accion btn-pronto-pago"
-                    (click)="abrirModalProntoPago()">
-                    <i class="bi bi-lightning-charge-fill"></i>
-                    Pronto Pago
-                  </button>
-                  <button 
-                    class="btn-accion btn-ampliar-plazo"
-                    (click)="abrirModalAmpliacion()">
-                    <i class="bi bi-calendar-plus-fill"></i>
-                    Ampliar Plazo
-                  </button>
-                  <button 
-                    class="btn-accion btn-recoger-prestamo"
-                    (click)="abrirModalRecoger()">
-                    <i class="bi bi-arrow-repeat"></i>
-                    Recoger Préstamo
-                  </button>
-                }
-                <button 
-                  class="btn-accion btn-editar" 
-                  [disabled]="!puedeEditarPrestamo()"
-                  [title]="!puedeEditarPrestamo() ? 'No se puede editar un préstamo con pagos registrados' : 'Editar préstamo'"
-                  (click)="editarPrestamo()">
-                  <i class="bi bi-pencil"></i>
-                  Editar Préstamo
-                </button>
-                @if (puedeEliminarPrestamo()) {
-                  <button 
-                    class="btn-accion btn-eliminar" 
-                    (click)="eliminarPrestamo()">
-                    <i class="bi bi-trash"></i>
-                    Eliminar
-                  </button>
-                }
-                <button class="btn-accion btn-imprimir">
-                  <i class="bi bi-printer"></i>
-                  Imprimir
-                </button>
               </div>
             </div>
           }
