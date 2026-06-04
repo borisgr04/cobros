@@ -123,8 +123,8 @@ export class RecogerPrestamoModalComponent {
 
     const nombre      = p.cliente.nombre ?? 'cliente';
     const total       = this.formatCurrency(res.totalACobrar);
-    const cuotas      = res.cantidadCuotas ?? this.cantidadCuotas();
-    const valorCuota  = cuotas > 0 ? this.formatCurrency(Math.round(res.totalACobrar / cuotas)) : '';
+    const cuotas      = this.cantidadCuotas();
+    const valorCuota  = cuotas > 0 ? this.formatCurrency(this.valorCuota()) : '';
     const clave = p.cliente.llave || p.cliente.id;
     const linkConsulta = clave
       ? `\n\n🔗 Consultá tu saldo:\n${window.location.origin}/consulta/${clave}`
