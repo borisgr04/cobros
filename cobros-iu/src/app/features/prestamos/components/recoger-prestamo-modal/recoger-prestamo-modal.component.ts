@@ -49,7 +49,7 @@ export class RecogerPrestamoModalComponent {
   // Campos del formulario
   dineroAdicional  = signal(0);
   intereses        = signal(0);
-  cantidadCuotas   = signal(10);
+  valorCuota       = signal(0);
   frecuenciaPago   = signal('semanal');
   fechaInicio      = signal('');
   observacion      = signal('');
@@ -59,11 +59,19 @@ export class RecogerPrestamoModalComponent {
 
   totalACobrar = computed(() => this.capitalNuevo() + this.intereses());
 
-  valorCuotaEstimado = computed(() => {
-    const n = this.cantidadCuotas();
-    if (n <= 0) return 0;
-    return Math.round(this.totalACobrar() / n);
-  });
+  cantidadCuotas = computed(() =>
+    this.valorCuota() > 0 && this.totalACobrar() > 0
+      ? Math.ceil(this.totalACobrar() / this.valorCuota())
+      : 0
+  );
+
+  valorUltimaCuota = computed(() =>
+    this.totalACobrar() - (this.cantidadCuotas() - 1) * this.valorCuota()
+  );
+
+  descuadreExacto = computed(() =>
+    this.cantidadCuotas() > 0 && this.valorUltimaCuota() !== this.valorCuota()
+  );
 
   nuevaFechaFinalEstimada = computed<Date | null>(() => {
     const fecha = this.fechaInicio();
@@ -89,7 +97,7 @@ export class RecogerPrestamoModalComponent {
   formularioValido = computed(() => {
     if (this.dineroAdicional() <= 0) return false;
     if (this.intereses() < 0) return false;
-    if (this.cantidadCuotas() < 1) return false;
+    if (this.valorCuota() <= 0) return false;
     if (!this.fechaInicio()) return false;
     const d = new Date(this.fechaInicio());
     if (isNaN(d.getTime())) return false;
@@ -139,7 +147,7 @@ export class RecogerPrestamoModalComponent {
     this.resultado.set(null);
     this.dineroAdicional.set(0);
     this.intereses.set(0);
-    this.cantidadCuotas.set(10);
+    this.valorCuota.set(0);
     this.frecuenciaPago.set('semanal');
     this.observacion.set('');
     // Fecha inicio default: mañana

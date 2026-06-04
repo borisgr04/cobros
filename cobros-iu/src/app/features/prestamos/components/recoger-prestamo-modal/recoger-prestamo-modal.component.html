@@ -69,18 +69,15 @@
 
               <div class="form-campo">
                 <label class="campo-label">
-                  <i class="bi bi-list-ol"></i>
-                  Cantidad de cuotas:
+                  <i class="bi bi-cash-coin"></i>
+                  Valor de cuota:
                 </label>
                 <input
                   class="input-campo"
-                  type="number"
-                  [value]="cantidadCuotas()"
-                  (input)="cantidadCuotas.set(+$any($event.target).value || 1)"
-                  min="1"
-                  placeholder="10">
-                @if (cantidadCuotas() < 1) {
-                  <span class="campo-error">Debe ingresar al menos 1 cuota</span>
+                  [(appMoneda)]="valorCuota"
+                  placeholder="$ 0">
+                @if (valorCuota() <= 0) {
+                  <span class="campo-error">El valor de la cuota debe ser mayor a 0</span>
                 }
               </div>
 
@@ -157,8 +154,13 @@
                     <span class="value primary">{{ formatCurrency(totalACobrar()) }}</span>
                   </div>
                   <div class="resumen-item">
-                    <span class="label">Valor cuota estimado:</span>
-                    <span class="value">{{ formatCurrency(valorCuotaEstimado()) }}</span>
+                    @if (descuadreExacto()) {
+                      <span class="label">Plan de pagos:</span>
+                      <span class="value">{{ cantidadCuotas() }} pagos · el último de {{ formatCurrency(valorUltimaCuota()) }}</span>
+                    } @else {
+                      <span class="label">Plan de pagos:</span>
+                      <span class="value">{{ cantidadCuotas() }} pagos de {{ formatCurrency(valorCuota()) }}</span>
+                    }
                   </div>
                   @if (nuevaFechaFinalEstimada()) {
                     <div class="resumen-item destacado">
@@ -214,9 +216,15 @@
                 <span class="value">{{ cantidadCuotas() }} cuotas {{ getTextoFrecuencia(frecuenciaPago()) | lowercase }}</span>
               </div>
               <div class="confirmacion-item">
-                <span class="label">Valor por cuota estimado:</span>
-                <span class="value">{{ formatCurrency(valorCuotaEstimado()) }}</span>
+                <span class="label">Valor por cuota:</span>
+                <span class="value">{{ formatCurrency(valorCuota()) }}</span>
               </div>
+              @if (descuadreExacto()) {
+                <div class="confirmacion-item">
+                  <span class="label">Último pago:</span>
+                  <span class="value">{{ formatCurrency(valorUltimaCuota()) }}</span>
+                </div>
+              }
               <div class="confirmacion-item">
                 <span class="label">Fecha inicio:</span>
                 <span class="value">{{ formatDate(fechaInicio()) }}</span>
