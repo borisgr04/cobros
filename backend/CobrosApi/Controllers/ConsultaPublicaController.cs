@@ -57,7 +57,11 @@ public class ConsultaPublicaController(CobrosDbContext db) : ControllerBase
                     CuotasPagadas  = cuotasPagadas,
                     TotalPagado    = totalPagado,
                     SaldoPendiente = saldo,
-                    UltimoPago     = ultimoPago
+                    UltimoPago     = ultimoPago,
+                    Pagos          = p.Pagos
+                        .OrderByDescending(x => x.FechaPago)
+                        .Select(x => new PagoPublicoDto { FechaPago = x.FechaPago, Valor = x.Valor })
+                        .ToList()
                 };
             })
             .ToList();

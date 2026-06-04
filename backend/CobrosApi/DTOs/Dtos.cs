@@ -202,6 +202,12 @@ public class ConsultaPublicaDto
     public List<PrestamoPublicoDto> Prestamos { get; set; } = [];
 }
 
+public class PagoPublicoDto
+{
+    public DateTime FechaPago { get; set; }
+    public decimal Valor { get; set; }
+}
+
 public class PrestamoPublicoDto
 {
     public int Id { get; set; }
@@ -216,6 +222,7 @@ public class PrestamoPublicoDto
     public decimal TotalPagado { get; set; }
     public decimal SaldoPendiente { get; set; }
     public DateTime? UltimoPago { get; set; }
+    public List<PagoPublicoDto> Pagos { get; set; } = [];
 }
 
 // ─── USUARIOS (admin) ──────────────────────────────────────────────────────

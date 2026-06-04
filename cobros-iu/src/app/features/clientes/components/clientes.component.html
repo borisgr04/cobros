@@ -305,6 +305,27 @@
     </div>
   }
 
+  <!-- CTA post-creación de cliente -->
+  @if (clienteRecienCreado()) {
+    <div class="cta-post-creacion">
+      <i class="bi bi-check-circle-fill"></i>
+      <span>Cliente <strong>{{ clienteRecienCreado()!.nombre }}</strong> creado correctamente.</span>
+      <button
+        type="button"
+        class="btn-cta-prestamo"
+        (click)="nuevoPrestamo(clienteRecienCreado()!); clienteRecienCreado.set(null)">
+        <i class="bi bi-plus-circle"></i>
+        Crear Préstamo
+      </button>
+      <button
+        type="button"
+        class="btn-cta-cerrar"
+        (click)="clienteRecienCreado.set(null)">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+  }
+
   <!-- Lista de clientes mobile-first -->
   <div class="clientes-list">
     @if (cargando() && clientes().length === 0) {
@@ -370,13 +391,13 @@
                     <span class="spinner-mini"></span>
                     <span>Cargando...</span>
                   </div>
-                } @else if (getPrestamosCliente(cliente.id).length === 0) {
+                } @else if (getPrestamosActivos(cliente.id).length === 0 && getPrestamosCerrados(cliente.id).length === 0) {
                   <div class="prestamos-empty">
                     <i class="bi bi-inbox"></i>
                     <span>Sin préstamos activos</span>
                   </div>
                 } @else {
-                  @for (prestamo of getPrestamosCliente(cliente.id); track prestamo.id) {
+                  @for (prestamo of getPrestamosActivos(cliente.id); track prestamo.id) {
                     <div class="prestamo-mini">
                       <div class="prestamo-mini-info">
                         <div class="prestamo-mini-estado">
@@ -441,15 +462,56 @@
                       </div>
                     </div>
                   }
+                  <!-- Préstamos cerrados -->
+                  @if (getPrestamosCerrados(cliente.id).length > 0) {
+                    <button
+                      type="button"
+                      class="btn-toggle-cerrados"
+                      (click)="toggleCerrados(cliente.id)">
+                      <i class="bi bi-{{ cerradosVisibles(cliente.id) ? 'chevron-up' : 'chevron-down' }}"></i>
+                      {{ cerradosVisibles(cliente.id) ? 'Ocultar' : 'Ver' }} cerrados ({{ getPrestamosCerrados(cliente.id).length }})
+                    </button>
+                    @if (cerradosVisibles(cliente.id)) {
+                      @for (prestamo of getPrestamosCerrados(cliente.id); track prestamo.id) {
+                        <div class="prestamo-mini prestamo-mini-cerrado">
+                          <div class="prestamo-mini-info">
+                            <div class="prestamo-mini-estado">
+                              @switch (prestamo.estadisticas?.estado) {
+                                @case ('completado') {
+                                  <span class="badge-mini completado"><i class="bi bi-check-circle-fill"></i> Pagado</span>
+                                }
+                                @case ('refinanciado') {
+                                  <span class="badge-mini refinanciado"><i class="bi bi-arrow-repeat"></i> Recogido</span>
+                                }
+                                @case ('cerrado_pronto_pago') {
+                                  <span class="badge-mini cerrado-pronto-pago"><i class="bi bi-lightning-charge-fill"></i> Pronto Pago</span>
+                                }
+                              }
+                              <span class="prestamo-mini-freq">{{ getTextoFrecuencia(prestamo.frecuenciaPago) }}</span>
+                            </div>
+                          </div>
+                          <div class="prestamo-mini-actions">
+                            <button
+                              class="btn-mini btn-mini-detail"
+                              (click)="verDetallePrestamo(prestamo.id)"
+                              title="Ver detalle del préstamo">
+                              <i class="bi bi-eye"></i>
+                              <span>Detalle</span>
+                            </button>
+                          </div>
+                        </div>
+                      }
+                    }
+                  }
+                  <button
+                    class="btn-nuevo-prestamo-inline"
+                    (click)="nuevoPrestamo(cliente)"
+                    [disabled]="cargando()"
+                  >
+                    <i class="bi bi-plus-circle"></i>
+                    <span>Nuevo Préstamo</span>
+                  </button>
                 }
-                <button
-                  class="btn-nuevo-prestamo-inline"
-                  (click)="nuevoPrestamo(cliente)"
-                  [disabled]="cargando()"
-                >
-                  <i class="bi bi-plus-circle"></i>
-                  <span>Nuevo Préstamo</span>
-                </button>
               </div>
             </div>
 

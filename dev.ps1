@@ -63,8 +63,8 @@ if ($startBack) {
 # ── Frontend ─────────────────────────────────────────────────────────────────
 
 Write-Step "Iniciando frontend Angular en http://localhost:4200..."
-$frontJob = Start-Process -FilePath "npm" `
-    -ArgumentList "start" `
+$frontJob = Start-Process -FilePath "cmd.exe" `
+    -ArgumentList "/c", "npm", "start" `
     -WorkingDirectory $FRONT_DIR `
     -PassThru -NoNewWindow
 Write-Ok "Frontend iniciado (PID $($frontJob.Id))."

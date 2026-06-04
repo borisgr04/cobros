@@ -50,6 +50,12 @@ export class ClientesComponent implements OnInit {
    */
   mostrarFormulario = signal<boolean>(false);
 
+  /** IDs de clientes cuya sección de cerrados está visible */
+  cerradosVisiblesIds = signal<Set<string>>(new Set());
+
+  /** Cliente recién creado para mostrar CTA de nuevo préstamo */
+  clienteRecienCreado = signal<ICliente | null>(null);
+
   /**
    * Indica si se está en modo edición (true) o creación (false)
    */
@@ -237,6 +243,38 @@ export class ClientesComponent implements OnInit {
     return this.cargandoPrestamosIds().includes(clienteId);
   }
 
+  /** Retorna los préstamos activos cacheados del cliente. */
+  getPrestamosActivos(clienteId: string): PrestamoConCliente[] {
+    const estados = ['activo', 'mora', 'vencido'];
+    return (this.prestamosCache()[clienteId] || []).filter(
+      p => estados.includes(p.estadisticas?.estado ?? '')
+    );
+  }
+
+  /** Retorna los préstamos cerrados (completado, refinanciado, cerrado_pronto_pago) del cliente, ordenados por fecha descendente. */
+  getPrestamosCerrados(clienteId: string): PrestamoConCliente[] {
+    const estados = ['completado', 'refinanciado', 'cerrado_pronto_pago'];
+    return (this.prestamosCache()[clienteId] || [])
+      .filter(p => estados.includes(p.estadisticas?.estado ?? ''))
+      .sort((a, b) => {
+        const fa = new Date(a.fechaPrestamo ?? 0).getTime();
+        const fb = new Date(b.fechaPrestamo ?? 0).getTime();
+        return fb - fa;
+      });
+  }
+
+  /** Alterna la visibilidad de préstamos cerrados para un cliente. */
+  toggleCerrados(clienteId: string): void {
+    const ids = new Set(this.cerradosVisiblesIds());
+    if (ids.has(clienteId)) ids.delete(clienteId); else ids.add(clienteId);
+    this.cerradosVisiblesIds.set(ids);
+  }
+
+  /** Retorna true si los cerrados del cliente están visibles. */
+  cerradosVisibles(clienteId: string): boolean {
+    return this.cerradosVisiblesIds().has(clienteId);
+  }
+
   /** Retorna los préstamos cacheados del cliente. */
   getPrestamosCliente(clienteId: string): PrestamoConCliente[] {
     return this.prestamosCache()[clienteId] || [];
@@ -333,10 +371,11 @@ export class ClientesComponent implements OnInit {
     } else {
       // Crear nuevo cliente
       this.clienteService.create(this.formulario).subscribe({
-        next: () => {
+        next: (clienteCreado) => {
           this.mostrarMensaje('success', 'Cliente creado correctamente');
           this.cargarClientes();
           this.cancelarFormulario();
+          this.clienteRecienCreado.set(clienteCreado);
         },
         error: (error) => {
           this.mostrarMensaje('error', 'Error al crear: ' + error.message);
@@ -420,6 +459,11 @@ export class ClientesComponent implements OnInit {
     if (prestamosActivos.length > 0) {
       texto += `\n💰 *Préstamos activos: ${prestamosActivos.length}*\n`;
       texto += `  Saldo total: ${this.formatCurrency(saldoTotal)}\n`;
+    }
+
+    const clave = (cliente as any).llave || cliente.id;
+    if (clave) {
+      texto += `\n🔗 Consultá tu saldo:\n${window.location.origin}/consulta/${clave}`;
     }
 
     const telefonoLimpio = cliente.telefono?.replace(/\D/g, '') ?? '';

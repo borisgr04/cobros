@@ -833,10 +833,11 @@ app-page-header {
     font-weight: 600;
   }
 
-  // Very small screens: show only icon
+  // Very small screens: shrink label instead of hiding it
   @media (max-width: 400px) {
-    padding: 0.6rem 0.6rem;
-    .tab-label { display: none; }
+    padding: 0.6rem 0.5rem;
+    font-size: 0.7rem;
+    .tab-label { font-size: 0.65rem; }
   }
 }
 

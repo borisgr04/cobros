@@ -131,7 +131,16 @@ export class ClienteDetalleComponent implements OnInit {
       texto += `  Saldo total: ${this.formatCurrency(saldoTotal)}\n`;
     }
 
-    const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+    const clave = (c as any).llave || c.id;
+    if (clave) {
+      texto += `\n🔗 Consultá tu saldo:\n${window.location.origin}/consulta/${clave}`;
+    }
+
+    const telefonoLimpio = c.telefono?.replace(/\D/g, '') ?? '';
+    const telefonoConPrefijo = telefonoLimpio ? `57${telefonoLimpio}` : '';
+    const url = telefonoConPrefijo
+      ? `https://wa.me/${telefonoConPrefijo}?text=${encodeURIComponent(texto)}`
+      : `https://wa.me/?text=${encodeURIComponent(texto)}`;
     window.open(url, '_blank');
   }
 

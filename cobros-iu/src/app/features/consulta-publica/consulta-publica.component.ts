@@ -5,6 +5,11 @@ import { CommonModule } from '@angular/common';
 import { timeout, retry } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
+interface PagoPublico {
+  fechaPago: string;
+  valor: number;
+}
+
 interface PrestamoPublico {
   id: number;
   fechaPrestamo: string;
@@ -18,6 +23,7 @@ interface PrestamoPublico {
   totalPagado: number;
   saldoPendiente: number;
   ultimoPago: string | null;
+  pagos: PagoPublico[];
 }
 
 interface ConsultaPublica {
@@ -39,6 +45,16 @@ export class ConsultaPublicaComponent implements OnInit {
   error     = signal<string | null>(null);
   retrying  = signal(false);
   fechaHoy  = new Date();
+  /** IDs de préstamos con el panel de pagos expandido */
+  pagosExpandidos = signal<Set<number>>(new Set());
+
+  togglePagos(id: number): void {
+    const s = new Set(this.pagosExpandidos());
+    if (s.has(id)) s.delete(id); else s.add(id);
+    this.pagosExpandidos.set(s);
+  }
+
+  pagosVisible(id: number): boolean { return this.pagosExpandidos().has(id); }
 
   private llave = '';
 

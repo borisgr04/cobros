@@ -198,12 +198,7 @@
 
       <!-- Footer -->
       <div class="modal-footer">
-        @if (exito()) {
-          <button class="btn btn-registrar" (click)="cerrar()">
-            <i class="bi bi-check2"></i>
-            Cerrar
-          </button>
-        } @else {
+        @if (!exito()) {
           <button 
             class="btn btn-registrar" 
             (click)="registrarPrestamo()"

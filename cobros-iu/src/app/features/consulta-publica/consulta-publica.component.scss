@@ -258,6 +258,49 @@
   font-weight: 600;
 }
 
+.btn-toggle-pagos {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.4rem 0.5rem;
+  background: none;
+  border: none;
+  border-top: 1px dashed rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.55);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: color 0.15s;
+  &:hover { color: rgba(255,255,255,0.85); }
+}
+
+.pagos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(255,255,255,0.05);
+  border-radius: 0.5rem;
+}
+
+.pago-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.8);
+
+  .pago-valor { font-weight: 600; color: #4ade80; }
+}
+
+.pagos-vacio {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.4);
+  text-align: center;
+  margin: 0;
+}
+
 // ── FOOTER ───────────────────────────────────────────────────────────────────
 .consulta-footer {
   text-align: center;

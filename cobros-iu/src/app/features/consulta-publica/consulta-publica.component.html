@@ -105,6 +105,26 @@
           @if (p.saldoPendiente === 0) {
             <div class="badge-pagado"><i class="bi bi-check-circle-fill"></i> Préstamo cancelado</div>
           }
+
+          <!-- Detalle pagos -->
+          <button class="btn-toggle-pagos" type="button" (click)="togglePagos(p.id)">
+            <i class="bi bi-{{ pagosVisible(p.id) ? 'chevron-up' : 'chevron-down' }}"></i>
+            {{ pagosVisible(p.id) ? 'Ocultar pagos' : 'Ver pagos (' + (p.pagos.length) + ')' }}
+          </button>
+          @if (pagosVisible(p.id)) {
+            <div class="pagos-lista">
+              @if (!p.pagos || p.pagos.length === 0) {
+                <p class="pagos-vacio">Sin pagos registrados</p>
+              } @else {
+                @for (pago of p.pagos; track pago.fechaPago) {
+                  <div class="pago-item">
+                    <span class="pago-fecha">{{ fmtFecha(pago.fechaPago) }}</span>
+                    <span class="pago-valor">{{ fmt(pago.valor) }}</span>
+                  </div>
+                }
+              }
+            </div>
+          }
         </div>
       }
 
