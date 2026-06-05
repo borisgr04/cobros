@@ -2,14 +2,13 @@ import { Component, signal, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReporteService } from '../../services/reporte.service';
-import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { AbreviarMonedaPipe } from '../../../../shared/pipes/abreviar-moneda.pipe';
 import type { CierreDia } from '../../models/reporte.models';
 
 @Component({
   selector: 'app-cierre-dia',
   standalone: true,
-  imports: [CommonModule, FormsModule, PageHeaderComponent, AbreviarMonedaPipe],
+  imports: [CommonModule, FormsModule, AbreviarMonedaPipe],
   templateUrl: './cierre-dia.component.html',
   styleUrl: './cierre-dia.component.scss'
 })

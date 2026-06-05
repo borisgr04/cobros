@@ -1,19 +1,22 @@
-<app-page-header titulo="Cierre del Día"></app-page-header>
-
 <div class="cierre-container">
 
-  <!-- Selector de fecha -->
-  <div class="fecha-selector">
-    <label for="fechaCierre" class="fecha-label">Fecha</label>
-    <input
-      id="fechaCierre"
-      type="date"
-      class="fecha-input"
-      [value]="fecha()"
-      (change)="onFechaChange($any($event.target).value)">
+  <!-- Header con selector de fecha -->
+  <div class="cierre-header">
+    <div class="cierre-header-icon">
+      <i class="bi bi-graph-up-arrow"></i>
+    </div>
+    <div class="cierre-header-text">
+      <h1>Cierre del Día</h1>
+      <input
+        id="fechaCierre"
+        type="date"
+        class="fecha-input"
+        [value]="fecha()"
+        (change)="onFechaChange($any($event.target).value)">
+    </div>
   </div>
 
-  <!-- Estado: Error -->
+  <!-- Error -->
   @if (error()) {
     <div class="estado-error">
       <i class="bi bi-exclamation-circle"></i>
@@ -24,15 +27,29 @@
     </div>
   }
 
-  <!-- Estado: Cargando (skeleton) -->
+  <!-- Skeleton -->
   @if (cargando()) {
-    <div class="bloques-grid">
-      @for (b of [1, 2, 3]; track b) {
-        <div class="bloque bloque-skeleton">
-          <div class="skeleton-title"></div>
-          <div class="skeleton-row"></div>
-          <div class="skeleton-row skeleton-row--short"></div>
-          <div class="skeleton-row"></div>
+    <div class="sep"><span class="sk sk-sep"></span></div>
+    <div class="sk-card">
+      <div class="sk sk-label"></div>
+      <div class="sk sk-main"></div>
+      <div class="sk sk-pills"></div>
+    </div>
+    <div class="sep"><span class="sk sk-sep"></span></div>
+    <div class="kpi-grid">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="kpi">
+          <div class="sk sk-label"></div>
+          <div class="sk sk-val"></div>
+        </div>
+      }
+    </div>
+    <div class="sep"><span class="sk sk-sep"></span></div>
+    <div class="kpi-grid">
+      @for (i of [1, 2]; track i) {
+        <div class="kpi">
+          <div class="sk sk-label"></div>
+          <div class="sk sk-val"></div>
         </div>
       }
     </div>
@@ -40,104 +57,121 @@
 
   <!-- Datos cargados -->
   @if (!cargando() && !error() && datos()) {
-    <div class="bloques-grid">
 
-      <!-- ── Bloque 1: Ganancia del día ───────────────────────────────── -->
-      <div class="bloque">
-        <h2 class="bloque-titulo">
-          <i class="bi bi-graph-up-arrow"></i> Ganancia del día
-        </h2>
-        <div class="bloque-fila">
-          <span class="fila-label">Intereses pactados</span>
-          <span class="fila-valor fila-valor--positivo">
-            {{ datos()!.ganancia.interesesPactadosTotal | abreviarMoneda }}
-          </span>
+    <!-- ── Ganancia del día ───────────────────────────────────────────── -->
+    <div class="sep"><i class="bi bi-currency-dollar"></i> Ganancia del día</div>
+    <div class="ganancia-card">
+      <div class="gc-label">Interés total pactado · préstamos nuevos</div>
+      <div class="gc-main">{{ datos()!.ganancia.gananciaNeta | abreviarMoneda }}</div>
+      <div class="gc-sub">Ganancia neta del día</div>
+      <div class="gc-pills">
+        <div class="gc-pill">
+          <div class="gc-pill-lbl">Pactado</div>
+          <div class="gc-pill-val">{{ datos()!.ganancia.interesesPactadosTotal | abreviarMoneda }}</div>
         </div>
-        <div class="bloque-fila">
-          <span class="fila-label">Descuentos pronto pago</span>
-          <span class="fila-valor fila-valor--negativo">
-            − {{ datos()!.ganancia.descuentosProntoPagoTotal | abreviarMoneda }}
-          </span>
+        <div class="gc-pill gc-pill--negativo">
+          <div class="gc-pill-lbl">Descuentos</div>
+          <div class="gc-pill-val gc-pill-val--negativo">−{{ datos()!.ganancia.descuentosProntoPagoTotal | abreviarMoneda }}</div>
         </div>
-        <div class="bloque-fila bloque-fila--total">
-          <span class="fila-label">Ganancia neta</span>
-          <span class="fila-valor fila-valor--destacado">
-            {{ datos()!.ganancia.gananciaNeta | abreviarMoneda }}
-          </span>
+        <div class="gc-pill gc-pill--hero">
+          <div class="gc-pill-lbl">Neto ⚡</div>
+          <div class="gc-pill-val gc-pill-val--hero">{{ datos()!.ganancia.gananciaNeta | abreviarMoneda }}</div>
         </div>
       </div>
-
-      <!-- ── Bloque 2: Préstamos del día ──────────────────────────────── -->
-      <div class="bloque">
-        <h2 class="bloque-titulo">
-          <i class="bi bi-cash-stack"></i> Préstamos del día
-        </h2>
-        <div class="bloque-fila">
-          <span class="fila-label">Nuevos</span>
-          <span class="fila-valor">{{ datos()!.prestamosDia.nuevosCount }}</span>
-        </div>
-        <div class="bloque-fila">
-          <span class="fila-label">Renovados (recoger)</span>
-          <span class="fila-valor">{{ datos()!.prestamosDia.renovadosCount }}</span>
-        </div>
-        <div class="bloque-fila">
-          <span class="fila-label">Capital entregado</span>
-          <span class="fila-valor fila-valor--positivo">
-            {{ datos()!.prestamosDia.capitalEntregadoTotal | abreviarMoneda }}
-          </span>
-        </div>
-        <div class="bloque-fila">
-          <span class="fila-label">Pronto pagos</span>
-          <span class="fila-valor">{{ datos()!.prestamosDia.prontoPagoCount }}</span>
-        </div>
-        @if (datos()!.prestamosDia.nuevosPorFrecuencia.length > 0) {
-          <div class="frecuencias">
-            @for (f of datos()!.prestamosDia.nuevosPorFrecuencia; track f.frecuencia) {
-              <span class="frecuencia-badge">{{ f.frecuencia }}: {{ f.count }}</span>
-            }
-          </div>
-        }
-      </div>
-
-      <!-- ── Bloque 3: Cobros del día ─────────────────────────────────── -->
-      <div class="bloque">
-        <h2 class="bloque-titulo">
-          <i class="bi bi-wallet2"></i> Cobros del día
-        </h2>
-        <div class="bloque-fila">
-          <span class="fila-label">Recaudado</span>
-          <span class="fila-valor fila-valor--destacado">
-            {{ datos()!.cobros.recaudadoTotal | abreviarMoneda }}
-          </span>
-        </div>
-        <div class="bloque-fila">
-          <span class="fila-label">Cartera activa</span>
-          <span class="fila-valor">{{ datos()!.cobros.prestamosActivosCount }} préstamos</span>
-        </div>
-        @if (datos()!.cobros.porZona.length > 0) {
-          <div class="zonas-tabla">
-            <div class="zonas-tabla-header">
-              <span>Zona</span>
-              <span>Programados</span>
-              <span>Pagaron</span>
-              <span>Total</span>
-            </div>
-            @for (z of datos()!.cobros.porZona; track z.zonaId) {
-              <div class="zonas-tabla-fila">
-                <span class="zona-nombre">{{ z.zonaNombre }}</span>
-                <span>{{ z.cobrosProgramados }}</span>
-                <span>{{ z.pagaronCount }}</span>
-                <span class="zona-total">{{ z.total | abreviarMoneda }}</span>
-              </div>
-            }
-          </div>
-        }
-      </div>
-
     </div>
+
+    <!-- ── Préstamos del día ──────────────────────────────────────────── -->
+    <div class="sep"><i class="bi bi-cash-stack"></i> Préstamos del día</div>
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-lbl">Nuevos</div>
+        <div class="kpi-val">{{ datos()!.prestamosDia.nuevosCount }}</div>
+        <div class="kpi-sub">Desembolsados hoy</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Renovados</div>
+        <div class="kpi-val">{{ datos()!.prestamosDia.renovadosCount }}</div>
+        <div class="kpi-sub">Recogidos → nuevo</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Capital entregado</div>
+        <div class="kpi-val kpi-val--green kpi-val--md">{{ datos()!.prestamosDia.capitalEntregadoTotal | abreviarMoneda }}</div>
+        <div class="kpi-sub">Total desembolsado</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Pronto pago ⚡</div>
+        <div class="kpi-val">{{ datos()!.prestamosDia.prontoPagoCount }}</div>
+        <div class="kpi-sub">Descuentos aplicados</div>
+      </div>
+    </div>
+
+    @if (datos()!.prestamosDia.nuevosPorFrecuencia.length > 0) {
+      <div class="list-card">
+        <div class="card-hdr">
+          <span class="card-ttl">Por frecuencia de pago</span>
+          <span class="badge badge-gray">{{ datos()!.prestamosDia.nuevosCount }} TOTAL</span>
+        </div>
+        @for (f of datos()!.prestamosDia.nuevosPorFrecuencia; track f.frecuencia) {
+          <div class="list-row">
+            <div class="row-ico"><i class="bi bi-calendar3"></i></div>
+            <div class="row-info">
+              <div class="row-name">{{ f.frecuencia }}</div>
+            </div>
+            <div class="row-val">{{ f.count }}</div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ── Cobros del día ─────────────────────────────────────────────── -->
+    <div class="sep"><i class="bi bi-wallet2"></i> Cobros del día</div>
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-lbl">Recaudado</div>
+        <div class="kpi-val kpi-val--green kpi-val--md">{{ datos()!.cobros.recaudadoTotal | abreviarMoneda }}</div>
+        <div class="kpi-sub">Total cobrado hoy</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Activos</div>
+        <div class="kpi-val">{{ datos()!.cobros.prestamosActivosCount }}</div>
+        <div class="kpi-sub">Préstamos vigentes</div>
+      </div>
+    </div>
+
+    @if (datos()!.cobros.porZona.length > 0) {
+      <div class="list-card">
+        <div class="card-hdr">
+          <span class="card-ttl"><i class="bi bi-geo-alt"></i> Por zona</span>
+          <span class="badge badge-green">HOY</span>
+        </div>
+        @for (z of datos()!.cobros.porZona; track z.zonaId) {
+          <div class="zona-item">
+            <div class="list-row">
+              <div class="row-ico">
+                <span class="row-ini">{{ z.zonaNombre.charAt(0).toUpperCase() }}</span>
+              </div>
+              <div class="row-info">
+                <div class="row-name">{{ z.zonaNombre }}</div>
+                <div class="row-det">{{ z.pagaronCount }} de {{ z.cobrosProgramados }}</div>
+              </div>
+              <div class="row-val row-val--green">{{ z.total | abreviarMoneda }}</div>
+            </div>
+            <div class="pbar-wrap">
+              <div class="pbar">
+                <div class="pbar-fill"
+                  [style.width.%]="z.cobrosProgramados > 0 ? (z.pagaronCount / z.cobrosProgramados * 100) : 0"
+                  [style.background]="z.cobrosProgramados > 0 && (z.pagaronCount / z.cobrosProgramados) < 0.8 ? 'var(--color-warning)' : 'var(--color-success)'">
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
   }
 
-  <!-- Sin datos (fecha sin actividad) -->
+  <!-- Sin actividad -->
   @if (!cargando() && !error() && datos() && sinActividad()) {
     <p class="sin-actividad">Sin actividad registrada para este día.</p>
   }

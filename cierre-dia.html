@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es" style="color-scheme: light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cierre del Dia</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: #f2f2f7 !important;
+    font-family: 'Inter', -apple-system, sans-serif;
+    color: #0a0a0a;
+    min-height: 100vh;
+    padding: 20px 16px 48px;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #fff;
+    border-radius: 18px;
+    padding: 18px 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.08);
+  }
+  .header-icon {
+    width: 48px; height: 48px;
+    background: #1a1a1a;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .header-text h1 {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -.3px;
+    color: #0a0a0a;
+  }
+  .header-text .date {
+    font-size: 12px;
+    color: #888;
+    margin-top: 2px;
+  }
+
+  /* Label separador */
+  .sep {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #888;
+    text-transform: uppercase;
+    margin: 16px 2px 8px;
+  }
+
+  /* Tarjeta base */
+  .card {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+
+  /* Tarjeta ganancia destacada */
+  .ganancia-card {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    padding: 20px 18px;
+    margin-bottom: 10px;
+  }
+  .gc-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .8px;
+    color: #888;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .gc-main {
+    font-size: 40px;
+    font-weight: 900;
+    color: #00C853;
+    line-height: 1;
+    letter-spacing: -1px;
+  }
+  .gc-sub {
+    font-size: 12px;
+    color: #888;
+    margin-top: 4px;
+  }
+  .gc-pills {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .gc-pill {
+    background: #f2f2f7 !important;
+    border-radius: 12px;
+    padding: 10px 12px;
+    flex: 1;
+  }
+  .gc-pill.hi {
+    background: #f2f2f7 !important;
+    border: 1.5px solid #00C853;
+  }
+  .gc-pill-lbl {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .8px;
+    color: #888;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  .gc-pill-val {
+    font-size: 16px;
+    font-weight: 800;
+    color: #0a0a0a;
+  }
+  .gc-pill.hi .gc-pill-val { color: #00C853; }
+
+  /* Grid 2 col KPI */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .kpi {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    padding: 16px 14px;
+  }
+  .kpi-lbl {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .8px;
+    color: #888;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .kpi-val {
+    font-size: 28px;
+    font-weight: 900;
+    color: #0a0a0a;
+    line-height: 1;
+    letter-spacing: -.5px;
+  }
+  .kpi-val.green { color: #00C853; }
+  .kpi-sub {
+    font-size: 10px;
+    color: #888;
+    margin-top: 4px;
+  }
+
+  /* Card header */
+  .card-hdr {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .card-ttl {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0a0a0a;
+  }
+  .badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: .5px;
+  }
+  .badge-green { background: #e6f9ee; color: #00C853; }
+  .badge-gray  { background: #f0f0f0; color: #888; }
+  .badge-red   { background: #fdecea; color: #e53935; }
+
+  /* Fila lista */
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .row:last-child { border-bottom: none; }
+  .row-ico {
+    width: 36px; height: 36px;
+    background: #f2f2f7 !important;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .row-ini {
+    font-size: 15px;
+    font-weight: 800;
+    color: #555;
+  }
+  .row-info { flex: 1; }
+  .row-name { font-size: 13px; font-weight: 600; color: #0a0a0a; }
+  .row-det  { font-size: 11px; color: #888; margin-top: 1px; }
+  .row-val  { font-size: 14px; font-weight: 700; color: #0a0a0a; text-align: right; }
+  .row-val.green { color: #00C853; }
+
+  /* Barra progreso */
+  .pbar-w { padding: 0 16px 12px; }
+  .pbar { height: 3px; background: #f0f0f0; border-radius: 4px; overflow: hidden; }
+  .pbar-f { height: 100%; border-radius: 4px; }
+
+  /* Método pago */
+  .met-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .met-row:last-child { border-bottom: none; }
+  .met-l { display: flex; align-items: center; gap: 10px; }
+  .met-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .met-name { font-size: 13px; font-weight: 600; }
+  .met-cnt  { font-size: 11px; color: #888; margin-top: 1px; }
+  .met-r    { text-align: right; }
+  .met-val  { font-size: 15px; font-weight: 800; color: #00C853; }
+  .met-pct  { font-size: 10px; color: #888; }
+
+  /* Mora 3 celdas */
+  .mora-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .mora-cell {
+    padding: 16px 8px;
+    text-align: center;
+    border-right: 1px solid #f0f0f0;
+  }
+  .mora-cell:last-child { border-right: none; }
+  .mora-v { font-size: 26px; font-weight: 900; letter-spacing: -.5px; }
+  .mora-l { font-size: 9px; font-weight: 700; letter-spacing: .8px; color: #888; text-transform: uppercase; margin-top: 3px; }
+
+  .footer {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 10px;
+    color: #bbb;
+    letter-spacing: .5px;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-icon">&#128200;</div>
+  <div class="header-text">
+    <h1>Cierre del D&iacute;a</h1>
+    <div class="date">JUE 04 JUN 2026 &middot; 18:00</div>
+  </div>
+</div>
+
+<!-- 1. GANANCIA -->
+<div class="sep">&#128176; Ganancia del d&iacute;a</div>
+<div class="ganancia-card">
+  <div class="gc-label">Inter&eacute;s total pactado &middot; pr&eacute;stamos nuevos</div>
+  <div class="gc-main">$582K</div>
+  <div class="gc-sub">7 pr&eacute;stamos nuevos &middot; inter&eacute;s proyectado neto</div>
+  <div class="gc-pills">
+    <div class="gc-pill">
+      <div class="gc-pill-lbl">Pactado</div>
+      <div class="gc-pill-val">$620K</div>
+    </div>
+    <div class="gc-pill">
+      <div class="gc-pill-lbl">Descuentos &#9889;</div>
+      <div class="gc-pill-val" style="color:#e53935">-$38K</div>
+    </div>
+    <div class="gc-pill hi">
+      <div class="gc-pill-lbl">Neto</div>
+      <div class="gc-pill-val">$582K</div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. PRESTAMOS -->
+<div class="sep">&#127381; Pr&eacute;stamos del d&iacute;a</div>
+<div class="kpi-grid">
+  <div class="kpi">
+    <div class="kpi-lbl">Nuevos</div>
+    <div class="kpi-val">7</div>
+    <div class="kpi-sub">Desembolsados hoy</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-lbl">Renovados</div>
+    <div class="kpi-val">5</div>
+    <div class="kpi-sub">Recogidos &rarr; nuevo</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-lbl">Capital entregado</div>
+    <div class="kpi-val green" style="font-size:22px">$2.1M</div>
+    <div class="kpi-sub">Total desembolsado</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-lbl">Pronto pago &#9889;</div>
+    <div class="kpi-val">6</div>
+    <div class="kpi-sub">Descuentos aplicados</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-hdr">
+    <span class="card-ttl">Por frecuencia de pago</span>
+    <span class="badge badge-gray">7 TOTAL</span>
+  </div>
+  <div class="row">
+    <div class="row-ico">&#128197;</div>
+    <div class="row-info"><div class="row-name">Diario</div><div class="row-det">Cuota cada d&iacute;a</div></div>
+    <div class="row-val">3</div>
+  </div>
+  <div class="row">
+    <div class="row-ico">&#128467;</div>
+    <div class="row-info"><div class="row-name">Semanal</div><div class="row-det">Cuota cada semana</div></div>
+    <div class="row-val">2</div>
+  </div>
+  <div class="row">
+    <div class="row-ico">&#128198;</div>
+    <div class="row-info"><div class="row-name">Quincenal / Mensual</div><div class="row-det">Cuota larga</div></div>
+    <div class="row-val">2</div>
+  </div>
+</div>
+
+<!-- 3. COBROS -->
+<div class="sep">&#128181; Cobros del d&iacute;a</div>
+<div class="kpi-grid">
+  <div class="kpi">
+    <div class="kpi-lbl">Recaudado</div>
+    <div class="kpi-val green" style="font-size:22px">$1.284K</div>
+    <div class="kpi-sub">38 pagos</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-lbl">Activos</div>
+    <div class="kpi-val">127</div>
+    <div class="kpi-sub">Pr&eacute;stamos vigentes</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-hdr">
+    <span class="card-ttl">&#128205; Por zona</span>
+    <span class="badge badge-green">HOY</span>
+  </div>
+  <div class="row">
+    <div class="row-ico"><span class="row-ini">N</span></div>
+    <div class="row-info"><div class="row-name">Zona Norte</div><div class="row-det">11 de 12 &middot; 92%</div></div>
+    <div class="row-val green">$428K</div>
+  </div>
+  <div class="pbar-w"><div class="pbar"><div class="pbar-f" style="width:92%;background:#00C853"></div></div></div>
+  <div class="row">
+    <div class="row-ico"><span class="row-ini">C</span></div>
+    <div class="row-info"><div class="row-name">Zona Centro</div><div class="row-det">16 de 18 &middot; 89%</div></div>
+    <div class="row-val green">$512K</div>
+  </div>
+  <div class="pbar-w"><div class="pbar"><div class="pbar-f" style="width:89%;background:#00C853"></div></div></div>
+  <div class="row">
+    <div class="row-ico"><span class="row-ini">S</span></div>
+    <div class="row-info"><div class="row-name">Zona Sur</div><div class="row-det">11 de 14 &middot; 79%</div></div>
+    <div class="row-val" style="color:#f59e0b">$344K</div>
+  </div>
+  <div class="pbar-w"><div class="pbar"><div class="pbar-f" style="width:79%;background:#f59e0b"></div></div></div>
+</div>
+
+<!-- 3. MORA -->
+<div class="sep">&#9888;&#65039; Mora del d&iacute;a</div>
+<div class="card">
+  <div class="mora-grid">
+    <div class="mora-cell">
+      <div class="mora-v" style="color:#f59e0b">8</div>
+      <div class="mora-l">Vencidos hoy</div>
+    </div>
+    <div class="mora-cell">
+      <div class="mora-v" style="color:#e53935">6</div>
+      <div class="mora-l">+3 d&iacute;as</div>
+    </div>
+    <div class="mora-cell">
+      <div class="mora-v" style="color:#e53935">14</div>
+      <div class="mora-l">Total mora</div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="row-ico">&#128201;</div>
+    <div class="row-info">
+      <div class="row-name">Cuotas no cobradas hoy</div>
+      <div class="row-det">Pendientes de recuperar</div>
+    </div>
+    <div class="row-val" style="color:#e53935">$216K</div>
+  </div>
+</div>
+
+<div class="footer">CIERRE AUTOM&Aacute;TICO &middot; JUE 04 JUN 2026 &middot; 18:00</div>
+</body>
+</html>
