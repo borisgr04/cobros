@@ -24,6 +24,13 @@ El endpoint `POST /api/pagos` SHALL persistir exactamente 1 registro `Pago`, dis
 - **THEN** el contenido del campo queda completamente seleccionado
 - **AND** el usuario puede escribir directamente sin necesidad de borrar primero
 
+### Requirement: URL de consulta pública en notificación de registro de pago
+La URL de consulta pública compartida al registrar un pago SHALL construirse usando exclusivamente `prestamo.cliente.id` como identificador.
+
+#### Scenario: Generación de URL de consulta en registro de pago
+- **WHEN** se registra un pago y se genera la URL de consulta para compartir
+- **THEN** la URL SHALL tener la forma `{baseUrl}/consulta/{cliente.id}`
+
 ### Requirement: Consulta de cuotas lee de la tabla persistida
 El endpoint `GET /api/prestamos/{id}/cuotas` SHALL leer directamente de la tabla `Cuota` sin recalcular distribución, retornando `SaldoPagado` y estado derivado por cada cuota.
 

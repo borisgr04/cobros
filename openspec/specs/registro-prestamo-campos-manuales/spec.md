@@ -35,3 +35,10 @@ El sistema SHALL proveer un formulario de registro de préstamos donde el usuari
 - **WHEN** el usuario intenta guardar el préstamo
 - **THEN** el sistema valida que valor prestado > 0, valor interés >= 0, valor cuota > 0 y valor cuota ≤ valor total
 - **AND** muestra un error descriptivo si algún campo obligatorio está incompleto o inválido
+
+### Requirement: URL de consulta pública en modal de registro de préstamo
+La URL de consulta pública generada al crear un préstamo SHALL construirse usando exclusivamente `cliente.id` como identificador.
+
+#### Scenario: Generación de URL de consulta en registro de préstamo
+- **WHEN** se registra un préstamo y el modal genera la URL de consulta del cliente
+- **THEN** la URL SHALL tener la forma `{baseUrl}/consulta/{cliente.id}`

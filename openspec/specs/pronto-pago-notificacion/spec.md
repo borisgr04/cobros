@@ -25,6 +25,13 @@ Si el cliente no tiene teléfono, el sistema SHALL mostrar un aviso informativo 
 - **THEN** la pantalla de éxito muestra un aviso "El cliente no tiene teléfono registrado"
 - **AND** no aparece el botón de WhatsApp
 
+### Requirement: URL de consulta pública en notificación de pronto pago
+La URL de consulta pública compartida por WhatsApp SHALL construirse usando exclusivamente `prestamo.cliente.id` como identificador.
+
+#### Scenario: Generación de URL de consulta sin campo llave
+- **WHEN** el sistema genera la URL de consulta pública para el cliente de un préstamo con pronto pago
+- **THEN** la URL SHALL tener la forma `{baseUrl}/consulta/{cliente.id}`
+
 ### Requirement: Input de valor negociado con estilo consistente
 El campo "Valor negociado para cerrar el préstamo" SHALL usar el mismo estilo visual (wrapper, botón clear) que el campo "Valor a pagar" de `registro-pago-modal`.
 
