@@ -25,32 +25,55 @@ export class BottomNavigationComponent {
 
   user = this.auth.currentUser;
   mostrarMenuUsuario = signal<boolean>(false);
+  mostrarMenuReportes = signal<boolean>(false);
   biometricAvailable = signal(false);
 
-  // Items de navegación (mismos que sidebar, Reportes en lugar de Tablero en móvil)
+  // Items de navegación (Reportes se maneja como panel trigger, no como navItem)
   navItems: NavItem[] = [
     { path: '/', label: 'Inicio', icon: 'bi-house-fill' },
     { path: '/clientes', label: 'Clientes', icon: 'bi-people-fill' },
     { path: '/zonas', label: 'Zonas', icon: 'bi-geo-alt-fill' },
-    { path: '/reportes', label: 'Reportes', icon: 'bi-file-earmark-bar-graph-fill' },
     { path: '/usuarios', label: 'Usuarios', icon: 'bi-person-gear' }
   ];
 
   constructor() {
-    // Cerrar el panel de usuario al navegar
+    // Cerrar ambos paneles al navegar
     this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
-      .subscribe(() => this.mostrarMenuUsuario.set(false));
+      .subscribe(() => {
+        this.mostrarMenuUsuario.set(false);
+        this.mostrarMenuReportes.set(false);
+      });
 
     this.biometric.isPlatformAuthenticatorAvailable().then(ok => this.biometricAvailable.set(ok));
   }
 
   toggleMenuUsuario(): void {
     this.mostrarMenuUsuario.set(!this.mostrarMenuUsuario());
+    if (this.mostrarMenuUsuario()) this.mostrarMenuReportes.set(false);
   }
 
   cerrarMenuUsuario(): void {
     this.mostrarMenuUsuario.set(false);
+  }
+
+  toggleMenuReportes(): void {
+    this.mostrarMenuReportes.set(!this.mostrarMenuReportes());
+    if (this.mostrarMenuReportes()) this.mostrarMenuUsuario.set(false);
+  }
+
+  cerrarMenuReportes(): void {
+    this.mostrarMenuReportes.set(false);
+  }
+
+  irAReportes(): void {
+    this.cerrarMenuReportes();
+    this.router.navigate(['/reportes']);
+  }
+
+  irACierreDia(): void {
+    this.cerrarMenuReportes();
+    this.router.navigate(['/reportes/cierre-dia']);
   }
 
   irAPerfil(): void {
@@ -60,5 +83,9 @@ export class BottomNavigationComponent {
 
   logout(): void {
     this.auth.logout();
+  }
+
+  get rutaEsReportes(): boolean {
+    return this.router.url.startsWith('/reportes');
   }
 }

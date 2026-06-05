@@ -259,6 +259,15 @@ public class AuthResponseDto
     public DateTime Expira { get; set; }
 }
 
+// ─── CIERRE DEL DÍA ────────────────────────────────────────────────────────
+
+public record CobrosZonaDto(int ZonaId, string ZonaNombre, int CobrosProgramados, int PagaronCount, decimal Total);
+public record CobrosDiaDto(decimal RecaudadoTotal, int PrestamosActivosCount, List<CobrosZonaDto> PorZona);
+public record FrecuenciaCountDto(string Frecuencia, int Count);
+public record PrestamosDiaDto(int NuevosCount, int RenovadosCount, decimal CapitalEntregadoTotal, int ProntoPagoCount, List<FrecuenciaCountDto> NuevosPorFrecuencia);
+public record GananciaDiaDto(decimal InteresesPactadosTotal, decimal DescuentosProntoPagoTotal, decimal GananciaNeta);
+public record CierreDiaDto(DateOnly Fecha, GananciaDiaDto Ganancia, PrestamosDiaDto PrestamosDia, CobrosDiaDto Cobros);
+
 // ─── ERRORS ────────────────────────────────────────────────────────────────
 
 public class ErrorDto

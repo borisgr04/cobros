@@ -9,7 +9,8 @@ import {
   CobrosPorEstado,
   ClienteMoroso,
   ClienteCumplidor,
-  ReporteCompleto
+  ReporteCompleto,
+  CierreDia
 } from '../models/reporte.models';
 import { AbstractPrestamoService } from '../../core/services/abstract-prestamo.service';
 import { AbstractPagoService } from '../../core/services/abstract-pago.service';
@@ -36,6 +37,10 @@ export class ReporteService {
    * Obtiene el reporte completo desde el backend para un rango de fechas.
    * Incluye préstamos nuevos, finalizados y recaudo por zona con detalle por cliente.
    */
+  getCierreDia(fecha: string): Observable<CierreDia> {
+    return this.http.get<CierreDia>(`${this.apiUrl}/cierre-dia?fecha=${fecha}`);
+  }
+
   getReporteCompleto(fechaInicio: Date, fechaFin: Date, zonaId?: string): Observable<ReporteCompleto> {
     let params = new HttpParams()
       .set('fechaInicio', fechaInicio.toISOString())

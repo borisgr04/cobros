@@ -1,5 +1,6 @@
 using CobrosApi.Data;
 using CobrosApi.DTOs;
+using CobrosApi.Features.Reportes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -218,6 +219,15 @@ public class ReportesController(CobrosDbContext db) : ControllerBase
             PrestamosFinalizados = prestamosFinalizados,
             RecaudoPorZona       = recaudoPorZona
         });
+    }
+
+    [HttpGet("cierre-dia")]
+    [ProducesResponseType(typeof(CierreDiaDto), 200)]
+    public async Task<ActionResult<CierreDiaDto>> GetCierreDia([FromQuery] DateOnly? fecha)
+    {
+        var fechaConsulta = fecha ?? DateOnly.FromDateTime(DateTime.Today);
+        var resultado = await GetCierreDiaQuery.ExecuteAsync(db, fechaConsulta);
+        return Ok(resultado);
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────

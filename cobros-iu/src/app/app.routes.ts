@@ -42,6 +42,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/reportes/components/reportes.component').then(m => m.ReportesComponent)
   },
   {
+    path: 'reportes/cierre-dia',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/reportes/components/cierre-dia/cierre-dia.component').then(m => m.CierreDiaComponent)
+  },
+  {
     path: 'usuarios',
     canActivate: [authGuard],
     loadComponent: () => import('./features/usuarios/components/usuarios.component').then(m => m.UsuariosComponent)

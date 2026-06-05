@@ -37,6 +37,25 @@
   </div>
 }
 
+<!-- Overlay: cierra el panel de reportes al tocar fuera -->
+@if (mostrarMenuReportes()) {
+  <div class="user-panel-overlay" (click)="cerrarMenuReportes()"></div>
+}
+
+<!-- Panel de opciones de reportes -->
+@if (mostrarMenuReportes()) {
+  <div class="user-panel">
+    <button class="panel-action-btn" type="button" (click)="irAReportes()">
+      <i class="bi bi-file-earmark-bar-graph-fill"></i>
+      <span>Reportes</span>
+    </button>
+    <button class="panel-action-btn" type="button" (click)="irACierreDia()">
+      <i class="bi bi-calendar2-check-fill"></i>
+      <span>Cierre del Día</span>
+    </button>
+  </div>
+}
+
 <nav class="bottom-nav">
   <div class="bottom-nav-container">
     @for (item of navItems; track item.path) {
@@ -50,6 +69,16 @@
         <span>{{ item.label }}</span>
       </a>
     }
+    <!-- Ítem de Reportes como panel trigger -->
+    <button
+      class="bottom-nav-item"
+      [class.active]="mostrarMenuReportes() || rutaEsReportes"
+      (click)="toggleMenuReportes()"
+      type="button"
+      aria-label="Reportes">
+      <i class="bi bi-file-earmark-bar-graph-fill"></i>
+      <span>Reportes</span>
+    </button>
     <!-- Ítem de usuario -->
     <button
       class="bottom-nav-item bottom-nav-user"

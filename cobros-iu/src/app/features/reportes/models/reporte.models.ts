@@ -183,6 +183,48 @@ export interface ReporteCompleto {
   recaudoPorZona: ReporteRecaudoZona[];
 }
 
+// ─── Cierre del día ──────────────────────────────────────────────────────────
+
+export interface GananciaDia {
+  interesesPactadosTotal: number;
+  descuentosProntoPagoTotal: number;
+  gananciaNeta: number;
+}
+
+export interface FrecuenciaCount {
+  frecuencia: string;
+  count: number;
+}
+
+export interface PrestamosDia {
+  nuevosCount: number;
+  renovadosCount: number;
+  capitalEntregadoTotal: number;
+  prontoPagoCount: number;
+  nuevosPorFrecuencia: FrecuenciaCount[];
+}
+
+export interface CobrosZona {
+  zonaId: number;
+  zonaNombre: string;
+  cobrosProgramados: number;
+  pagaronCount: number;
+  total: number;
+}
+
+export interface CobrosDia {
+  recaudadoTotal: number;
+  prestamosActivosCount: number;
+  porZona: CobrosZona[];
+}
+
+export interface CierreDia {
+  fecha: string;
+  ganancia: GananciaDia;
+  prestamosDia: PrestamosDia;
+  cobros: CobrosDia;
+}
+
 /**
  * Resumen de cobros para un período
  */
