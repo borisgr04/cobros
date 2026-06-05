@@ -13,7 +13,7 @@
       <a 
         [routerLink]="item.path" 
         routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: item.path === '/' }"
+        [routerLinkActiveOptions]="{ exact: item.path === '/' || item.path === '/reportes' }"
         class="nav-item" 
         [attr.data-label]="item.label"
         [attr.aria-label]="item.label">
