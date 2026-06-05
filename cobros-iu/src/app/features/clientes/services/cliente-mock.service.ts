@@ -23,7 +23,6 @@ export class ClienteMockService implements AbstractClienteService {
       direccion: 'Calle Principal #123, Centro',
       zonaId: '1',
       telefono: '555-0101',
-      cuentaBancaria: '1234567890',
       estado: 'activo'
     },
     {
@@ -34,7 +33,6 @@ export class ClienteMockService implements AbstractClienteService {
       direccion: 'Avenida Libertad #456, Norte',
       zonaId: '1',
       telefono: '555-0102',
-      cuentaBancaria: '0987654321',
       estado: 'activo'
     },
     {
@@ -63,7 +61,6 @@ export class ClienteMockService implements AbstractClienteService {
       direccion: 'Calle 45 #12-34, Sur',
       zonaId: '1',
       telefono: '555-0105',
-      cuentaBancaria: '1122334455',
       estado: 'activo'
     },
     {
@@ -74,7 +71,6 @@ export class ClienteMockService implements AbstractClienteService {
       direccion: 'Urbanización Vista Hermosa, Casa 25',
       zonaId: '3',
       telefono: '555-0106',
-      cuentaBancaria: '6677889900',
       estado: 'activo'
     }
   ];

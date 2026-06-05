@@ -461,7 +461,7 @@ export class ClientesComponent implements OnInit {
       texto += `  Saldo total: ${this.formatCurrency(saldoTotal)}\n`;
     }
 
-    const clave = (cliente as any).llave || cliente.id;
+    const clave = cliente.id;
     if (clave) {
       texto += `\n🔗 Consultá tu saldo:\n${window.location.origin}/consulta/${clave}`;
     }

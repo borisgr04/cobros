@@ -125,7 +125,7 @@ export class RecogerPrestamoModalComponent {
     const total       = this.formatCurrency(res.totalACobrar);
     const cuotas      = this.cantidadCuotas();
     const valorCuota  = cuotas > 0 ? this.formatCurrency(this.valorCuota()) : '';
-    const clave = p.cliente.llave || p.cliente.id;
+    const clave = p.cliente.id;
     const linkConsulta = clave
       ? `\n\n🔗 Consultá tu saldo:\n${window.location.origin}/consulta/${clave}`
       : '';

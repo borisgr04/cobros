@@ -20,10 +20,6 @@ export interface ICliente {
   zonaId: string;
   /** Teléfono de contacto del cliente (opcional) */
   telefono?: string;
-  /** Cuenta bancaria asociada al cliente (opcional) */
-  cuentaBancaria?: string;
-  /** Llave de seguridad o referencia externa (opcional) */
-  llave?: string;
   /** Estado del cliente dentro del sistema (opcional) */
   estado?: Estado;
   /** Indica si el cliente alguna vez tuvo préstamos (usado para ocultar el botón Eliminar) */

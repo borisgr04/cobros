@@ -131,7 +131,7 @@ export class RegistroPrestamoModalComponent {
     const cuota = this.formatCurrency(prestamo.valorCuota);
     const fecha = this.formatDate(new Date(prestamo.fechaPrestamo));
     const fechaFinal = this.formatDate(new Date(prestamo.fechaFinal));
-    const clave = cliente.llave || cliente.id;
+    const clave = cliente.id;
     const linkConsulta = clave
       ? `\n\n🔗 Consultá tu saldo:\n${window.location.origin}/consulta/${clave}`
       : '';

@@ -25,12 +25,6 @@ public class Cliente
     [MaxLength(20)]
     public string? Telefono { get; set; }
 
-    [MaxLength(50)]
-    public string? CuentaBancaria { get; set; }
-
-    [MaxLength(100)]
-    public string? Llave { get; set; }
-
     [MaxLength(20)]
     public string Estado { get; set; } = "activo";
 

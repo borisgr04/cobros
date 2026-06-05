@@ -76,7 +76,7 @@ export class RegistroPagoModalComponent {
     const fecha  = this.formatDate(new Date(pago.fechaPago));
     const saldo  = this.formatCurrency(this.saldoPostPago());
 
-    const clave = p.cliente.llave || p.cliente.id;
+    const clave = p.cliente.id;
     const linkConsulta = clave
       ? `\n\n🔗 Consultá tu saldo:\n${window.location.origin}/consulta/${clave}`
       : '';

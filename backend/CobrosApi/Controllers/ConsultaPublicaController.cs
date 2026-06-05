@@ -12,18 +12,14 @@ namespace CobrosApi.Controllers;
 [Produces("application/json")]
 public class ConsultaPublicaController(CobrosDbContext db) : ControllerBase
 {
-    /// <summary>Consulta pública del estado de cuenta de un cliente por su llave.</summary>
-    [HttpGet("{llave}")]
+    /// <summary>Consulta pública del estado de cuenta de un cliente por su id.</summary>
+    [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(ConsultaPublicaDto), 200)]
     [ProducesResponseType(typeof(ErrorDto), 404)]
-    public async Task<IActionResult> Get(string llave)
+    public async Task<IActionResult> Get(int id)
     {
-        // Buscar por llave primero; si es numérico, también por Id
-        int? idNum = int.TryParse(llave, out var parsed) ? parsed : null;
-
         var cliente = await db.Clientes
-            .Where(c => c.Estado == "activo" &&
-                        (c.Llave == llave || (idNum != null && c.Id == idNum)))
+            .Where(c => c.Estado == "activo" && c.Id == id)
             .Include(c => c.Prestamos)
                 .ThenInclude(p => p.Pagos)
             .FirstOrDefaultAsync();

@@ -37,11 +37,11 @@ public class SecurityAuthorizationTests(CobrosWebAppFactory factory)
     [Fact]
     public async Task ConsultaPublica_SinToken_NoRetorna401()
     {
-        // Usamos una llave inexistente — esperamos 404, no 401
-        var response = await _client.GetAsync("/api/consulta/llave-no-existe");
+        // Usamos un id inexistente — esperamos 404, no 401
+        var response = await _client.GetAsync("/api/consulta/999999");
 
         Assert.NotEqual(HttpStatusCode.Unauthorized, response.StatusCode);
-        // El endpoint debe ser público: 404 es el resultado esperado para llave no encontrada
+        // El endpoint debe ser público: 404 es el resultado esperado para id no encontrado
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 

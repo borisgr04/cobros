@@ -56,7 +56,7 @@ export class ConsultaPublicaComponent implements OnInit {
 
   pagosVisible(id: number): boolean { return this.pagosExpandidos().has(id); }
 
-  private llave = '';
+  private clienteId = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -64,8 +64,8 @@ export class ConsultaPublicaComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.llave = this.route.snapshot.paramMap.get('llave') ?? '';
-    if (!this.llave) { this.error.set('Enlace inválido.'); this.loading.set(false); return; }
+    this.clienteId = this.route.snapshot.paramMap.get('id') ?? '';
+    if (!this.clienteId) { this.error.set('Enlace inválido.'); this.loading.set(false); return; }
     this.cargar();
   }
 
@@ -73,7 +73,7 @@ export class ConsultaPublicaComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    const url = `${environment.apiUrl}/api/consulta/${this.llave}`;
+    const url = `${environment.apiUrl}/api/consulta/${this.clienteId}`;
     this.http.get<ConsultaPublica>(url).pipe(
       timeout(60000),
       retry({ count: 2, delay: 3000 })

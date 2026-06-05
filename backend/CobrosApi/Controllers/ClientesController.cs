@@ -22,8 +22,6 @@ public class ClientesController(CobrosDbContext db) : ControllerBase
         Direccion      = c.Direccion,
         ZonaId         = c.ZonaId.ToString(),
         Telefono       = c.Telefono,
-        CuentaBancaria = c.CuentaBancaria,
-        Llave          = c.Llave,
         Estado         = c.Estado,
         TienePrestamos = tienePrestamos
     };
@@ -77,8 +75,6 @@ public class ClientesController(CobrosDbContext db) : ControllerBase
             Direccion      = c.Direccion,
             ZonaId         = c.ZonaId.ToString(),
             Telefono       = c.Telefono,
-            CuentaBancaria = c.CuentaBancaria,
-            Llave          = c.Llave,
             Estado         = c.Estado,
             TienePrestamos = c.Prestamos.Count > 0,
             Prestamos      = c.Prestamos.Select(p =>
@@ -169,8 +165,6 @@ public class ClientesController(CobrosDbContext db) : ControllerBase
             Direccion      = cliente.Direccion,
             ZonaId         = cliente.ZonaId.ToString(),
             Telefono       = cliente.Telefono,
-            CuentaBancaria = cliente.CuentaBancaria,
-            Llave          = cliente.Llave,
             Estado         = cliente.Estado,
             TienePrestamos = cliente.Prestamos.Count > 0,
             PrestamosActivos = prestamosActivos.Select(ToPrestamoDto).ToList()
@@ -205,8 +199,6 @@ public class ClientesController(CobrosDbContext db) : ControllerBase
             Direccion      = input.Direccion,
             ZonaId         = zonaId,
             Telefono       = input.Telefono,
-            CuentaBancaria = input.CuentaBancaria,
-            Llave          = input.Llave,
             Estado         = input.Estado ?? "activo"
         };
         db.Clientes.Add(cliente);
@@ -246,8 +238,6 @@ public class ClientesController(CobrosDbContext db) : ControllerBase
         cliente.Direccion      = input.Direccion;
         cliente.ZonaId         = zonaId;
         cliente.Telefono       = input.Telefono;
-        cliente.CuentaBancaria = input.CuentaBancaria;
-        cliente.Llave          = input.Llave;
         if (input.Estado is not null)
             cliente.Estado = input.Estado;
 

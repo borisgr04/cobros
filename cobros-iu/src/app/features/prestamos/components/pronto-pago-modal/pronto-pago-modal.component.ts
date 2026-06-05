@@ -91,7 +91,7 @@ export class ProntoPagoModalComponent {
     const descuento    = res.descuentoAplicado > 0
       ? `\nDescuento aplicado: *${this.formatCurrency(res.descuentoAplicado)}*`
       : '';
-    const clave = p.cliente.llave || p.cliente.id;
+    const clave = p.cliente.id;
     const linkConsulta = clave
       ? `\n\n🔗 Consultá tu saldo:\n${window.location.origin}/consulta/${clave}`
       : '';

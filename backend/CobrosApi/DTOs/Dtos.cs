@@ -31,8 +31,6 @@ public class ClienteDto
     public string? Direccion { get; set; }
     public string ZonaId { get; set; } = string.Empty;
     public string? Telefono { get; set; }
-    public string? CuentaBancaria { get; set; }
-    public string? Llave { get; set; }
     public string? Estado { get; set; }
     public bool TienePrestamos { get; set; }
 }
@@ -46,8 +44,6 @@ public class ClienteConPrestamosActivosDto
     public string? Direccion { get; set; }
     public string ZonaId { get; set; } = string.Empty;
     public string? Telefono { get; set; }
-    public string? CuentaBancaria { get; set; }
-    public string? Llave { get; set; }
     public string? Estado { get; set; }
     public bool TienePrestamos { get; set; }
     public List<PrestamoDto> PrestamosActivos { get; set; } = [];
@@ -89,12 +85,6 @@ public class ClienteInputDto
 
     [MaxLength(20)]
     public string? Telefono { get; set; }
-
-    [MaxLength(50)]
-    public string? CuentaBancaria { get; set; }
-
-    [MaxLength(100)]
-    public string? Llave { get; set; }
 
     [MaxLength(20)]
     public string? Estado { get; set; }
