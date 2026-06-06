@@ -1,10 +1,4 @@
-# bottom-navigation
-
-## Purpose
-
-Display all primary navigation items in the mobile bottom navigation component to ensure feature parity between mobile and desktop interfaces.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Bottom navigation component includes all primary navigation items
 The app SHALL provide bottom navigation that includes all primary navigation items.
@@ -32,6 +26,8 @@ The "Reportes" item SHALL NOT navigate directly to `/reportes`; instead it SHALL
 - **WHEN** the bottom navigation renders
 - **THEN** the user profile button appears after all navigation items with its own styling
 
+## ADDED Requirements
+
 ### Requirement: Panel de opciones de reportes en bottom navigation
 Al tocar el ítem "Reportes" en la bottom navigation, el sistema SHALL mostrar un panel deslizante con las opciones de reporte disponibles, usando el mismo mecanismo visual que el panel de usuario (overlay + panel con botones de acción).
 
@@ -55,20 +51,3 @@ Al tocar el ítem "Reportes" en la bottom navigation, el sistema SHALL mostrar u
 #### Scenario: Navegar cierra el panel automáticamente
 - **WHEN** el panel de reportes está abierto y se produce un evento NavigationEnd
 - **THEN** el panel se cierra automáticamente
-
-### Requirement: Sidebar de escritorio incluye acceso a Cierre del Día
-La sidebar SHALL incluir un ítem de navegación para `/reportes/cierre-dia` con etiqueta "Cierre del Día" e icono de calendario, permitiendo acceder a esa pantalla desde la versión web/escritorio sin necesidad de teclear la URL.
-
-#### Scenario: Cierre del Día aparece en el sidebar de escritorio
-- **WHEN** el usuario está autenticado y visualiza la aplicación en escritorio
-- **THEN** la sidebar muestra un ítem "Cierre del Día" que navega a `/reportes/cierre-dia`
-
-#### Scenario: Cierre del Día queda activo al estar en esa ruta
-- **WHEN** la URL actual es `/reportes/cierre-dia`
-- **THEN** el ítem "Cierre del Día" en la sidebar muestra estado activo
-- **AND** el ítem "Reportes" de la sidebar NO muestra estado activo simultáneamente
-
-#### Scenario: Reportes y Cierre del Día son ítems independientes en el sidebar
-- **WHEN** la URL actual es `/reportes`
-- **THEN** sólo el ítem "Reportes" muestra estado activo
-- **AND** el ítem "Cierre del Día" no muestra estado activo
