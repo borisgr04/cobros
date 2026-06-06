@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CobrosApi.Models;
 
-public class NovedadPrestamo
+public class NovedadPrestamo : IAuditable
 {
     public int Id { get; set; }
 
@@ -17,9 +17,15 @@ public class NovedadPrestamo
     [Required]
     public DateTime FechaNovedad { get; set; }
 
-    /// <summary>Usuario que autorizó / registró la novedad.</summary>
+    /// <summary>Usuario que autorizó / registró la novedad (campo de negocio, distinto de CreadoPorId de auditoría).</summary>
     [Required]
     public int UsuarioId { get; set; }
+
+    // ── Auditoría ─────────────────────────────────────────────────────────
+    public DateTime CreadoEn { get; set; }
+    public int? CreadoPorId { get; set; }
+    public DateTime ModificadoEn { get; set; }
+    public int? ModificadoPorId { get; set; }
 
     [Required, Column(TypeName = "numeric(18,2)")]
     public decimal SaldoPendienteOriginal { get; set; }

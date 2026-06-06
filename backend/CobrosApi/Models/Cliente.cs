@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CobrosApi.Models;
 
-public class Cliente
+public class Cliente : IAuditable
 {
     public int Id { get; set; }
 
@@ -27,6 +27,12 @@ public class Cliente
 
     [MaxLength(20)]
     public string Estado { get; set; } = "activo";
+
+    // ── Auditoría ─────────────────────────────────────────────────────────
+    public DateTime CreadoEn { get; set; }
+    public int? CreadoPorId { get; set; }
+    public DateTime ModificadoEn { get; set; }
+    public int? ModificadoPorId { get; set; }
 
     [ForeignKey(nameof(ZonaId))]
     public Zona? Zona { get; set; }

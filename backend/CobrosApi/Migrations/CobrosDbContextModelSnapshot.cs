@@ -48,6 +48,50 @@ namespace CobrosApi.Migrations
                     b.ToTable("AplicacionesCuota");
                 });
 
+            modelBuilder.Entity("CobrosApi.Models.AuditLog", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AnteriorJson")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Entidad")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("EntidadId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("FechaUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("NuevoJson")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Operacion")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int?>("UsuarioId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FechaUtc");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.HasIndex("Entidad", "EntidadId");
+
+                    b.ToTable("AuditLogs");
+                });
+
             modelBuilder.Entity("CobrosApi.Models.Cliente", b =>
                 {
                     b.Property<int>("Id")
@@ -59,6 +103,12 @@ namespace CobrosApi.Migrations
                     b.Property<string>("Alias")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Direccion")
                         .HasMaxLength(300)
@@ -73,6 +123,12 @@ namespace CobrosApi.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("ModificadoEn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("ModificadoPorId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -100,9 +156,11 @@ namespace CobrosApi.Migrations
                         {
                             Id = 1,
                             Alias = "Juanito",
+                            CreadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Direccion = "Calle Principal #123, Centro",
                             Estado = "activo",
                             Identificacion = "12345678",
+                            ModificadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Nombre = "Juan Pérez García",
                             Telefono = "555-0101",
                             ZonaId = 1
@@ -111,9 +169,11 @@ namespace CobrosApi.Migrations
                         {
                             Id = 2,
                             Alias = "Mary",
+                            CreadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Direccion = "Av. Norte #456",
                             Estado = "activo",
                             Identificacion = "87654321",
+                            ModificadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Nombre = "María López Ruiz",
                             Telefono = "555-0202",
                             ZonaId = 2
@@ -121,9 +181,11 @@ namespace CobrosApi.Migrations
                         new
                         {
                             Id = 3,
+                            CreadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Direccion = "Barrio Sur #789",
                             Estado = "activo",
                             Identificacion = "11223344",
+                            ModificadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Nombre = "Carlos Martínez",
                             Telefono = "555-0303",
                             ZonaId = 3
@@ -131,9 +193,11 @@ namespace CobrosApi.Migrations
                         new
                         {
                             Id = 4,
+                            CreadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Direccion = "Calle 5 #12",
                             Estado = "activo",
                             Identificacion = "44332211",
+                            ModificadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Nombre = "Ana González Torres",
                             Telefono = "555-0404",
                             ZonaId = 1
@@ -142,9 +206,11 @@ namespace CobrosApi.Migrations
                         {
                             Id = 5,
                             Alias = "Pedrito",
+                            CreadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Direccion = "Av. Central #321",
                             Estado = "inactivo",
                             Identificacion = "55667788",
+                            ModificadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Nombre = "Pedro Rodríguez",
                             Telefono = "555-0505",
                             ZonaId = 2
@@ -152,9 +218,11 @@ namespace CobrosApi.Migrations
                         new
                         {
                             Id = 6,
+                            CreadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Direccion = "Plaza Mayor #7",
                             Estado = "activo",
                             Identificacion = "99887766",
+                            ModificadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Nombre = "Sofía Ramírez",
                             Telefono = "555-0606",
                             ZonaId = 1
@@ -207,6 +275,12 @@ namespace CobrosApi.Migrations
                     b.Property<int?>("CantidadCuotasNuevas")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("integer");
+
                     b.Property<decimal>("DescuentoAplicado")
                         .HasColumnType("numeric(18,2)");
 
@@ -224,6 +298,12 @@ namespace CobrosApi.Migrations
 
                     b.Property<decimal>("InteresesFuturosEstimados")
                         .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTime>("ModificadoEn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("ModificadoPorId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Notas")
                         .HasMaxLength(1000)
@@ -285,11 +365,23 @@ namespace CobrosApi.Migrations
                     b.Property<bool>("Anulado")
                         .HasColumnType("boolean");
 
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime?>("FechaAnulacion")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("FechaPago")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ModificadoEn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("ModificadoPorId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("MotivoAnulacion")
                         .HasMaxLength(500)
@@ -317,7 +409,9 @@ namespace CobrosApi.Migrations
                         {
                             Id = 1,
                             Anulado = false,
+                            CreadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             FechaPago = new DateTime(2024, 11, 22, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ModificadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             PrestamoId = 1,
                             TipoPago = "regular",
                             Valor = 46154m
@@ -326,7 +420,9 @@ namespace CobrosApi.Migrations
                         {
                             Id = 2,
                             Anulado = false,
+                            CreadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             FechaPago = new DateTime(2024, 11, 29, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ModificadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             PrestamoId = 1,
                             TipoPago = "regular",
                             Valor = 46154m
@@ -335,7 +431,9 @@ namespace CobrosApi.Migrations
                         {
                             Id = 3,
                             Anulado = false,
+                            CreadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             FechaPago = new DateTime(2024, 12, 6, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ModificadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             PrestamoId = 1,
                             TipoPago = "regular",
                             Valor = 46154m
@@ -344,7 +442,9 @@ namespace CobrosApi.Migrations
                         {
                             Id = 4,
                             Anulado = false,
+                            CreadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             FechaPago = new DateTime(2024, 10, 15, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ModificadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             PrestamoId = 2,
                             TipoPago = "regular",
                             Valor = 50000m
@@ -353,7 +453,9 @@ namespace CobrosApi.Migrations
                         {
                             Id = 5,
                             Anulado = false,
+                            CreadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             FechaPago = new DateTime(2024, 11, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ModificadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             PrestamoId = 2,
                             TipoPago = "regular",
                             Valor = 50000m
@@ -362,7 +464,9 @@ namespace CobrosApi.Migrations
                         {
                             Id = 6,
                             Anulado = false,
+                            CreadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             FechaPago = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ModificadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             PrestamoId = 3,
                             TipoPago = "regular",
                             Valor = 150000m
@@ -371,7 +475,9 @@ namespace CobrosApi.Migrations
                         {
                             Id = 7,
                             Anulado = false,
+                            CreadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             FechaPago = new DateTime(2025, 1, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ModificadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             PrestamoId = 4,
                             TipoPago = "regular",
                             Valor = 92308m
@@ -380,7 +486,9 @@ namespace CobrosApi.Migrations
                         {
                             Id = 8,
                             Anulado = false,
+                            CreadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             FechaPago = new DateTime(2025, 1, 24, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ModificadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             PrestamoId = 4,
                             TipoPago = "regular",
                             Valor = 92308m
@@ -399,6 +507,12 @@ namespace CobrosApi.Migrations
                         .HasColumnType("integer");
 
                     b.Property<int>("ClienteId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CreadoPorId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Estado")
@@ -422,6 +536,12 @@ namespace CobrosApi.Migrations
 
                     b.Property<decimal>("InteresProyectado")
                         .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTime>("ModificadoEn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("ModificadoPorId")
+                        .HasColumnType("integer");
 
                     b.Property<int?>("PrestamoOrigenId")
                         .HasColumnType("integer");
@@ -449,11 +569,13 @@ namespace CobrosApi.Migrations
                             Id = 1,
                             CantidadCuotas = 26,
                             ClienteId = 1,
+                            CreadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Estado = "activo",
                             FechaFinal = new DateTime(2025, 5, 15, 0, 0, 0, 0, DateTimeKind.Utc),
                             FechaPrestamo = new DateTime(2024, 11, 15, 0, 0, 0, 0, DateTimeKind.Utc),
                             FrecuenciaPago = "semanal",
                             InteresProyectado = 200000m,
+                            ModificadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ValorCuota = 46154m,
                             ValorPrestado = 1000000m,
                             ValorTotal = 1200000m
@@ -463,11 +585,13 @@ namespace CobrosApi.Migrations
                             Id = 2,
                             CantidadCuotas = 12,
                             ClienteId = 2,
+                            CreadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Estado = "activo",
                             FechaFinal = new DateTime(2025, 4, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             FechaPrestamo = new DateTime(2024, 10, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             FrecuenciaPago = "quincenal",
                             InteresProyectado = 100000m,
+                            ModificadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ValorCuota = 50000m,
                             ValorPrestado = 500000m,
                             ValorTotal = 600000m
@@ -477,11 +601,13 @@ namespace CobrosApi.Migrations
                             Id = 3,
                             CantidadCuotas = 6,
                             ClienteId = 3,
+                            CreadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Estado = "activo",
                             FechaFinal = new DateTime(2025, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             FechaPrestamo = new DateTime(2024, 12, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             FrecuenciaPago = "mensual",
                             InteresProyectado = 150000m,
+                            ModificadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ValorCuota = 150000m,
                             ValorPrestado = 750000m,
                             ValorTotal = 900000m
@@ -491,11 +617,13 @@ namespace CobrosApi.Migrations
                             Id = 4,
                             CantidadCuotas = 26,
                             ClienteId = 4,
+                            CreadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Estado = "activo",
                             FechaFinal = new DateTime(2025, 7, 10, 0, 0, 0, 0, DateTimeKind.Utc),
                             FechaPrestamo = new DateTime(2025, 1, 10, 0, 0, 0, 0, DateTimeKind.Utc),
                             FrecuenciaPago = "semanal",
                             InteresProyectado = 400000m,
+                            ModificadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ValorCuota = 92308m,
                             ValorPrestado = 2000000m,
                             ValorTotal = 2400000m
@@ -505,11 +633,13 @@ namespace CobrosApi.Migrations
                             Id = 5,
                             CantidadCuotas = 180,
                             ClienteId = 1,
+                            CreadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Estado = "activo",
                             FechaFinal = new DateTime(2025, 8, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             FechaPrestamo = new DateTime(2025, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             FrecuenciaPago = "diario",
                             InteresProyectado = 60000m,
+                            ModificadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ValorCuota = 2000m,
                             ValorPrestado = 300000m,
                             ValorTotal = 360000m
@@ -519,11 +649,13 @@ namespace CobrosApi.Migrations
                             Id = 6,
                             CantidadCuotas = 12,
                             ClienteId = 6,
+                            CreadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Estado = "activo",
                             FechaFinal = new DateTime(2025, 9, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             FechaPrestamo = new DateTime(2025, 3, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             FrecuenciaPago = "quincenal",
                             InteresProyectado = 300000m,
+                            ModificadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ValorCuota = 150000m,
                             ValorPrestado = 1500000m,
                             ValorTotal = 1800000m
@@ -650,10 +782,22 @@ namespace CobrosApi.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Estado")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("ModificadoEn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("ModificadoPorId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -668,19 +812,25 @@ namespace CobrosApi.Migrations
                         new
                         {
                             Id = 1,
+                            CreadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Estado = "activo",
+                            ModificadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Nombre = "Centro"
                         },
                         new
                         {
                             Id = 2,
+                            CreadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Estado = "activo",
+                            ModificadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Nombre = "Norte"
                         },
                         new
                         {
                             Id = 3,
+                            CreadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Estado = "inactivo",
+                            ModificadoEn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Nombre = "Sur"
                         });
                 });

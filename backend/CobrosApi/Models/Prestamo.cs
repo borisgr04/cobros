@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CobrosApi.Models;
 
-public class Prestamo
+public class Prestamo : IAuditable
 {
     public int Id { get; set; }
 
@@ -45,6 +45,12 @@ public class Prestamo
     /// Null si es un préstamo nuevo independiente.
     /// </summary>
     public int? PrestamoOrigenId { get; set; }
+
+    // ── Auditoría ─────────────────────────────────────────────────────────
+    public DateTime CreadoEn { get; set; }
+    public int? CreadoPorId { get; set; }
+    public DateTime ModificadoEn { get; set; }
+    public int? ModificadoPorId { get; set; }
 
     [ForeignKey(nameof(ClienteId))]
     public Cliente? Cliente { get; set; }

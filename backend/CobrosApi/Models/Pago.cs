@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CobrosApi.Models;
 
-public class Pago
+public class Pago : IAuditable
 {
     public int Id { get; set; }
 
@@ -26,6 +26,12 @@ public class Pago
     /// <summary>"regular" | "pronto_pago"</summary>
     [Required, MaxLength(20)]
     public string TipoPago { get; set; } = "regular";
+
+    // ── Auditoría ─────────────────────────────────────────────────────────
+    public DateTime CreadoEn { get; set; }
+    public int? CreadoPorId { get; set; }
+    public DateTime ModificadoEn { get; set; }
+    public int? ModificadoPorId { get; set; }
 
     [ForeignKey(nameof(PrestamoId))]
     public Prestamo? Prestamo { get; set; }
