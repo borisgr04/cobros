@@ -4,6 +4,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, type SafeUrl } from '@angular/platform-browser';
 import { MonedaInputDirective } from '../../../../shared/directives';
 import { AbstractPrestamoService } from '../../../core/services/abstract-prestamo.service';
 import type { IAmpliacionPlazoResumen, IAmpliacionPlazoResultado, FrecuenciaPago } from '../../../core/models';
@@ -26,6 +27,7 @@ type Paso = 'formulario' | 'confirmacion' | 'resultado';
 })
 export class AmpliacionPlazoModalComponent {
   private prestamoService = inject(AbstractPrestamoService);
+  private sanitizer        = inject(DomSanitizer);
 
   @Output() ampliacionRealizada = new EventEmitter<IAmpliacionPlazoResultado>();
   @Output() modalCerrado = new EventEmitter<void>();
@@ -115,6 +117,30 @@ export class AmpliacionPlazoModalComponent {
     const d = new Date(this.fechaInicio());
     if (isNaN(d.getTime())) return false;
     return true;
+  });
+
+  whatsappLink = computed((): SafeUrl | null => {
+    const p   = this.prestamo();
+    const res = this.resultado();
+    if (!p?.cliente?.telefono || !res) return null;
+
+    const telefonoLimpio = p.cliente.telefono.replace(/\D/g, '');
+    if (!telefonoLimpio) return null;
+
+    const telefono  = `57${telefonoLimpio}`;
+    const nombre    = p.cliente.nombre ?? 'cliente';
+    const nuevoSaldo = this.formatCurrency(res.nuevoSaldo);
+    const valorCuota = this.formatCurrency(res.valorCuota);
+    const n          = res.cantidadCuotasNuevas;
+    const fechaFinal = this.formatDate(res.nuevaFechaFinal);
+    const clave      = p.cliente.id;
+    const linkConsulta = clave
+      ? `\n\n🔗 Consultá tu saldo:\n${window.location.origin}/consulta/${clave}`
+      : '';
+
+    const msg = `📅 Hola ${nombre}, tu préstamo fue ampliado. Nuevo saldo: *${nuevoSaldo}*, ${n} cuotas de ${valorCuota}, hasta ${fechaFinal}.${linkConsulta}\n\n¡Gracias! 🙌`;
+    const url = `https://wa.me/${telefono}?text=${encodeURIComponent(msg)}`;
+    return this.sanitizer.bypassSecurityTrustUrl(url);
   });
 
   // ─── API pública ──────────────────────────────────────────────────────────

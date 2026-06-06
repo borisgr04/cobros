@@ -6,7 +6,7 @@
   --modal-bg: #FFFFFF;
   --modal-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   --modal-radius: 1rem;
-  --modal-header-bg: linear-gradient(135deg, #1A1A2E, #16213E);
+  --modal-header-bg: linear-gradient(135deg, #2D2D2D 0%, #1A1A1A 100%);
   --color-primary: #00E676;
   --color-danger: #FF5252;
   --color-warning: #FFC107;
@@ -123,7 +123,7 @@
   align-items: center;
   gap: 0.4rem;
 
-  i { color: #1A1A2E; }
+  i { color: #2D2D2D; }
 }
 
 .resumen-actual {
@@ -227,7 +227,7 @@
   &:last-child { border-right: none; }
 
   &.selected {
-    background: #1A1A2E;
+    background: #2D2D2D;
     color: white;
     font-weight: 700;
   }
@@ -298,7 +298,7 @@
 
   &:focus {
     outline: none;
-    border-color: #1A1A2E;
+    border-color: #2D2D2D;
   }
 }
 
@@ -314,7 +314,7 @@
 
   &:focus {
     outline: none;
-    border-color: #1A1A2E;
+    border-color: #2D2D2D;
   }
 }
 
@@ -485,7 +485,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.65rem 1.25rem;
-  background: #1A1A2E;
+  background: #2D2D2D;
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -494,7 +494,7 @@
   cursor: pointer;
   transition: background 0.2s;
 
-  &:hover:not([disabled]) { background: #16213E; }
+  &:hover:not([disabled]) { background: #1A1A1A; }
   &[disabled] { opacity: 0.5; cursor: not-allowed; }
 }
 
@@ -522,7 +522,7 @@
   gap: 0.5rem;
   padding: 0.65rem 1.25rem;
   background: var(--color-warning);
-  color: #1A1A2E;
+  color: #1A1A1A;
   border: none;
   border-radius: 0.5rem;
   font-size: 0.9rem;
@@ -539,10 +539,44 @@
   display: inline-block;
   width: 1rem;
   height: 1rem;
-  border: 2px solid rgba(26,26,46,0.3);
-  border-top-color: #1A1A2E;
+  border: 2px solid rgba(45,45,45,0.3);
+  border-top-color: #2D2D2D;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
+}
+
+// WhatsApp
+.btn-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #25D366;
+  color: white;
+  text-decoration: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.6rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  transition: all 0.2s ease;
+
+  i { font-size: 1.25rem; }
+
+  &:hover {
+    background: #1ebe5c;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(37, 211, 102, 0.4);
+    color: white;
+  }
+}
+
+.sin-telefono {
+  font-size: 0.82rem;
+  color: #999;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
 }
 
 .spinner-small {
