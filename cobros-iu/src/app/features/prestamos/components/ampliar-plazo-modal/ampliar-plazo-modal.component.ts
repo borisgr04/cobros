@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MonedaInputDirective } from '../../../../shared/directives';
 import { AbstractPrestamoService } from '../../../core/services/abstract-prestamo.service';
-import type { IAmpliacionPlazoResumen, IAmpliacionPlazoResultado } from '../../../core/models';
+import type { IAmpliacionPlazoResumen, IAmpliacionPlazoResultado, FrecuenciaPago } from '../../../core/models';
 import type { PrestamoConCliente } from '../../services/prestamo.service';
 
 type Paso = 'formulario' | 'confirmacion' | 'resultado';
@@ -44,9 +44,21 @@ export class AmpliacionPlazoModalComponent {
   // Campos del formulario
   interesAdicional     = signal(0);
   cantidadCuotasNuevas = signal(1);
-  frecuenciaNueva      = signal('semanal');
+  frecuenciaNueva      = signal<FrecuenciaPago>('semanal');
   fechaInicio          = signal('');
   observacion          = signal('');
+  valorCuotaInput      = signal(0);
+
+  // Flag para saber cuál campo fue editado por el usuario últimamente
+  private _ultimoEditado: 'cuotas' | 'valorCuota' = 'cuotas';
+
+  // Opciones de frecuencia (igual a registro-préstamo)
+  frecuencias: Array<{ value: FrecuenciaPago; label: string }> = [
+    { value: 'diario',    label: 'Diario'    },
+    { value: 'semanal',   label: 'Semanal'   },
+    { value: 'quincenal', label: 'Quincenal' },
+    { value: 'mensual',   label: 'Mensual'   },
+  ];
 
   // ─── Computados ───────────────────────────────────────────────────────────
   nuevoSaldo = computed(() => {
@@ -59,6 +71,17 @@ export class AmpliacionPlazoModalComponent {
     const n = this.cantidadCuotasNuevas();
     if (n <= 0) return 0;
     return Math.round(this.nuevoSaldo() / n);
+  });
+
+  valorUltimaCuota = computed(() => {
+    const n = this.cantidadCuotasNuevas();
+    if (n <= 0) return 0;
+    return this.nuevoSaldo() - (n - 1) * this.valorCuotaInput();
+  });
+
+  descuadreExacto = computed(() => {
+    const n = this.cantidadCuotasNuevas();
+    return n > 0 && this.valorUltimaCuota() !== this.valorCuotaInput();
   });
 
   nuevaFechaFinalEstimada = computed<Date | null>(() => {
@@ -87,6 +110,7 @@ export class AmpliacionPlazoModalComponent {
     if (!r) return false;
     if (this.interesAdicional() < 0) return false;
     if (this.cantidadCuotasNuevas() < 1) return false;
+    if (this.valorCuotaInput() <= 0) return false;
     if (!this.fechaInicio()) return false;
     const d = new Date(this.fechaInicio());
     if (isNaN(d.getTime())) return false;
@@ -105,7 +129,9 @@ export class AmpliacionPlazoModalComponent {
     this.resumen.set(null);
     this.interesAdicional.set(0);
     this.cantidadCuotasNuevas.set(10);
-    this.frecuenciaNueva.set('semanal');
+    this.frecuenciaNueva.set((prestamo.frecuenciaPago as FrecuenciaPago) ?? 'semanal');
+    this.valorCuotaInput.set(prestamo.valorCuota ?? 0);
+    this._ultimoEditado = 'cuotas';
     this.observacion.set('');
     // Fecha inicio default: mañana
     const manana = new Date();
@@ -137,6 +163,44 @@ export class AmpliacionPlazoModalComponent {
     this.error.set('');
   }
 
+  onInteresChange(valor: number): void {
+    this.interesAdicional.set(valor);
+    // Recalcular según el último campo editado
+    const saldo = (this.resumen()?.saldoPendiente ?? 0) + valor;
+    if (this._ultimoEditado === 'cuotas') {
+      const n = this.cantidadCuotasNuevas();
+      if (n > 0 && saldo > 0) this.valorCuotaInput.set(Math.round(saldo / n));
+    } else {
+      const cuota = this.valorCuotaInput();
+      if (cuota > 0 && saldo > 0) this.cantidadCuotasNuevas.set(Math.ceil(saldo / cuota));
+    }
+  }
+
+  seleccionarFrecuencia(f: FrecuenciaPago): void {
+    this.frecuenciaNueva.set(f);
+  }
+
+  onCantidadCuotasChange(valor: number): void {
+    const n = Math.max(1, valor || 1);
+    this.cantidadCuotasNuevas.set(n);
+    this._ultimoEditado = 'cuotas';
+    // Recalcular valor cuota
+    const saldo = this.nuevoSaldo();
+    if (saldo > 0 && n > 0) {
+      this.valorCuotaInput.set(Math.round(saldo / n));
+    }
+  }
+
+  onValorCuotaChange(valor: number): void {
+    this.valorCuotaInput.set(valor);
+    this._ultimoEditado = 'valorCuota';
+    // Recalcular cantidad de cuotas
+    const saldo = this.nuevoSaldo();
+    if (valor > 0 && saldo > 0) {
+      this.cantidadCuotasNuevas.set(Math.ceil(saldo / valor));
+    }
+  }
+
   async confirmarAmpliacion(): Promise<void> {
     if (!this.confirmado() || !this.formularioValido()) return;
 
@@ -152,6 +216,7 @@ export class AmpliacionPlazoModalComponent {
       frecuenciaNueva:      this.frecuenciaNueva(),
       fechaInicio:          this.fechaInicio(),
       observacion:          this.observacion() || undefined,
+      valorCuota:           this.valorCuotaInput() > 0 ? this.valorCuotaInput() : undefined,
     }).subscribe({
       next: (res) => {
         this.procesando.set(false);
@@ -201,7 +266,14 @@ export class AmpliacionPlazoModalComponent {
     this.prestamoService.getResumenAmpliacion(id).subscribe({
       next: (r) => {
         this.resumen.set(r);
-        this.frecuenciaNueva.set(r.frecuenciaPago);
+        this.frecuenciaNueva.set(r.frecuenciaPago as FrecuenciaPago);
+        // Si el valorCuotaInput aún no fue ajustado por el usuario, calcularlo del saldo
+        if (this.valorCuotaInput() <= 0) {
+          const n = this.cantidadCuotasNuevas();
+          if (n > 0 && r.saldoPendiente > 0) {
+            this.valorCuotaInput.set(Math.round(r.saldoPendiente / n));
+          }
+        }
         this.procesando.set(false);
       },
       error: (err) => {

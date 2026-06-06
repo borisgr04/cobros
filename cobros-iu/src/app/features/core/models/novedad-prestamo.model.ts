@@ -97,6 +97,7 @@ export interface IAmpliacionPlazoInput {
   frecuenciaNueva: string;
   fechaInicio: string;
   observacion?: string;
+  valorCuota?: number;
 }
 
 /**

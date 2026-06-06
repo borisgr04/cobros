@@ -423,7 +423,7 @@ public class AmpliacionPlazoResumenDto
 
 public class AmpliacionPlazoInputDto
 {
-    [Required, Range(0.01, double.MaxValue)]
+    [Required, Range(0, double.MaxValue)]
     public decimal InteresAdicional { get; set; }
 
     [Required, Range(1, int.MaxValue)]
@@ -437,6 +437,9 @@ public class AmpliacionPlazoInputDto
 
     [MaxLength(1000)]
     public string? Observacion { get; set; }
+
+    [Range(0.01, double.MaxValue)]
+    public decimal? ValorCuota { get; set; }
 }
 
 public class AmpliacionPlazoResultadoDto

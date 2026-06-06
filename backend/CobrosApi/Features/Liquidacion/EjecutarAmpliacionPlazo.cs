@@ -13,7 +13,8 @@ public record EjecutarAmpliacionPlazoDto(
     DateTime  FechaInicio,
     string    FrecuenciaNueva,
     string?   Observacion,
-    int       UsuarioId);
+    int       UsuarioId,
+    decimal?  ValorCuota = null);
 
 public class EjecutarAmpliacionPlazo(CobrosDbContext db)
 {
@@ -52,7 +53,9 @@ public class EjecutarAmpliacionPlazo(CobrosDbContext db)
             return Result<AmpliacionPlazoResultadoDto>.Fail("El interés adicional no puede ser negativo");
 
         var nuevoSaldo         = saldoPendiente + dto.InteresAdicional;
-        var valorCuota         = Math.Round(nuevoSaldo / dto.CantidadCuotasNuevas, 2);
+        var valorCuota         = dto.ValorCuota.HasValue && dto.ValorCuota.Value > 0
+                                     ? dto.ValorCuota.Value
+                                     : Math.Round(nuevoSaldo / dto.CantidadCuotasNuevas, 2);
         var fechaFinalAnterior = prestamo.FechaFinal;
         var nuevaFechaFinal    = CuotasService.CalcularFechaCuota(dto.FechaInicio, dto.FrecuenciaNueva, dto.CantidadCuotasNuevas);
         var ahora              = DateTime.UtcNow;
