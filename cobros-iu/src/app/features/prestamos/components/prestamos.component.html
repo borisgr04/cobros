@@ -75,9 +75,15 @@
     </button>
   </div>
 
-  <!-- CHIP DE FILTRO ACTIVO POR CLIENTE -->
+  <!-- CHIP DE FILTRO ACTIVO POR CLIENTE + BOTÓN VOLVER -->
   @if (filtroClienteId()) {
     <div class="chip-filtro-cliente">
+      @if (returnTo()) {
+        <button class="btn-volver-cliente" (click)="volverAlCliente()" aria-label="Volver al cliente">
+          <i class="bi bi-arrow-left"></i>
+          <span>Volver al Cliente</span>
+        </button>
+      }
       <i class="bi bi-person-fill chip-filtro-cliente__icono"></i>
       <span class="chip-filtro-cliente__nombre">{{ nombreClienteFiltrado() }}</span>
       <button

@@ -210,7 +210,7 @@ export class ClientesComponent implements OnInit {
    */
   verPrestamosCliente(cliente: ICliente): void {
     this.router.navigate(['/prestamos'], {
-      queryParams: { cliente: cliente.id }
+      queryParams: { cliente: cliente.id, returnTo: '/clientes' }
     });
   }
 

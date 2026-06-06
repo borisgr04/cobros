@@ -1418,3 +1418,23 @@
     }
   }
 }
+
+.btn-volver-cliente {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0;
+  margin-right: 0.25rem;
+  background: none;
+  border: none;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #1a56db;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s;
+
+  i { font-size: 0.8rem; }
+
+  &:hover { color: #1239a0; }
+}

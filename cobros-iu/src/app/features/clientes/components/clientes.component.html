@@ -430,46 +430,16 @@
                       </div>
                     </div>
                   }
-                  <!-- Préstamos cerrados -->
+                  <!-- Historial de préstamos cerrados → enlace a la lista filtrada -->
                   @if (getPrestamosCerrados(cliente.id).length > 0) {
                     <button
                       type="button"
-                      class="btn-toggle-cerrados"
-                      (click)="toggleCerrados(cliente.id)">
-                      <i class="bi bi-{{ cerradosVisibles(cliente.id) ? 'chevron-up' : 'chevron-down' }}"></i>
-                      {{ cerradosVisibles(cliente.id) ? 'Ocultar' : 'Ver' }} cerrados ({{ getPrestamosCerrados(cliente.id).length }})
+                      class="btn-ver-prestamos-lista"
+                      (click)="verPrestamosCliente(cliente)">
+                      <i class="bi bi-clock-history"></i>
+                      <span>Ver historial ({{ getPrestamosCerrados(cliente.id).length }} cerrados)</span>
+                      <i class="bi bi-chevron-right"></i>
                     </button>
-                    @if (cerradosVisibles(cliente.id)) {
-                      @for (prestamo of getPrestamosCerrados(cliente.id); track prestamo.id) {
-                        <div class="prestamo-mini prestamo-mini-cerrado">
-                          <div class="prestamo-mini-info">
-                            <div class="prestamo-mini-estado">
-                              @switch (prestamo.estadisticas?.estado) {
-                                @case ('completado') {
-                                  <span class="badge-mini completado"><i class="bi bi-check-circle-fill"></i> Pagado</span>
-                                }
-                                @case ('refinanciado') {
-                                  <span class="badge-mini refinanciado"><i class="bi bi-arrow-repeat"></i> Recogido</span>
-                                }
-                                @case ('cerrado_pronto_pago') {
-                                  <span class="badge-mini cerrado-pronto-pago"><i class="bi bi-lightning-charge-fill"></i> Pronto Pago</span>
-                                }
-                              }
-                              <span class="prestamo-mini-freq">{{ getTextoFrecuencia(prestamo.frecuenciaPago) }}</span>
-                            </div>
-                          </div>
-                          <div class="prestamo-mini-actions">
-                            <button
-                              class="btn-mini btn-mini-detail"
-                              (click)="verDetallePrestamo(prestamo.id)"
-                              title="Ver detalle del préstamo">
-                              <i class="bi bi-eye"></i>
-                              <span>Detalle</span>
-                            </button>
-                          </div>
-                        </div>
-                      }
-                    }
                   }
                   <button
                     class="btn-nuevo-prestamo-inline"
