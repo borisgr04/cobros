@@ -28,6 +28,7 @@
 .main-content {
   transition: margin-left 300ms ease;
   min-height: 100vh;
+  padding: 1.5rem 2rem;
 }
 
 .main-content.sidebar-collapsed {
@@ -46,7 +47,7 @@
 @media (max-width: 768px) {
   .main-content {
     margin-left: 0 !important;
-    padding-bottom: 80px; /* Space for bottom navigation */
+    padding: 1rem 1rem 80px; /* Space for bottom navigation */
   }
 }
 
@@ -60,7 +61,7 @@
 /* Desktop: expanded by default */
 @media (min-width: 1025px) {
   .main-content {
-    margin-left: 220px;
+    margin-left: 260px;
   }
 }
 
