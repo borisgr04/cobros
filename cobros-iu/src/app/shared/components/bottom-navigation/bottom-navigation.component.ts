@@ -28,12 +28,11 @@ export class BottomNavigationComponent {
   mostrarMenuReportes = signal<boolean>(false);
   biometricAvailable = signal(false);
 
-  // Items de navegación (Reportes se maneja como panel trigger, no como navItem)
+  // Items de navegación directa (panel triggers se agregan en template)
   navItems: NavItem[] = [
     { path: '/', label: 'Inicio', icon: 'bi-house-fill' },
     { path: '/clientes', label: 'Clientes', icon: 'bi-people-fill' },
     { path: '/zonas', label: 'Zonas', icon: 'bi-geo-alt-fill' },
-    { path: '/usuarios', label: 'Usuarios', icon: 'bi-person-gear' }
   ];
 
   constructor() {

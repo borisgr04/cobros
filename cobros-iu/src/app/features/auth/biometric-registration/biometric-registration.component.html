@@ -35,6 +35,11 @@
               <div>
                 <i class="bi bi-phone me-2 text-primary"></i>
                 <span>{{ cred.deviceName }}</span>
+                @if (isThisDevice(cred.id)) {
+                  <span class="badge bg-success ms-2">
+                    <i class="bi bi-check-circle-fill me-1"></i>Este dispositivo
+                  </span>
+                }
                 <small class="text-muted ms-2">
                   Registrado {{ cred.createdAt | date:'shortDate' }}
                 </small>
@@ -48,6 +53,22 @@
             </li>
           }
         </ul>
+      }
+
+      <!-- Desync warning -->
+      @if (isDesync()) {
+        <div class="alert alert-warning d-flex align-items-start gap-2 mb-3">
+          <i class="bi bi-exclamation-triangle-fill mt-1 flex-shrink-0"></i>
+          <div>
+            <strong>Este dispositivo está desincronizado.</strong><br>
+            <small>Tiene credenciales guardadas localmente que ya no existen en el servidor (posiblemente por un reset de base de datos).</small>
+            <div class="mt-2">
+              <button class="btn btn-sm btn-warning" (click)="clearLocalCredentials()">
+                <i class="bi bi-arrow-repeat me-1"></i>Limpiar datos locales
+              </button>
+            </div>
+          </div>
+        </div>
       }
 
       <!-- Register new credential -->

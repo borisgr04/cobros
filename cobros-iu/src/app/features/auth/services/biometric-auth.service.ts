@@ -165,6 +165,12 @@ export class BiometricAuthService {
     }
   }
 
+  /** Clears all local biometric state for this device (use when desync with DB) */
+  clearLocalCredentials(): void {
+    localStorage.removeItem(BiometricAuthService.CREDENTIAL_IDS_KEY);
+    localStorage.removeItem('biometric_registered');
+  }
+
   // ─── Local registration flag ───────────────────────────────────────────────
 
   /** Returns true if this device has ever successfully registered a biometric credential */

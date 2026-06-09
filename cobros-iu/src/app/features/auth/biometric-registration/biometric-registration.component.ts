@@ -12,11 +12,13 @@ import { BiometricAuthService, WebAuthnCredentialInfo } from '../services/biomet
 export class BiometricRegistrationComponent implements OnInit {
   private biometric = inject(BiometricAuthService);
 
-  readonly isSupported   = signal(false);
-  readonly credentials   = this.biometric.credentials;
-  loading  = signal(false);
-  error    = signal<string | null>(null);
-  success  = signal<string | null>(null);
+  readonly isSupported      = signal(false);
+  readonly credentials      = this.biometric.credentials;
+  readonly localCredIds     = signal<string[]>([]);
+  readonly isDesync         = signal(false);
+  loading    = signal(false);
+  error      = signal<string | null>(null);
+  success    = signal<string | null>(null);
   deviceName = '';
 
   constructor() {}
@@ -26,7 +28,27 @@ export class BiometricRegistrationComponent implements OnInit {
     this.isSupported.set(available);
     if (available) {
       await this.biometric.loadCredentials();
+      this.checkLocalSync();
     }
+  }
+
+  private checkLocalSync(): void {
+    const localIds = this.biometric.getStoredCredentialIds();
+    this.localCredIds.set(localIds);
+    const dbIds = this.credentials().map(c => c.id);
+    const hasDesync = localIds.some(id => !dbIds.includes(id));
+    this.isDesync.set(hasDesync);
+  }
+
+  isThisDevice(credId: string): boolean {
+    return this.localCredIds().includes(credId);
+  }
+
+  clearLocalCredentials(): void {
+    this.biometric.clearLocalCredentials();
+    this.localCredIds.set([]);
+    this.isDesync.set(false);
+    this.success.set('Datos locales limpiados. Puedes registrar este dispositivo nuevamente.');
   }
 
   async register(): Promise<void> {
@@ -57,6 +79,7 @@ export class BiometricRegistrationComponent implements OnInit {
     if (!confirm('¿Eliminar esta credencial biométrica?')) return;
     try {
       await this.biometric.deleteCredential(cred.id);
+      this.checkLocalSync();
     } catch {
       this.error.set('No se pudo eliminar la credencial.');
     }
