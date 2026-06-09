@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CobrosApi.Models;
 
-public class Zona
+public class Zona : IAuditable
 {
     public int Id { get; set; }
 
@@ -11,6 +11,12 @@ public class Zona
 
     [Required, MaxLength(20)]
     public string Estado { get; set; } = "activo";
+
+    // ── Auditoría ─────────────────────────────────────────────────────────
+    public DateTime CreadoEn { get; set; }
+    public int? CreadoPorId { get; set; }
+    public DateTime ModificadoEn { get; set; }
+    public int? ModificadoPorId { get; set; }
 
     public ICollection<Cliente> Clientes { get; set; } = [];
 }

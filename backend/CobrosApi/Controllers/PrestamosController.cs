@@ -446,7 +446,8 @@ public class PrestamosController(
                 input.FechaInicio,
                 input.FrecuenciaNueva,
                 input.Observacion,
-                usuario.Id));
+                usuario.Id,
+                input.ValorCuota));
 
         return result.StatusCode switch
         {

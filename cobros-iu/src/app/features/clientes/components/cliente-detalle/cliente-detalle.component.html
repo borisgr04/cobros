@@ -81,130 +81,20 @@
         </div>
       </div>
 
-      <!-- SECCIÓN DE PRÉSTAMOS -->
-      <div class="prestamos-seccion">
-        <div class="prestamos-seccion-header">
-          <h2 class="seccion-titulo">
-            <i class="bi bi-cash-coin"></i>
-            Préstamos
-            @if (!cargandoPrestamos() && prestamos().length > 0) {
-              <span class="badge-count">{{ prestamos().length }}</span>
-            }
-          </h2>
-          <button
-            class="btn-nuevo-prestamo"
-            (click)="nuevoPrestamo()"
-          >
-            <i class="bi bi-plus-circle"></i>
-            <span>Nuevo Préstamo</span>
-          </button>
-        </div>
-
-        @if (cargandoPrestamos()) {
-          <div class="prestamos-loading">
-            <div class="spinner-modern"></div>
-            <p>Cargando préstamos...</p>
-          </div>
-        } @else if (prestamos().length === 0) {
-          <div class="prestamos-empty">
-            <i class="bi bi-inbox"></i>
-            <p>Este cliente no tiene préstamos registrados.</p>
-          </div>
-        } @else {
-          <div class="prestamos-lista">
-            @for (prestamo of prestamos(); track prestamo.id) {
-              <div class="prestamo-item">
-                <div class="prestamo-item-header">
-                  <div class="prestamo-estado-freq">
-                    @switch (prestamo.estadisticas?.estado) {
-                      @case ('activo') {
-                        <span class="badge-estado activo"><i class="bi bi-circle-fill"></i> Activo</span>
-                      }
-                      @case ('mora') {
-                        <span class="badge-estado mora"><i class="bi bi-clock-fill"></i> Mora</span>
-                      }
-                      @case ('vencido') {
-                        <span class="badge-estado vencido"><i class="bi bi-exclamation-circle-fill"></i> Vencido</span>
-                      }
-                      @case ('completado') {
-                        <span class="badge-estado completado"><i class="bi bi-check-circle-fill"></i> Pagado</span>
-                      }
-                      @case ('refinanciado') {
-                        <span class="badge-estado refinanciado"><i class="bi bi-arrow-repeat"></i> Recogido</span>
-                      }
-                      @case ('cerrado_pronto_pago') {
-                        <span class="badge-estado completado"><i class="bi bi-check-circle-fill"></i> Pronto pago</span>
-                      }
-                    }
-                    <span class="badge-freq">{{ getTextoFrecuencia(prestamo.frecuenciaPago) }}</span>
-                  </div>
-                  <span class="prestamo-id-text">{{ prestamo.id }}</span>
-                </div>
-
-                <div class="prestamo-item-montos">
-                  <div class="monto-bloque">
-                    <span class="monto-label">Total</span>
-                    <span class="monto-valor">{{ formatCurrency(prestamo.valorTotal) }}</span>
-                  </div>
-                  <div class="monto-bloque saldo">
-                    <span class="monto-label">Saldo</span>
-                    <span class="monto-valor">{{ formatCurrency(prestamo.estadisticas?.totalPorCobrar || 0) }}</span>
-                  </div>
-                  <div class="monto-bloque">
-                    <span class="monto-label">Cuotas</span>
-                    <span class="monto-valor">{{ prestamo.estadisticas?.cuotasPagadas || 0 }} / {{ prestamo.cantidadCuotas }}</span>
-                  </div>
-                </div>
-
-                <div class="prestamo-item-progreso">
-                  <div class="progress-info">
-                    <span class="progress-label">Progreso</span>
-                    <span class="progress-pct">{{ prestamo.estadisticas?.porcentajePagado || 0 }}%</span>
-                  </div>
-                  <div class="progress-bar">
-                    <div
-                      class="progress-fill"
-                      [ngClass]="getProgressBarClass(prestamo.estadisticas?.porcentajePagado || 0)"
-                      [style.width.%]="prestamo.estadisticas?.porcentajePagado || 0"
-                    ></div>
-                  </div>
-                </div>
-
-                <div class="prestamo-item-actions">
-                  <button
-                    class="btn-detalle"
-                    (click)="verDetallePrestamo(prestamo.id)"
-                  >
-                    <i class="bi bi-eye"></i>
-                    <span>Ver Detalle</span>
-                  </button>
-                  @if (prestamo.estadisticas?.estado !== 'completado' &&
-                       prestamo.estadisticas?.estado !== 'refinanciado' &&
-                       prestamo.estadisticas?.estado !== 'cerrado_pronto_pago') {
-                    <button
-                      class="btn-pagar"
-                      (click)="abrirPago(prestamo)"
-                    >
-                      <i class="bi bi-cash-stack"></i>
-                      <span>Pagar</span>
-                    </button>
-                  }
-                </div>
-              </div>
-            }
-          </div>
-        }
+      <!-- ACCESO AL HISTORIAL DE PRÉSTAMOS -->
+      <div class="prestamos-acceso">
+        <button class="btn-ver-prestamos" (click)="verPrestamos()">
+          <i class="bi bi-cash-coin"></i>
+          <span>Ver Préstamos</span>
+          @if (cliente()!.prestamosActivos.length > 0) {
+            <span class="badge-prestamos-count">{{ cliente()!.prestamosActivos.length }}</span>
+          }
+          <i class="bi bi-chevron-right btn-ver-prestamos__arrow"></i>
+        </button>
       </div>
 
     </div>
   }
 </div>
 
-<!-- MODALES -->
-<app-registro-prestamo-modal
-  (prestamoRegistrado)="onPrestamoRegistrado()"
-></app-registro-prestamo-modal>
 
-<app-registro-pago-modal
-  (pagoRegistrado)="onPagoRegistrado()"
-></app-registro-pago-modal>

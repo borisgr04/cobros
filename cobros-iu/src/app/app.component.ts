@@ -7,7 +7,7 @@ import { BottomNavigationComponent } from './shared/components/bottom-navigation
 import { SidebarService } from './features/core/services/sidebar.service';
 import { AuthService } from './features/auth/services/auth.service';
 
-const PUBLIC_ROUTES = ['/consulta/'];
+const PUBLIC_ROUTES = ['/consulta/', '/login'];
 
 @Component({
   selector: 'app-root',

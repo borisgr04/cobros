@@ -54,6 +54,7 @@ export class PrestamosComponent implements OnInit {
   mensajeAlerta = signal<string>('');
   mostrarFiltrosAvanzados = signal<boolean>(false);
   mostrarModalFiltros = signal<boolean>(false);
+  returnTo = signal<string | null>(null);
 
   // Computed: préstamos filtrados
   prestamosFiltrados = computed(() => {
@@ -137,6 +138,9 @@ export class PrestamosComponent implements OnInit {
         console.log('Cliente desde URL:', params['cliente']);
         // Establecer el filtro de cliente
         this.filtroClienteId.set(params['cliente']);
+      }
+      if (params['returnTo']) {
+        this.returnTo.set(params['returnTo']);
       }
     });
     
@@ -373,6 +377,14 @@ export class PrestamosComponent implements OnInit {
    */
   toggleModalFiltros(): void {
     this.mostrarModalFiltros.set(!this.mostrarModalFiltros());
+  }
+
+  /**
+   * Navega de vuelta al detalle del cliente si hay una ruta de retorno activa
+   */
+  volverAlCliente(): void {
+    const ruta = this.returnTo();
+    if (ruta) this.router.navigateByUrl(ruta);
   }
 
   /**

@@ -57,6 +57,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddHttpContextAccessor();
 
 // ─── Services ───────────────────────────────────────────────────────────────
 builder.Services.AddScoped<TokenService>();

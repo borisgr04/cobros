@@ -246,270 +246,58 @@
 }
 
 // ==========================================
-// SECCIÓN DE PRÉSTAMOS
+// ACCESO AL HISTORIAL DE PRÉSTAMOS
 // ==========================================
-.prestamos-seccion {
+.prestamos-acceso {
   background: var(--bg-primary);
   border-radius: var(--radius-lg);
-  padding: 1.5rem;
+  padding: 1rem 1.5rem;
   box-shadow: var(--shadow-md);
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
 }
 
-.prestamos-seccion-header {
+.btn-ver-prestamos {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.seccion-titulo {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1.15rem;
-  font-weight: 700;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--text-primary);
-  margin: 0;
+  cursor: pointer;
+  transition: var(--transition);
 
-  i { color: var(--accent-color); }
+  > i:first-child {
+    font-size: 1.25rem;
+    color: var(--accent-color);
+  }
+
+  span:first-of-type {
+    flex: 1;
+    text-align: left;
+  }
+
+  &:hover {
+    color: var(--accent-color);
+  }
 }
 
-.badge-count {
+.badge-prestamos-count {
   background: var(--accent-color);
   color: white;
   border-radius: 9999px;
   font-size: 0.75rem;
   padding: 0.1rem 0.5rem;
   font-weight: 700;
-}
-
-.btn-nuevo-prestamo {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: var(--accent-color);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  padding: 0.6rem 1rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition);
-
-  &:hover {
-    background: #2a3eb1;
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-  }
-}
-
-.prestamos-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 2rem;
-  color: var(--text-secondary);
-}
-
-.prestamos-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 2rem;
-  color: var(--text-tertiary);
+  min-width: 1.4rem;
   text-align: center;
-
-  i { font-size: 2.5rem; }
-  p { margin: 0; font-size: 0.9rem; }
 }
 
-.prestamos-lista {
-  display: flex;
-  flex-direction: column;
-  gap: 0.875rem;
-}
-
-// ==========================================
-// ÍTEM DE PRÉSTAMO
-// ==========================================
-.prestamo-item {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  transition: var(--transition);
-
-  &:hover {
-    border-color: var(--accent-color);
-    box-shadow: 0 2px 8px rgba(61, 90, 254, 0.1);
-  }
-}
-
-.prestamo-item-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.prestamo-estado-freq {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-}
-
-.badge-estado {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-  padding: 0.2rem 0.6rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-
-  i { font-size: 0.55rem; }
-
-  &.activo    { background: #E8F5E9; color: var(--success-color); }
-  &.mora      { background: #FFF8E1; color: var(--warning-color); }
-  &.vencido   { background: #FFEBEE; color: var(--danger-color); }
-  &.completado { background: #E3F2FD; color: #1565C0; }
-  &.refinanciado { background: #F3E5F5; color: #6A1B9A; }
-}
-
-.badge-freq {
-  font-size: 0.7rem;
+.btn-ver-prestamos__arrow {
   color: var(--text-tertiary);
-  background: var(--bg-tertiary);
-  padding: 0.15rem 0.45rem;
-  border-radius: 4px;
-}
-
-.prestamo-id-text {
-  font-size: 0.75rem;
-  color: var(--text-tertiary);
-  font-family: monospace;
-}
-
-.prestamo-item-montos {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.monto-bloque {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  min-width: 4.5rem;
-
-  .monto-label {
-    font-size: 0.7rem;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  .monto-valor {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text-primary);
-  }
-
-  &.saldo .monto-valor {
-    color: var(--danger-color);
-  }
-}
-
-.prestamo-item-progreso {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.progress-info {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  color: var(--text-tertiary);
-}
-
-.progress-bar {
-  height: 6px;
-  background: var(--bg-tertiary);
-  border-radius: 9999px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: 9999px;
-  transition: width 0.4s ease;
-
-  &.complete { background: var(--success-color); }
-  &.high     { background: #4CAF50; }
-  &.medium   { background: var(--warning-color); }
-  &.low      { background: var(--danger-color); }
-}
-
-.prestamo-item-actions {
-  display: flex;
-  gap: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--border-color);
-}
-
-.btn-detalle,
-.btn-pagar {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.55rem 0.875rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  transition: var(--transition);
-  white-space: nowrap;
-
-  i { font-size: 0.9rem; }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-}
-
-.btn-detalle {
-  background: var(--bg-primary);
-  border: 1px solid var(--primary-color);
-  color: var(--primary-color);
-
-  &:hover {
-    background: var(--primary-color);
-    color: white;
-  }
-}
-
-.btn-pagar {
-  background: var(--success-color);
-  color: white;
-
-  &:hover {
-    background: #00C853;
-  }
+  font-size: 0.85rem;
 }
 
 // ==========================================

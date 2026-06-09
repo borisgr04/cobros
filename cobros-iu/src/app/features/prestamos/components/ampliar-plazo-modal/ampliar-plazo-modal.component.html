@@ -63,6 +63,7 @@
                 <i class="bi bi-pencil-square"></i> Nuevas condiciones
               </h4>
 
+              <!-- Interés adicional + Nuevo saldo derivado -->
               <div class="form-campo">
                 <label class="campo-label">
                   <i class="bi bi-plus-circle"></i>
@@ -71,44 +72,93 @@
                 <input
                   class="input-campo"
                   [(appMoneda)]="interesAdicional"
+                  (appMonedaChange)="onInteresChange($event)"
                   placeholder="$ 0">
                 @if (interesAdicional() < 0) {
                   <span class="campo-error">El interés adicional no puede ser negativo</span>
                 }
               </div>
 
-              <div class="form-campo">
-                <label class="campo-label">
-                  <i class="bi bi-list-ol"></i>
-                  Cantidad de nuevas cuotas:
-                </label>
-                <input
-                  class="input-campo"
-                  type="number"
-                  [value]="cantidadCuotasNuevas()"
-                  (input)="cantidadCuotasNuevas.set(+$any($event.target).value || 1)"
-                  min="1"
-                  placeholder="10">
-                @if (cantidadCuotasNuevas() < 1) {
-                  <span class="campo-error">Debe ingresar al menos 1 cuota</span>
-                }
-              </div>
+              <!-- Nuevo saldo prominente -->
+              @if (resumen()) {
+                <div class="nuevo-saldo-banner">
+                  <span class="nuevo-saldo-label">Nuevo saldo a distribuir:</span>
+                  <span class="nuevo-saldo-valor">{{ formatCurrency(nuevoSaldo()) }}</span>
+                </div>
+              }
 
+              <!-- Frecuencia segmentada -->
               <div class="form-campo">
                 <label class="campo-label">
                   <i class="bi bi-arrow-repeat"></i>
                   Frecuencia de pagos:
                 </label>
-                <select
-                  class="input-campo"
-                  [value]="frecuenciaNueva()"
-                  (change)="frecuenciaNueva.set($any($event.target).value)">
-                  <option value="diario">Diario</option>
-                  <option value="semanal">Semanal</option>
-                  <option value="quincenal">Quincenal</option>
-                  <option value="mensual">Mensual</option>
-                </select>
+                <div class="frecuencia-segmented">
+                  @for (frec of frecuencias; track frec.value) {
+                    <button
+                      type="button"
+                      class="frecuencia-seg-btn"
+                      [class.selected]="frecuenciaNueva() === frec.value"
+                      (click)="seleccionarFrecuencia(frec.value)">
+                      {{ frec.label }}
+                    </button>
+                  }
+                </div>
               </div>
+
+              <!-- Cuotas y valor cuota en grupo -->
+              <div class="campo-grupo">
+                <div class="form-campo">
+                  <label class="campo-label">
+                    <i class="bi bi-list-ol"></i>
+                    Cantidad de cuotas:
+                  </label>
+                  <input
+                    class="input-campo"
+                    type="number"
+                    [value]="cantidadCuotasNuevas()"
+                    (input)="onCantidadCuotasChange(+$any($event.target).value)"
+                    min="1"
+                    placeholder="10">
+                  @if (cantidadCuotasNuevas() < 1) {
+                    <span class="campo-error">Mínimo 1 cuota</span>
+                  }
+                </div>
+                <div class="form-campo">
+                  <label class="campo-label">
+                    <i class="bi bi-cash"></i>
+                    Valor de cuota:
+                  </label>
+                  <input
+                    class="input-campo"
+                    [(appMoneda)]="valorCuotaInput"
+                    (appMonedaChange)="onValorCuotaChange($event)"
+                    placeholder="$ 0">
+                </div>
+              </div>
+
+              <!-- Resumen derivado: cuotas + última cuota -->
+              @if (cantidadCuotasNuevas() > 0 && valorCuotaInput() > 0) {
+                <div class="resumen-derivado">
+                  @if (descuadreExacto()) {
+                    <div class="derivado-item derivado-advertencia">
+                      <i class="bi bi-exclamation-triangle"></i>
+                      <span>{{ cantidadCuotasNuevas() }} pagos · el último de {{ formatCurrency(valorUltimaCuota()) }}</span>
+                    </div>
+                  } @else {
+                    <div class="derivado-item derivado-ok">
+                      <i class="bi bi-check-circle"></i>
+                      <span>{{ cantidadCuotasNuevas() }} pagos de {{ formatCurrency(valorCuotaInput()) }}</span>
+                    </div>
+                  }
+                  @if (nuevaFechaFinalEstimada()) {
+                    <div class="derivado-item">
+                      <span class="derivado-label">Hasta:</span>
+                      <span class="derivado-valor">{{ formatDate(nuevaFechaFinalEstimada()!) }}</span>
+                    </div>
+                  }
+                </div>
+              }
 
               <div class="form-campo">
                 <label class="campo-label">
@@ -136,39 +186,6 @@
                 </textarea>
               </div>
             </div>
-
-            <!-- Resultado calculado -->
-            @if (formularioValido()) {
-              <div class="resultado-calculado">
-                <h4 class="seccion-subtitulo">
-                  <i class="bi bi-calculator"></i> Resultado calculado
-                </h4>
-                <div class="resumen-financiero">
-                  <div class="resumen-item">
-                    <span class="label">Saldo pendiente:</span>
-                    <span class="value">{{ formatCurrency(resumen()!.saldoPendiente) }}</span>
-                  </div>
-                  <div class="resumen-item">
-                    <span class="label">Interés adicional:</span>
-                    <span class="value warning">+ {{ formatCurrency(interesAdicional()) }}</span>
-                  </div>
-                  <div class="resumen-item destacado">
-                    <span class="label">Nuevo saldo:</span>
-                    <span class="value primary">{{ formatCurrency(nuevoSaldo()) }}</span>
-                  </div>
-                  <div class="resumen-item">
-                    <span class="label">Valor cuota estimado:</span>
-                    <span class="value">{{ formatCurrency(valorCuotaEstimado()) }}</span>
-                  </div>
-                  @if (nuevaFechaFinalEstimada()) {
-                    <div class="resumen-item destacado">
-                      <span class="label">Nueva fecha final:</span>
-                      <span class="value success">{{ formatDate(nuevaFechaFinalEstimada()!) }}</span>
-                    </div>
-                  }
-                </div>
-              </div>
-            }
 
             @if (error()) {
               <div class="alert-error">
@@ -206,9 +223,15 @@
                 <span class="value">{{ cantidadCuotasNuevas() }} cuotas {{ getTextoFrecuencia(frecuenciaNueva()) | lowercase }}</span>
               </div>
               <div class="confirmacion-item">
-                <span class="label">Valor por cuota estimado:</span>
-                <span class="value">{{ formatCurrency(valorCuotaEstimado()) }}</span>
+                <span class="label">Valor por cuota:</span>
+                <span class="value">{{ formatCurrency(valorCuotaInput()) }}</span>
               </div>
+              @if (descuadreExacto()) {
+                <div class="confirmacion-item">
+                  <span class="label">Última cuota:</span>
+                  <span class="value warning">{{ formatCurrency(valorUltimaCuota()) }}</span>
+                </div>
+              }
               <div class="confirmacion-item">
                 <span class="label">Fecha inicio nuevo plan:</span>
                 <span class="value">{{ formatDate(fechaInicio()) }}</span>
@@ -291,6 +314,22 @@
                 <span class="value">{{ resultado()!.cantidadCuotasNuevas }}</span>
               </div>
             </div>
+
+            @if (whatsappLink()) {
+              <a
+                [href]="whatsappLink()!"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn-whatsapp">
+                <i class="bi bi-whatsapp"></i>
+                Notificar al cliente por WhatsApp
+              </a>
+            } @else {
+              <p class="sin-telefono">
+                <i class="bi bi-info-circle"></i>
+                El cliente no tiene teléfono registrado.
+              </p>
+            }
           </div>
         }
 

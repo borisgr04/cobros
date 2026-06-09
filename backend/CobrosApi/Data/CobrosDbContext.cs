@@ -1,10 +1,22 @@
+using System.Security.Claims;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CobrosApi.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace CobrosApi.Data;
 
-public class CobrosDbContext(DbContextOptions<CobrosDbContext> options) : DbContext(options)
+public class CobrosDbContext(
+    DbContextOptions<CobrosDbContext> options,
+    IHttpContextAccessor? httpContextAccessor = null) : DbContext(options)
 {
+    private static readonly JsonSerializerOptions _jsonOpts = new()
+    {
+        ReferenceHandler = ReferenceHandler.IgnoreCycles,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
     public DbSet<Zona> Zonas => Set<Zona>();
     public DbSet<Cliente> Clientes => Set<Cliente>();
     public DbSet<Prestamo> Prestamos => Set<Prestamo>();
@@ -15,6 +27,97 @@ public class CobrosDbContext(DbContextOptions<CobrosDbContext> options) : DbCont
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<WebAuthnCredential> WebAuthnCredentials => Set<WebAuthnCredential>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
+    // ── Auditoría ────────────────────────────────────────────────────────────
+
+    private int? ObtenerUsuarioActualId()
+    {
+        var claim = httpContextAccessor?.HttpContext?.User
+            .FindFirst(ClaimTypes.NameIdentifier)
+            ?? httpContextAccessor?.HttpContext?.User.FindFirst("sub");
+
+        return int.TryParse(claim?.Value, out var id) ? id : null;
+    }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        var ahora = DateTime.UtcNow;
+        var usuarioId = ObtenerUsuarioActualId();
+        var audits = new List<AuditLog>();
+
+        foreach (var entry in ChangeTracker.Entries<IAuditable>())
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreadoEn      = ahora;
+                entry.Entity.CreadoPorId   = usuarioId;
+                entry.Entity.ModificadoEn  = ahora;
+                entry.Entity.ModificadoPorId = usuarioId;
+                audits.Add(BuildAuditLog(entry, "Created", usuarioId, ahora, null));
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.ModificadoEn  = ahora;
+                entry.Entity.ModificadoPorId = usuarioId;
+
+                // Preservar valores originales de creación
+                entry.Property(nameof(IAuditable.CreadoEn)).IsModified = false;
+                entry.Property(nameof(IAuditable.CreadoPorId)).IsModified = false;
+
+                audits.Add(BuildAuditLog(entry, "Updated", usuarioId, ahora,
+                    entry.OriginalValues.ToObject()));
+            }
+            else if (entry.State == EntityState.Deleted)
+            {
+                audits.Add(BuildAuditLog(entry, "Deleted", usuarioId, ahora,
+                    entry.OriginalValues.ToObject()));
+            }
+        }
+
+        var result = await base.SaveChangesAsync(cancellationToken);
+
+        if (audits.Count > 0)
+        {
+            AuditLogs.AddRange(audits);
+            await base.SaveChangesAsync(cancellationToken);
+        }
+
+        return result;
+    }
+
+    private static AuditLog BuildAuditLog(
+        EntityEntry<IAuditable> entry,
+        string operacion,
+        int? usuarioId,
+        DateTime fecha,
+        object? anterior)
+    {
+        // Obtener el ID primario de la entidad
+        var entidadId = entry.Metadata.FindPrimaryKey()
+            ?.Properties
+            .Select(p => entry.Property(p.Name).CurrentValue)
+            .FirstOrDefault();
+
+        string? anteriorJson = anterior is null
+            ? null
+            : JsonSerializer.Serialize(anterior, _jsonOpts);
+
+        string? nuevoJson = operacion == "Deleted"
+            ? null
+            : JsonSerializer.Serialize(entry.CurrentValues.ToObject(), _jsonOpts);
+
+        return new AuditLog
+        {
+            Entidad    = entry.Entity.GetType().Name,
+            EntidadId  = entidadId is int id ? id : 0,
+            Operacion  = operacion,
+            UsuarioId  = usuarioId,
+            FechaUtc   = fecha,
+            AnteriorJson = anteriorJson,
+            NuevoJson    = nuevoJson
+        };
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -82,6 +185,14 @@ public class CobrosDbContext(DbContextOptions<CobrosDbContext> options) : DbCont
         // Índice en UsuarioId de WebAuthnCredential
         modelBuilder.Entity<WebAuthnCredential>()
             .HasIndex(w => w.UsuarioId);
+
+        // Índices de AuditLog
+        modelBuilder.Entity<AuditLog>()
+            .HasIndex(a => new { a.Entidad, a.EntidadId });
+        modelBuilder.Entity<AuditLog>()
+            .HasIndex(a => a.UsuarioId);
+        modelBuilder.Entity<AuditLog>()
+            .HasIndex(a => a.FechaUtc);
 
         // Seed: Zonas
         modelBuilder.Entity<Zona>().HasData(
