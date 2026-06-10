@@ -28,8 +28,91 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Cobros">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+  <style>
+    /* ── Splash Screen ── */
+    #app-splash {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: #f5f5f5;
+      color: #0d0d0d;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      #app-splash {
+        background-color: #0d0d0d;
+        color: #f5f5f5;
+      }
+    }
+
+    #app-splash.splash-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .splash-logo {
+      width: 120px;
+      height: 120px;
+      object-fit: contain;
+      margin-bottom: 24px;
+    }
+
+    .splash-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      margin-bottom: 8px;
+    }
+
+    .splash-version {
+      font-size: 0.85rem;
+      opacity: 0.55;
+      margin-bottom: 48px;
+    }
+
+    /* Indeterminate progress bar */
+    .splash-progress {
+      width: min(280px, 70vw);
+      height: 4px;
+      border-radius: 2px;
+      background-color: rgba(61, 90, 254, 0.2);
+      overflow: hidden;
+    }
+
+    .splash-progress-bar {
+      height: 100%;
+      width: 40%;
+      border-radius: 2px;
+      background-color: #3d5afe;
+      animation: splash-indeterminate 1.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes splash-indeterminate {
+      0%   { transform: translateX(-100%) scaleX(0.5); }
+      50%  { transform: translateX(100%) scaleX(1.2); }
+      100% { transform: translateX(250%) scaleX(0.5); }
+    }
+  </style>
 </head>
 <body>
+  <!-- Splash screen: visible before Angular initialises -->
+  <div id="app-splash" role="status" aria-label="Cargando CobrApp…">
+    <img class="splash-logo" src="assets/CobrApp.png" alt="CobrApp logo" />
+    <span class="splash-title">CobrApp</span>
+    <span class="splash-version">v0.0.0</span>
+    <div class="splash-progress">
+      <div class="splash-progress-bar"></div>
+    </div>
+  </div>
+
   <app-root></app-root>
   
   <!-- Bootstrap Bundle with Popper -->
