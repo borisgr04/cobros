@@ -4,6 +4,7 @@ import { RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/ro
 import { filter } from 'rxjs/operators';
 import { AuthService } from '../../../features/auth/services/auth.service';
 import { BiometricAuthService } from '../../../features/auth/services/biometric-auth.service';
+import { AppUpdateService } from '../../../features/core/services/app-update.service';
 
 interface NavItem {
   path: string;
@@ -22,10 +23,12 @@ export class BottomNavigationComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
   readonly biometric = inject(BiometricAuthService);
+  readonly appUpdates = inject(AppUpdateService);
 
   user = this.auth.currentUser;
   mostrarMenuUsuario = signal<boolean>(false);
   mostrarMenuReportes = signal<boolean>(false);
+  mostrarAcercaDe = signal<boolean>(false);
   biometricAvailable = signal(false);
 
   // Items de navegación directa (panel triggers se agregan en template)
@@ -42,6 +45,7 @@ export class BottomNavigationComponent {
       .subscribe(() => {
         this.mostrarMenuUsuario.set(false);
         this.mostrarMenuReportes.set(false);
+        this.mostrarAcercaDe.set(false);
       });
 
     this.biometric.isPlatformAuthenticatorAvailable().then(ok => this.biometricAvailable.set(ok));
@@ -54,6 +58,20 @@ export class BottomNavigationComponent {
 
   cerrarMenuUsuario(): void {
     this.mostrarMenuUsuario.set(false);
+  }
+
+  abrirAcercaDe(): void {
+    this.mostrarMenuUsuario.set(false);
+    this.mostrarAcercaDe.set(true);
+    void this.appUpdates.checkForUpdates();
+  }
+
+  cerrarAcercaDe(): void {
+    this.mostrarAcercaDe.set(false);
+  }
+
+  actualizarApp(): void {
+    void this.appUpdates.applyUpdate();
   }
 
   toggleMenuReportes(): void {

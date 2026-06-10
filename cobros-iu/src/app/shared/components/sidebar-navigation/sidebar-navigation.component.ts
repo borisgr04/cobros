@@ -4,6 +4,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { SidebarService } from '../../../features/core/services/sidebar.service';
 import { AuthService } from '../../../features/auth/services/auth.service';
 import { BiometricAuthService } from '../../../features/auth/services/biometric-auth.service';
+import { AppUpdateService } from '../../../features/core/services/app-update.service';
 
 interface NavItem {
   path: string;
@@ -22,10 +23,12 @@ export class SidebarNavigationComponent implements OnInit {
   private sidebarService = inject(SidebarService);
   auth = inject(AuthService);
   readonly biometric = inject(BiometricAuthService);
+  readonly appUpdates = inject(AppUpdateService);
   user = this.auth.currentUser;
 
   sidebarState = this.sidebarService.getState();
   biometricAvailable = signal(false);
+  mostrarAcercaDe = signal(false);
 
   navItems: NavItem[] = [
     { path: '/', label: 'Inicio', icon: 'bi-house-fill' },
@@ -47,5 +50,18 @@ export class SidebarNavigationComponent implements OnInit {
 
   logout(): void {
     this.auth.logout();
+  }
+
+  abrirAcercaDe(): void {
+    this.mostrarAcercaDe.set(true);
+    void this.appUpdates.checkForUpdates();
+  }
+
+  cerrarAcercaDe(): void {
+    this.mostrarAcercaDe.set(false);
+  }
+
+  actualizarApp(): void {
+    void this.appUpdates.applyUpdate();
   }
 }

@@ -51,9 +51,49 @@
         }
       </span>
     </a>
+    <button class="perfil-btn" type="button" (click)="abrirAcercaDe()" aria-label="Acerca de">
+      <i class="bi bi-info-circle nav-icon"></i>
+      <span class="nav-label">
+        Acerca de
+        @if (appUpdates.updateAvailable()) {
+          <span class="sidebar-update-badge">Nueva versión</span>
+        }
+      </span>
+    </button>
     <button class="logout-btn" (click)="logout()" type="button" title="Cerrar sesión" aria-label="Cerrar sesión">
       <i class="bi bi-box-arrow-right"></i>
       <span class="nav-label">Cerrar sesión</span>
     </button>
   </div>
+
+  @if (mostrarAcercaDe()) {
+    <div class="about-modal-overlay" (click)="cerrarAcercaDe()"></div>
+    <section class="about-modal" role="dialog" aria-modal="true" aria-labelledby="sidebarAboutTitle">
+      <div class="about-modal-header">
+        <h3 id="sidebarAboutTitle">Acerca de {{ appUpdates.appName }}</h3>
+        <button class="about-close-btn" type="button" (click)="cerrarAcercaDe()" aria-label="Cerrar">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <div class="about-modal-content">
+        <img src="assets/CobrApp.png" alt="CobrApp" class="about-logo">
+        <p class="about-version">Versión actual: <strong>v{{ appUpdates.currentVersion }}</strong></p>
+        <p class="about-status">{{ appUpdates.statusMessage() }}</p>
+      </div>
+
+      <div class="about-actions">
+        <button class="about-secondary-btn" type="button" [disabled]="appUpdates.isChecking()" (click)="appUpdates.checkForUpdates()">
+          <i class="bi bi-arrow-repeat"></i>
+          <span>Buscar actualizaciones</span>
+        </button>
+        @if (appUpdates.updateAvailable()) {
+          <button class="about-update-btn" type="button" [disabled]="appUpdates.isChecking()" (click)="actualizarApp()">
+            <i class="bi bi-cloud-arrow-down"></i>
+            <span>Actualizar ahora</span>
+          </button>
+        }
+      </div>
+    </section>
+  }
 </aside>
