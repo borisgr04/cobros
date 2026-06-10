@@ -64,6 +64,7 @@ export class BiometricRegistrationComponent implements OnInit {
       this.success.set('Biometría registrada correctamente.');
       this.deviceName = '';
       await this.biometric.loadCredentials();
+      this.checkLocalSync();
     } catch (err: any) {
       if (err?.name === 'NotAllowedError') {
         this.error.set('Permiso denegado o tiempo de espera agotado.');
