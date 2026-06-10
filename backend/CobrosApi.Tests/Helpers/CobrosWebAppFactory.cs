@@ -21,7 +21,7 @@ public class CobrosWebAppFactory : WebApplicationFactory<Program>
     // Nombre único por instancia para aislar datos entre colecciones de tests
     private readonly string _dbName = $"CobrosTest_{Guid.NewGuid()}";
 
-    public const string TestJwtSecret   = "dev_secret_key_min32chars_for_local_only!!";
+    public const string TestJwtSecret   = "CAMBIAR_EN_PRODUCCION_min32chars_secret_key_here!!";
     public const string TestJwtIssuer   = "CobrosApi";
     public const string TestJwtAudience = "CobrosApp";
 
@@ -35,6 +35,16 @@ public class CobrosWebAppFactory : WebApplicationFactory<Program>
             services.RemoveAll<DbContextOptions<CobrosDbContext>>();
             services.AddDbContext<CobrosDbContext>(opts =>
                 opts.UseInMemoryDatabase(_dbName));
+        });
+
+        builder.ConfigureAppConfiguration((_, config) =>
+        {
+            config.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Jwt:Secret"] = TestJwtSecret,
+                ["Jwt:Issuer"] = TestJwtIssuer,
+                ["Jwt:Audience"] = TestJwtAudience
+            });
         });
     }
 }
