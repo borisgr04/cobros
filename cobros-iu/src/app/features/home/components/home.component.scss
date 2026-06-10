@@ -242,11 +242,15 @@
 }
 
 .minimal-header {
-  padding: 1.5rem;
+  padding: 0.875rem 1rem;
   border-bottom: 2px solid var(--bg-secondary);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+
+  @media (min-width: 768px) {
+    padding: 1.5rem;
+  }
 }
 
 .minimal-header-left {
@@ -286,19 +290,29 @@
 }
 
 .cartera-value {
-  font-size: 1.75rem;
+  font-size: 1.1rem;
   font-weight: 800;
   color: var(--success-color);
   display: block;
   line-height: 1;
+  word-break: break-all;
+
+  @media (min-width: 768px) {
+    font-size: 1.75rem;
+  }
 }
 
 .minimal-body {
-  padding: 1.5rem;
+  padding: 0.875rem 1rem;
   display: flex;
   align-items: center;
   justify-content: space-around;
-  gap: 2rem;
+  gap: 1rem;
+
+  @media (min-width: 768px) {
+    padding: 1.5rem;
+    gap: 2rem;
+  }
 }
 
 .minimal-stat {
@@ -306,12 +320,16 @@
 }
 
 .minimal-stat-value {
-  font-size: 2.5rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--text-primary);
   display: block;
   line-height: 1;
   margin-bottom: 0.5rem;
+
+  @media (min-width: 768px) {
+    font-size: 2.5rem;
+  }
 }
 
 .minimal-stat-label {

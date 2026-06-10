@@ -32,6 +32,10 @@
   max-width: 60%;
   height: auto;
   margin: 0 auto 0.9rem;
+  display: block;
+  background: var(--color-dark-primary, #0D0D0D);
+  border-radius: 1.25rem;
+  padding: 0.75rem;
 }
 
 .login-title {
