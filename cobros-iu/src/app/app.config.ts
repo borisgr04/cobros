@@ -7,6 +7,7 @@ import { environment } from '../environments/environment';
 import { authInterceptor } from './features/auth/interceptors/auth.interceptor';
 import { apiUrlInterceptor } from './features/auth/interceptors/api-url.interceptor';
 import { AuthService } from './features/auth/services/auth.service';
+import { AppUpdateService } from './features/core/services/app-update.service';
 
 // Abstracciones
 import { AbstractClienteService } from './features/core/services/abstract-cliente.service';
@@ -39,6 +40,12 @@ export const appConfig: ApplicationConfig = {
       multi: true
     },
     {
+      provide: APP_INITIALIZER,
+      useFactory: (updates: AppUpdateService) => () => updates.initialize(),
+      deps: [AppUpdateService],
+      multi: true
+    },
+    {
       provide: AbstractClienteService,
       useClass: environment.useMocks ? ClienteMockService : ClienteService
     },
@@ -53,9 +60,10 @@ export const appConfig: ApplicationConfig = {
     {
       provide: AbstractPagoService,
       useClass: environment.useMocks ? PagoMockService : PagoService
-    }, provideServiceWorker('ngsw-worker.js', {
-            enabled: !isDevMode(),
-            registrationStrategy: 'registerWhenStable:3000'
-          }),
+    },
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:3000'
+    }),
   ]
 };

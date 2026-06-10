@@ -3,14 +3,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  background: linear-gradient(
+    140deg,
+    var(--color-dark-primary, #0D0D0D) 0%,
+    var(--color-dark-secondary, #1A1A1A) 45%,
+    var(--color-medium, #2D2D2D) 100%
+  );
   padding: 1rem;
 }
 
 .login-card {
-  background: #ffffff;
+  background: var(--bg-card, #FFFFFF);
   border-radius: 1.25rem;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-xl, 0 20px 25px -5px rgba(13, 13, 13, 0.3), 0 10px 10px -5px rgba(13, 13, 13, 0.2));
   padding: 2.5rem 2rem;
   width: 100%;
   max-width: 400px;
@@ -21,23 +27,23 @@
   margin-bottom: 2rem;
 }
 
-.login-icon {
-  font-size: 3.5rem;
-  color: var(--color-accent, #3D5AFE);
-  margin-bottom: 0.75rem;
-  display: block;
+.login-logo {
+  width: 120px;
+  max-width: 60%;
+  height: auto;
+  margin: 0 auto 0.9rem;
 }
 
 .login-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #0D0D0D;
+  color: var(--text-primary, #0D0D0D);
   margin-bottom: 0.25rem;
 }
 
 .login-subtitle {
   font-size: 0.875rem;
-  color: #666;
+  color: var(--text-secondary, #4A4A4A);
   margin-bottom: 0;
 }
 
@@ -45,9 +51,9 @@
   display: flex;
   align-items: flex-start;
   gap: 0.6rem;
-  background: rgba(255, 82, 82, 0.08);
-  border: 1px solid rgba(255, 82, 82, 0.3);
-  color: #c0392b;
+  background: rgba(255, 82, 82, 0.1);
+  border: 1px solid rgba(255, 82, 82, 0.32);
+  color: #a52727;
   border-radius: 0.6rem;
   padding: 0.75rem 1rem;
   font-size: 0.875rem;
@@ -59,8 +65,8 @@
   display: flex;
   align-items: flex-start;
   gap: 0.6rem;
-  background: rgba(61, 90, 254, 0.08);
-  border: 1px solid rgba(61, 90, 254, 0.22);
+  background: rgba(61, 90, 254, 0.1);
+  border: 1px solid rgba(61, 90, 254, 0.28);
   color: #2643c4;
   border-radius: 0.6rem;
   padding: 0.75rem 1rem;
@@ -76,7 +82,7 @@
 
 .login-hint {
   font-size: 0.82rem;
-  color: #888;
+  color: var(--text-secondary, #4A4A4A);
   margin-bottom: 0.75rem;
 }
 
@@ -92,7 +98,7 @@
   justify-content: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #666;
+  color: var(--text-secondary, #4A4A4A);
   margin-top: 0.5rem;
 }
 
@@ -100,14 +106,14 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: #bbb;
+  color: #9a9a9a;
   font-size: 0.8rem;
   margin: 1rem 0;
   &::before, &::after {
     content: '';
     flex: 1;
     height: 1px;
-    background: #e0e0e0;
+    background: #dddddd;
   }
 }
 

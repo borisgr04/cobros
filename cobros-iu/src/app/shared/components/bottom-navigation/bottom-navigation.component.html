@@ -30,11 +30,49 @@
         </span>
       }
     </button>
+    <button class="panel-action-btn" type="button" (click)="abrirAcercaDe()">
+      <i class="bi bi-info-circle"></i>
+      <span>Acerca de</span>
+      @if (appUpdates.updateAvailable()) {
+        <span class="panel-update-badge">Nueva versión</span>
+      }
+    </button>
     <button class="panel-logout-btn" type="button" (click)="logout()">
       <i class="bi bi-box-arrow-right"></i>
       <span>Cerrar sesión</span>
     </button>
   </div>
+}
+
+@if (mostrarAcercaDe()) {
+  <div class="about-modal-overlay" (click)="cerrarAcercaDe()"></div>
+  <section class="about-modal" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+    <div class="about-modal-header">
+      <h3 id="aboutTitle">Acerca de {{ appUpdates.appName }}</h3>
+      <button class="about-close-btn" type="button" (click)="cerrarAcercaDe()" aria-label="Cerrar">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="about-modal-content">
+      <img src="assets/CobrApp.png" alt="CobrApp" class="about-logo">
+      <p class="about-version">Versión actual: <strong>v{{ appUpdates.currentVersion }}</strong></p>
+      <p class="about-status">{{ appUpdates.statusMessage() }}</p>
+    </div>
+
+    <div class="about-actions">
+      <button class="panel-action-btn" type="button" [disabled]="appUpdates.isChecking()" (click)="appUpdates.checkForUpdates()">
+        <i class="bi bi-arrow-repeat"></i>
+        <span>Buscar actualizaciones</span>
+      </button>
+      @if (appUpdates.updateAvailable()) {
+        <button class="about-update-btn" type="button" [disabled]="appUpdates.isChecking()" (click)="actualizarApp()">
+          <i class="bi bi-cloud-arrow-down"></i>
+          <span>Actualizar ahora</span>
+        </button>
+      }
+    </div>
+  </section>
 }
 
 <!-- Overlay: cierra el panel de reportes al tocar fuera -->
@@ -99,6 +137,9 @@
         <img [src]="user()!.fotoUrl" [alt]="user()!.nombre" class="nav-user-avatar" referrerpolicy="no-referrer">
       } @else {
         <i class="bi bi-person-circle"></i>
+      }
+      @if (appUpdates.updateAvailable()) {
+        <span class="update-dot" aria-hidden="true"></span>
       }
       <span>Usuario</span>
     </button>

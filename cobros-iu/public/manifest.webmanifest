@@ -1,6 +1,6 @@
 {
-  "name": "Cobros",
-  "short_name": "Cobros",
+  "name": "CobrApp",
+  "short_name": "CobrApp",
   "description": "Gestión de cobros y préstamos",
   "id": "/",
   "display": "standalone",
