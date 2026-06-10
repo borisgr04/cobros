@@ -19,7 +19,7 @@ public class SecurityAuthorizationTests(CobrosWebAppFactory factory)
     [InlineData("GET",    "/api/clientes")]
     [InlineData("GET",    "/api/prestamos")]
     [InlineData("GET",    "/api/pagos")]
-    [InlineData("GET",    "/api/reportes/recaudo-por-zona")]
+    [InlineData("GET",    "/api/reportes?fechaInicio=2026-01-01&fechaFin=2026-01-31")]
     [InlineData("GET",    "/api/zonas")]
     [InlineData("GET",    "/api/usuarios")]
     public async Task EndpointOperativo_SinToken_Retorna401(string method, string url)
@@ -49,7 +49,6 @@ public class SecurityAuthorizationTests(CobrosWebAppFactory factory)
 
     [Theory]
     [InlineData("POST", "/api/auth/google")]
-    [InlineData("POST", "/api/auth/refresh")]
     public async Task AuthEndpointPublico_SinToken_NoRetorna401(string method, string url)
     {
         // Enviamos cuerpo vacío — esperamos 400/422 pero NO 401
@@ -60,5 +59,14 @@ public class SecurityAuthorizationTests(CobrosWebAppFactory factory)
         var response = await _client.SendAsync(request);
 
         Assert.NotEqual(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Refresh_SinCookie_Retorna401()
+    {
+        var response = await _client.PostAsync("/api/auth/refresh",
+            new StringContent("{}", System.Text.Encoding.UTF8, "application/json"));
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 }

@@ -7,6 +7,7 @@ import { AuthService } from '../services/auth.service';
 describe('authGuard', () => {
   const isAuthenticated = signal(false);
   const currentUser = signal<{ email: string } | null>(null);
+  const isInitializing = signal(false);
   let ensureValidSessionResult = false;
 
   const routerMock = {
@@ -17,12 +18,14 @@ describe('authGuard', () => {
   const authServiceMock = {
     isAuthenticated: isAuthenticated.asReadonly(),
     currentUser: currentUser.asReadonly(),
+    isInitializing: isInitializing.asReadonly(),
     ensureValidSession: jasmine.createSpy('ensureValidSession').and.callFake(async () => ensureValidSessionResult)
   };
 
   beforeEach(() => {
     isAuthenticated.set(false);
     currentUser.set(null);
+    isInitializing.set(false);
     ensureValidSessionResult = false;
     authServiceMock.ensureValidSession.calls.reset();
 
