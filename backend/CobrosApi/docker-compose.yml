@@ -28,7 +28,8 @@ services:
       Jwt__Secret: "${JWT_SECRET}"
       Jwt__Issuer: CobrosApi
       Jwt__Audience: CobrosApp
-      Jwt__ExpiresInMinutes: "30"
+      Jwt__ExpiresInMinutes: "180"
+      Jwt__RefreshTokenExpiryDays: "30"
       Google__ClientId: "${GOOGLE_CLIENT_ID}"
       Cors__AllowedOrigins__0: "${FRONTEND_URL}"
     ports:
