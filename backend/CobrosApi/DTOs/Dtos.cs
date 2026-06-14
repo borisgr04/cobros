@@ -339,6 +339,8 @@ public class WebAuthnAuthCompleteRequestDto
 public class WebAuthnCredentialDto
 {
     public string Id { get; set; } = string.Empty;
+    /// <summary>WebAuthn credential ID en base64url, usado para identificar este dispositivo localmente.</summary>
+    public string CredentialIdBase64 { get; set; } = string.Empty;
     public string? DeviceName { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? LastUsedAt { get; set; }

@@ -178,89 +178,6 @@
                 {{ error() }}
               </div>
             }
-          </div>
-        }
-
-        <!-- PASO 2: Confirmación -->
-        @if (paso() === 'confirmacion') {
-          <div class="paso-confirmacion">
-            <div class="confirmacion-resumen">
-              <h3 class="confirmacion-titulo">Resumen — Recoger Préstamo</h3>
-
-              <div class="confirmacion-item">
-                <span class="label">Cliente:</span>
-                <span class="value">{{ prestamo()?.cliente?.nombre }}</span>
-              </div>
-              <div class="confirmacion-item">
-                <span class="label">Saldo trasladado del préstamo anterior:</span>
-                <span class="value">{{ formatCurrency(saldoPendiente()) }}</span>
-              </div>
-              <div class="confirmacion-item">
-                <span class="label">Dinero adicional a entregar:</span>
-                <span class="value warning">{{ formatCurrency(dineroAdicional()) }}</span>
-              </div>
-              <div class="confirmacion-item">
-                <span class="label">Capital nuevo total:</span>
-                <span class="value primary">{{ formatCurrency(capitalNuevo()) }}</span>
-              </div>
-              <div class="confirmacion-item">
-                <span class="label">Intereses:</span>
-                <span class="value warning">{{ formatCurrency(intereses()) }}</span>
-              </div>
-              <div class="confirmacion-item destacado">
-                <span class="label">Total a cobrar:</span>
-                <span class="value primary">{{ formatCurrency(totalACobrar()) }}</span>
-              </div>
-              <div class="confirmacion-item">
-                <span class="label">Plan de pagos:</span>
-                <span class="value">{{ cantidadCuotas() }} cuotas {{ getTextoFrecuencia(frecuenciaPago()) | lowercase }}</span>
-              </div>
-              <div class="confirmacion-item">
-                <span class="label">Valor por cuota:</span>
-                <span class="value">{{ formatCurrency(valorCuota()) }}</span>
-              </div>
-              @if (descuadreExacto()) {
-                <div class="confirmacion-item">
-                  <span class="label">Último pago:</span>
-                  <span class="value">{{ formatCurrency(valorUltimaCuota()) }}</span>
-                </div>
-              }
-              <div class="confirmacion-item">
-                <span class="label">Fecha inicio:</span>
-                <span class="value">{{ formatDate(fechaInicio()) }}</span>
-              </div>
-              @if (nuevaFechaFinalEstimada()) {
-                <div class="confirmacion-item destacado">
-                  <span class="label">Fecha final estimada:</span>
-                  <span class="value success">{{ formatDate(nuevaFechaFinalEstimada()!) }}</span>
-                </div>
-              }
-              @if (observacion()) {
-                <div class="confirmacion-item">
-                  <span class="label">Observación:</span>
-                  <span class="value italic">{{ observacion() }}</span>
-                </div>
-              }
-            </div>
-
-            <div class="advertencia-reemplazo">
-              <i class="bi bi-exclamation-triangle-fill"></i>
-              El préstamo actual quedará marcado como <strong>refinanciado</strong> y se creará un nuevo préstamo.
-              Solo se registra egreso de caja por el dinero adicional entregado ({{ formatCurrency(dineroAdicional()) }}).
-              <strong>Esta acción no se puede deshacer.</strong>
-            </div>
-
-            <label class="checkbox-confirmacion">
-              <input type="checkbox" [checked]="confirmado()" (change)="confirmado.set($any($event.target).checked)">
-              Entiendo que el préstamo actual será cerrado y se creará uno nuevo
-            </label>
-
-            @if (error()) {
-              <div class="alert-error">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-                {{ error() }}
-              </div>
-            }
 
             @if (procesando()) {
               <div class="alert-info">
@@ -271,7 +188,7 @@
           </div>
         }
 
-        <!-- PASO 3: Resultado -->
+        <!-- PASO 2: Resultado -->
         @if (paso() === 'resultado' && resultado()) {
           <div class="paso-resultado">
             <div class="resultado-exito">
@@ -327,29 +244,15 @@
             Cancelar
           </button>
           <button
-            class="btn-primario"
-            (click)="avanzarAConfirmacion()"
-            [disabled]="!formularioValido() || procesando()">
-            Continuar
-            <i class="bi bi-arrow-right"></i>
-          </button>
-        }
-
-        @if (paso() === 'confirmacion') {
-          <button class="btn-secundario" (click)="volverAFormulario()" [disabled]="procesando()">
-            <i class="bi bi-arrow-left"></i>
-            Volver
-          </button>
-          <button
             class="btn-peligro"
             (click)="confirmarRecoger()"
-            [disabled]="!confirmado() || procesando()">
+            [disabled]="!formularioValido() || procesando()">
             @if (procesando()) {
               <div class="spinner-small"></div>
             } @else {
               <i class="bi bi-check-lg"></i>
             }
-            Confirmar Recoger
+            Recoger Préstamo
           </button>
         }
 

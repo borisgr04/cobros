@@ -193,79 +193,6 @@
                 {{ error() }}
               </div>
             }
-          </div>
-        }
-
-        <!-- PASO 2: Confirmación -->
-        @if (paso() === 'confirmacion' && resumen()) {
-          <div class="paso-confirmacion">
-            <div class="confirmacion-resumen">
-              <h3 class="confirmacion-titulo">Resumen de Ampliación de Plazo</h3>
-
-              <div class="confirmacion-item">
-                <span class="label">Cliente:</span>
-                <span class="value">{{ prestamo()?.cliente?.nombre }}</span>
-              </div>
-              <div class="confirmacion-item">
-                <span class="label">Saldo pendiente actual:</span>
-                <span class="value">{{ formatCurrency(resumen()!.saldoPendiente) }}</span>
-              </div>
-              <div class="confirmacion-item">
-                <span class="label">Interés adicional:</span>
-                <span class="value warning">{{ formatCurrency(interesAdicional()) }}</span>
-              </div>
-              <div class="confirmacion-item destacado">
-                <span class="label">Nuevo saldo total:</span>
-                <span class="value primary">{{ formatCurrency(nuevoSaldo()) }}</span>
-              </div>
-              <div class="confirmacion-item">
-                <span class="label">Nuevas cuotas:</span>
-                <span class="value">{{ cantidadCuotasNuevas() }} cuotas {{ getTextoFrecuencia(frecuenciaNueva()) | lowercase }}</span>
-              </div>
-              <div class="confirmacion-item">
-                <span class="label">Valor por cuota:</span>
-                <span class="value">{{ formatCurrency(valorCuotaInput()) }}</span>
-              </div>
-              @if (descuadreExacto()) {
-                <div class="confirmacion-item">
-                  <span class="label">Última cuota:</span>
-                  <span class="value warning">{{ formatCurrency(valorUltimaCuota()) }}</span>
-                </div>
-              }
-              <div class="confirmacion-item">
-                <span class="label">Fecha inicio nuevo plan:</span>
-                <span class="value">{{ formatDate(fechaInicio()) }}</span>
-              </div>
-              @if (nuevaFechaFinalEstimada()) {
-                <div class="confirmacion-item destacado">
-                  <span class="label">Nueva fecha final:</span>
-                  <span class="value success">{{ formatDate(nuevaFechaFinalEstimada()!) }}</span>
-                </div>
-              }
-              @if (observacion()) {
-                <div class="confirmacion-item">
-                  <span class="label">Observación:</span>
-                  <span class="value italic">{{ observacion() }}</span>
-                </div>
-              }
-            </div>
-
-            <div class="advertencia-reemplazo">
-              <i class="bi bi-exclamation-triangle-fill"></i>
-              Esta operación reemplazará las cuotas pendientes actuales y generará un nuevo plan de pagos.
-            </div>
-
-            <label class="checkbox-confirmacion">
-              <input type="checkbox" [checked]="confirmado()" (change)="confirmado.set($any($event.target).checked)">
-              Entiendo que las cuotas pendientes serán reemplazadas por el nuevo plan
-            </label>
-
-            @if (error()) {
-              <div class="alert-error">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-                {{ error() }}
-              </div>
-            }
 
             @if (procesando()) {
               <div class="alert-info">
@@ -276,7 +203,7 @@
           </div>
         }
 
-        <!-- PASO 3: Resultado exitoso -->
+        <!-- PASO 2: Resultado exitoso -->
         @if (paso() === 'resultado' && resultado()) {
           <div class="paso-resultado">
             <div class="resultado-icon">
@@ -342,22 +269,9 @@
             Cancelar
           </button>
           <button
-            class="btn-primary"
+            class="btn-warning"
             (click)="avanzarAConfirmacion()"
             [disabled]="!formularioValido() || procesando()">
-            <i class="bi bi-arrow-right"></i>
-            Continuar
-          </button>
-        }
-        @if (paso() === 'confirmacion') {
-          <button class="btn-secondary" (click)="volverAFormulario()" [disabled]="procesando()">
-            <i class="bi bi-arrow-left"></i>
-            Volver
-          </button>
-          <button
-            class="btn-warning"
-            (click)="confirmarAmpliacion()"
-            [disabled]="!confirmado() || !formularioValido() || procesando()">
             @if (procesando()) {
               <span class="spinner-btn"></span>
             } @else {

@@ -35,13 +35,13 @@ export class BiometricRegistrationComponent implements OnInit {
   private checkLocalSync(): void {
     const localIds = this.biometric.getStoredCredentialIds();
     this.localCredIds.set(localIds);
-    const dbIds = this.credentials().map(c => c.id);
+    const dbIds = this.credentials().map(c => c.credentialIdBase64);
     const hasDesync = localIds.some(id => !dbIds.includes(id));
     this.isDesync.set(hasDesync);
   }
 
-  isThisDevice(credId: string): boolean {
-    return this.localCredIds().includes(credId);
+  isThisDevice(cred: WebAuthnCredentialInfo): boolean {
+    return this.localCredIds().includes(cred.credentialIdBase64);
   }
 
   clearLocalCredentials(): void {

@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 
 export interface WebAuthnCredentialInfo {
   id: string;
+  credentialIdBase64: string;
   deviceName: string;
   createdAt: string;
   lastUsedAt: string | null;

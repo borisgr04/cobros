@@ -12,7 +12,7 @@ import type { IRecogerPrestamoInput, IRecogerPrestamoResultado } from '../../../
 import type { PrestamoConCliente } from '../../services/prestamo.service';
 
 type FrecuenciaPago = 'diario' | 'semanal' | 'quincenal' | 'mensual';
-type Paso = 'formulario' | 'confirmacion' | 'resultado';
+type Paso = 'formulario' | 'resultado';
 
 /**
  * Modal de "Recoger Préstamo" en tres pasos:
@@ -40,7 +40,6 @@ export class RecogerPrestamoModalComponent {
   paso       = signal<Paso>('formulario');
   procesando = signal(false);
   error      = signal('');
-  confirmado = signal(false);
 
   prestamo   = signal<PrestamoConCliente | null>(null);
   saldoPendiente = signal(0);
@@ -143,7 +142,6 @@ export class RecogerPrestamoModalComponent {
     this.visible.set(true);
     this.paso.set('formulario');
     this.error.set('');
-    this.confirmado.set(false);
     this.resultado.set(null);
     this.dineroAdicional.set(0);
     this.intereses.set(0);
@@ -167,20 +165,8 @@ export class RecogerPrestamoModalComponent {
     if (this.visible() && !this.procesando()) this.cerrar();
   }
 
-  avanzarAConfirmacion(): void {
-    if (!this.formularioValido()) return;
-    this.error.set('');
-    this.paso.set('confirmacion');
-    this.confirmado.set(false);
-  }
-
-  volverAFormulario(): void {
-    this.paso.set('formulario');
-    this.error.set('');
-  }
-
   confirmarRecoger(): void {
-    if (!this.confirmado() || !this.formularioValido()) return;
+    if (!this.formularioValido()) return;
 
     const p = this.prestamo();
     if (!p) return;

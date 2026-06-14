@@ -461,10 +461,11 @@ public class AuthController(
             .OrderByDescending(c => c.CreatedAt)
             .Select(c => new WebAuthnCredentialDto
             {
-                Id         = c.Id.ToString(),
-                DeviceName = c.DeviceName,
-                CreatedAt  = c.CreatedAt,
-                LastUsedAt = c.LastUsedAt
+                Id                = c.Id.ToString(),
+                CredentialIdBase64 = Convert.ToBase64String(c.CredentialId),
+                DeviceName        = c.DeviceName,
+                CreatedAt         = c.CreatedAt,
+                LastUsedAt        = c.LastUsedAt
             })
             .ToListAsync();
 
