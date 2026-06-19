@@ -21,7 +21,8 @@ public class GetCierreDiaQueryTests
     {
         await using var db = CreateDb();
         var fecha = new DateOnly(2026, 6, 5);
-        var fechaDt = fecha.ToDateTime(TimeOnly.MinValue);
+        // 06:00Z cae dentro del día local 2026-06-05 para zona Colombia (UTC-5).
+        var fechaDt = new DateTime(2026, 6, 5, 6, 0, 0, DateTimeKind.Utc);
 
         var zona = new Zona { Nombre = "Centro" };
         db.Zonas.Add(zona);

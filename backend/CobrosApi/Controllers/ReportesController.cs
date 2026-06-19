@@ -33,10 +33,8 @@ public class ReportesController(CobrosDbContext db) : ControllerBase
         if (fechaFin < fechaInicio)
             return BadRequest(new ErrorDto { Error = "fechaFin debe ser mayor o igual a fechaInicio" });
 
-        // Normalizar a rango completo del día: truncar hora para eliminar desfase de timezone
-        // (el cliente puede enviar T05:00:00Z por UTC-5; .Date lo normaliza a T00:00:00)
-        var inicio = fechaInicio.Date;
-        var fin = fechaFin.Date.AddDays(1);
+        // Interpretar filtro como día local de negocio (Colombia) y convertir a rango UTC.
+        var (inicio, fin, inicioLocal, finLocal) = ReporteRangoFechaHelper.FromDateTimeRange(fechaInicio, fechaFin);
 
         // ── Préstamos nuevos ─────────────────────────────────────────────────
         var qNuevos = db.Prestamos
@@ -213,8 +211,8 @@ public class ReportesController(CobrosDbContext db) : ControllerBase
 
         return Ok(new ReporteCompletoDto
         {
-            FechaInicio          = inicio,
-            FechaFin             = fechaFin.Date,
+            FechaInicio          = inicioLocal.ToDateTime(TimeOnly.MinValue, DateTimeKind.Unspecified),
+            FechaFin             = finLocal.ToDateTime(TimeOnly.MinValue, DateTimeKind.Unspecified),
             PrestamosNuevos      = prestamosNuevos,
             PrestamosFinalizados = prestamosFinalizados,
             RecaudoPorZona       = recaudoPorZona

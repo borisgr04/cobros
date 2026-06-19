@@ -130,10 +130,10 @@ public class ReportesControllerTests
     public async Task GetReporte_FechaInicioConComponenteHorario_PrestamoDelMismoDiaAparece()
     {
         var db = CreateDb();
-        // Préstamo guardado como medianoche UTC (como lo hace el sistema al registrar)
-        var fechaFinalUtcMidnight = new DateTime(2026, 6, 2, 0, 0, 0, DateTimeKind.Utc);
+        // Fecha dentro del día local 2026-06-02 (UTC-5): 06:00Z = 01:00 local.
+        var fechaFinalUtcDiaLocal = new DateTime(2026, 6, 2, 6, 0, 0, DateTimeKind.Utc);
         await SeedPrestamoAsync(db, "completado",
-            fechaFinal:  fechaFinalUtcMidnight,
+            fechaFinal:  fechaFinalUtcDiaLocal,
             fechaCierre: null);
 
         // Simular el cliente enviando T05:00:00Z (Colombia UTC-5 interpretado como medianoche local)
@@ -145,5 +145,69 @@ public class ReportesControllerTests
         var reporte = result.Value as ReporteCompletoDto;
         Assert.NotNull(reporte);
         Assert.Single(reporte.PrestamosFinalizados);
+    }
+
+    [Fact]
+    public async Task GetReporte_FiltroDiaLocal_NoIncluyePrestamosDelDiaAnteriorLocal()
+    {
+        var db = CreateDb();
+
+        var zona = new Zona { Nombre = "Z2" };
+        var cliente = new Cliente
+        {
+            Nombre = "Cliente TZ",
+            Identificacion = $"ID{Guid.NewGuid():N}",
+            ZonaId = 0
+        };
+        db.Zonas.Add(zona);
+        db.Clientes.Add(cliente);
+        await db.SaveChangesAsync();
+        cliente.ZonaId = zona.Id;
+
+        // 2026-06-15 02:00Z = 2026-06-14 21:00 (Colombia). Debe pertenecer al 14 local.
+        var prestamoDiaAnteriorLocal = new Prestamo
+        {
+            ClienteId = cliente.Id,
+            FechaPrestamo = new DateTime(2026, 6, 15, 2, 0, 0, DateTimeKind.Utc),
+            FechaFinal = new DateTime(2026, 8, 1, 0, 0, 0, DateTimeKind.Utc),
+            ValorPrestado = 100000,
+            ValorTotal = 120000,
+            InteresProyectado = 20000,
+            FrecuenciaPago = "semanal",
+            CantidadCuotas = 4,
+            ValorCuota = 30000,
+            Estado = "activo"
+        };
+
+        // 2026-06-15 06:00Z = 2026-06-15 01:00 (Colombia). Debe pertenecer al 15 local.
+        var prestamoDiaFiltrado = new Prestamo
+        {
+            ClienteId = cliente.Id,
+            FechaPrestamo = new DateTime(2026, 6, 15, 6, 0, 0, DateTimeKind.Utc),
+            FechaFinal = new DateTime(2026, 8, 1, 0, 0, 0, DateTimeKind.Utc),
+            ValorPrestado = 200000,
+            ValorTotal = 240000,
+            InteresProyectado = 40000,
+            FrecuenciaPago = "semanal",
+            CantidadCuotas = 8,
+            ValorCuota = 30000,
+            Estado = "activo"
+        };
+
+        db.Prestamos.Add(prestamoDiaAnteriorLocal);
+        db.Prestamos.Add(prestamoDiaFiltrado);
+        await db.SaveChangesAsync();
+
+        // El frontend envía el día 15 local como ISO UTC: 2026-06-15T05:00:00Z.
+        var fechaFiltro = new DateTime(2026, 6, 15, 5, 0, 0, DateTimeKind.Utc);
+
+        var controller = new ReportesController(db);
+        var result = await controller.GetReporte(fechaFiltro, fechaFiltro, zonaId: null) as OkObjectResult;
+
+        Assert.NotNull(result);
+        var reporte = result.Value as ReporteCompletoDto;
+        Assert.NotNull(reporte);
+        Assert.Single(reporte.PrestamosNuevos);
+        Assert.Equal(prestamoDiaFiltrado.Id.ToString(), reporte.PrestamosNuevos[0].PrestamoId);
     }
 }

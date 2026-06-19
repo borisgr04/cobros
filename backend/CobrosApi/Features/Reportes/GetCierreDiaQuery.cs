@@ -8,9 +8,8 @@ public static class GetCierreDiaQuery
 {
     public static async Task<CierreDiaDto> ExecuteAsync(CobrosDbContext db, DateOnly fecha)
     {
-        // Npgsql exige UTC para parámetros hacia columnas timestamptz.
-        var fechaDt = DateTime.SpecifyKind(fecha.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
-        var fechaDtSig = fechaDt.AddDays(1);
+        // El día del cierre se interpreta en hora local de negocio (Colombia).
+        var (fechaDt, fechaDtSig) = ReporteRangoFechaHelper.FromLocalDate(fecha);
 
         // ── Ganancia ─────────────────────────────────────────────────────────
         var intereses = await db.Prestamos
