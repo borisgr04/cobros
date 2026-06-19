@@ -4,7 +4,9 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "start:public": "ng run cobros-app:serve-consulta-publica",
     "build": "ng build",
+    "build:public": "ng run cobros-app:consulta-publica",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },

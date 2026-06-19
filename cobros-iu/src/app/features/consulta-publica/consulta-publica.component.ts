@@ -1,5 +1,4 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { timeout, retry } from 'rxjs/operators';
@@ -58,13 +57,10 @@ export class ConsultaPublicaComponent implements OnInit {
 
   private clienteId = '';
 
-  constructor(
-    private route: ActivatedRoute,
-    private http: HttpClient
-  ) {}
+  constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
-    this.clienteId = this.route.snapshot.paramMap.get('id') ?? '';
+    this.clienteId = this.obtenerClienteIdDesdePath(window.location.pathname);
     if (!this.clienteId) { this.error.set('Enlace inválido.'); this.loading.set(false); return; }
     this.cargar();
   }
@@ -119,5 +115,16 @@ export class ConsultaPublicaComponent implements OnInit {
 
   capitalize(s: string): string {
     return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  private obtenerClienteIdDesdePath(pathname: string): string {
+    const segmentos = pathname.split('/').filter(Boolean);
+    const indiceConsulta = segmentos.findIndex((segmento) => segmento === 'consulta');
+
+    if (indiceConsulta < 0 || indiceConsulta === segmentos.length - 1) {
+      return '';
+    }
+
+    return decodeURIComponent(segmentos[indiceConsulta + 1]);
   }
 }

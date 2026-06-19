@@ -12,13 +12,12 @@ import type { IRecogerPrestamoInput, IRecogerPrestamoResultado } from '../../../
 import type { PrestamoConCliente } from '../../services/prestamo.service';
 
 type FrecuenciaPago = 'diario' | 'semanal' | 'quincenal' | 'mensual';
-type Paso = 'formulario' | 'confirmacion' | 'resultado';
+type Paso = 'formulario' | 'resultado';
 
 /**
  * Modal de "Recoger Préstamo" en tres pasos:
  * 1. Formulario: muestra saldo pendiente y permite ingresar el dinero adicional, intereses y nuevo plan.
- * 2. Confirmación: revisar resumen calculado antes de ejecutar.
- * 3. Resultado: muestra el resultado exitoso con enlace al nuevo préstamo.
+ * 2. Resultado: muestra el resultado exitoso con enlace al nuevo préstamo.
  */
 @Component({
   selector: 'app-recoger-prestamo-modal',
@@ -40,7 +39,6 @@ export class RecogerPrestamoModalComponent {
   paso       = signal<Paso>('formulario');
   procesando = signal(false);
   error      = signal('');
-  confirmado = signal(false);
 
   prestamo   = signal<PrestamoConCliente | null>(null);
   saldoPendiente = signal(0);
@@ -143,7 +141,6 @@ export class RecogerPrestamoModalComponent {
     this.visible.set(true);
     this.paso.set('formulario');
     this.error.set('');
-    this.confirmado.set(false);
     this.resultado.set(null);
     this.dineroAdicional.set(0);
     this.intereses.set(0);
@@ -167,20 +164,8 @@ export class RecogerPrestamoModalComponent {
     if (this.visible() && !this.procesando()) this.cerrar();
   }
 
-  avanzarAConfirmacion(): void {
-    if (!this.formularioValido()) return;
-    this.error.set('');
-    this.paso.set('confirmacion');
-    this.confirmado.set(false);
-  }
-
-  volverAFormulario(): void {
-    this.paso.set('formulario');
-    this.error.set('');
-  }
-
   confirmarRecoger(): void {
-    if (!this.confirmado() || !this.formularioValido()) return;
+    if (!this.formularioValido()) return;
 
     const p = this.prestamo();
     if (!p) return;

@@ -10,13 +10,12 @@ import { AbstractPrestamoService } from '../../../core/services/abstract-prestam
 import type { IProntoPagoResumen, IProntoPagoResultado } from '../../../core/models';
 import type { PrestamoConCliente } from '../../services/prestamo.service';
 
-type Paso = 'resumen' | 'confirmacion' | 'resultado';
+type Paso = 'resumen' | 'resultado';
 
 /**
  * Modal de Pronto Pago en dos pasos:
  * 1. Resumen: muestra saldo pendiente, intereses futuros y permite ingresar valor negociado
- * 2. Confirmación: revisar y confirmar antes de ejecutar
- * 3. Resultado: muestra el resultado de la operación
+ * 2. Resultado: muestra el resultado de la operación
  */
 @Component({
   selector: 'app-pronto-pago-modal',
@@ -37,7 +36,6 @@ export class ProntoPagoModalComponent {
   paso         = signal<Paso>('resumen');
   procesando   = signal(false);
   error        = signal('');
-  confirmado   = signal(false);
 
   prestamo     = signal<PrestamoConCliente | null>(null);
   resumen      = signal<IProntoPagoResumen | null>(null);
@@ -108,7 +106,6 @@ export class ProntoPagoModalComponent {
     this.visible.set(true);
     this.paso.set('resumen');
     this.error.set('');
-    this.confirmado.set(false);
     this.notas.set('');
     this.resultado.set(null);
     this.resumen.set(null);
@@ -126,19 +123,8 @@ export class ProntoPagoModalComponent {
     if (this.visible() && !this.procesando()) this.cerrar();
   }
 
-  avanzarAConfirmacion(): void {
-    if (!this.esValorValido()) return;
-    this.paso.set('confirmacion');
-    this.confirmado.set(false);
-  }
-
-  volverAResumen(): void {
-    this.paso.set('resumen');
-    this.error.set('');
-  }
-
   async confirmarProntoPago(): Promise<void> {
-    if (!this.confirmado() || !this.esValorValido()) return;
+    if (!this.esValorValido()) return;
 
     const p = this.prestamo();
     if (!p) return;

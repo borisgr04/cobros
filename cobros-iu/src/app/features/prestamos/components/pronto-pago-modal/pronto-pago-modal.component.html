@@ -119,63 +119,7 @@
           </div>
         }
 
-        <!-- PASO 2: Confirmación -->
-        @if (paso() === 'confirmacion' && resumen()) {
-          <div class="paso-confirmacion">
-            <div class="confirmacion-resumen">
-              <h3 class="confirmacion-titulo">Resumen de Pronto Pago</h3>
-
-              <div class="confirmacion-item">
-                <span class="label">Cliente:</span>
-                <span class="value">{{ prestamo()?.cliente?.nombre }}</span>
-              </div>
-              <div class="confirmacion-item">
-                <span class="label">Saldo pendiente:</span>
-                <span class="value">{{ formatCurrency(resumen()!.saldoPendiente) }}</span>
-              </div>
-              <div class="confirmacion-item">
-                <span class="label">Valor negociado:</span>
-                <span class="value primary">{{ formatCurrency(valorNegociado()) }}</span>
-              </div>
-              <div class="confirmacion-item destacado">
-                <span class="label">Descuento aplicado:</span>
-                <span class="value danger">- {{ formatCurrency(descuento()) }}</span>
-              </div>
-              @if (notas()) {
-                <div class="confirmacion-item">
-                  <span class="label">Notas:</span>
-                  <span class="value italic">{{ notas() }}</span>
-                </div>
-              }
-            </div>
-
-            <div class="advertencia-cierre">
-              <i class="bi bi-exclamation-triangle-fill"></i>
-              Esta acción cerrará el préstamo definitivamente. No se puede deshacer.
-            </div>
-
-            <label class="checkbox-confirmacion">
-              <input type="checkbox" [checked]="confirmado()" (change)="confirmado.set($any($event.target).checked)">
-              Entiendo que este préstamo quedará cerrado definitivamente
-            </label>
-
-            @if (error()) {
-              <div class="alert-error">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-                {{ error() }}
-              </div>
-            }
-
-            @if (procesando()) {
-              <div class="alert-info">
-                <div class="spinner-small"></div>
-                Procesando pronto pago...
-              </div>
-            }
-          </div>
-        }
-
-        <!-- PASO 3: Resultado exitoso -->
+        <!-- PASO 2: Resultado exitoso -->
         @if (paso() === 'resultado' && resultado()) {
           <div class="paso-resultado">
             <div class="resultado-icon">
@@ -233,27 +177,14 @@
           </button>
           <button
             class="btn-primary"
-            (click)="avanzarAConfirmacion()"
-            [disabled]="!esValorValido() || procesando()">
-            <i class="bi bi-arrow-right"></i>
-            Continuar
-          </button>
-        }
-        @if (paso() === 'confirmacion') {
-          <button class="btn-secondary" (click)="volverAResumen()" [disabled]="procesando()">
-            <i class="bi bi-arrow-left"></i>
-            Volver
-          </button>
-          <button
-            class="btn-danger"
             (click)="confirmarProntoPago()"
-            [disabled]="!confirmado() || procesando()">
+            [disabled]="!esValorValido() || procesando()">
             @if (procesando()) {
               <span class="spinner-btn"></span>
             } @else {
-              <i class="bi bi-lightning-charge-fill"></i>
+              <i class="bi bi-arrow-right"></i>
             }
-            Confirmar Pronto Pago
+            Continuar
           </button>
         }
         @if (paso() === 'resultado') {

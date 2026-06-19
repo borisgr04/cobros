@@ -1,4 +1,10 @@
 {
+  "routes": [
+    {
+      "route": "/consulta/*",
+      "rewrite": "/index-public.html"
+    }
+  ],
   "navigationFallback": {
     "rewrite": "/index.html",
     "exclude": ["/assets/*", "/*.{css,js,ico,png,svg,webp,woff,woff2}"]

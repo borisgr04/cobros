@@ -10,13 +10,12 @@ import { AbstractPrestamoService } from '../../../core/services/abstract-prestam
 import type { IAmpliacionPlazoResumen, IAmpliacionPlazoResultado, FrecuenciaPago } from '../../../core/models';
 import type { PrestamoConCliente } from '../../services/prestamo.service';
 
-type Paso = 'formulario' | 'confirmacion' | 'resultado';
+type Paso = 'formulario' | 'resultado';
 
 /**
  * Modal de Ampliación de Plazo en tres pasos:
  * 1. Formulario: muestra saldo/fecha actuales y permite ingresar los parámetros de la ampliación
- * 2. Confirmación: revisar resumen calculado antes de ejecutar
- * 3. Resultado: muestra el resultado exitoso de la operación
+ * 2. Resultado: muestra el resultado exitoso de la operación
  */
 @Component({
   selector: 'app-ampliar-plazo-modal',
@@ -37,7 +36,6 @@ export class AmpliacionPlazoModalComponent {
   paso       = signal<Paso>('formulario');
   procesando = signal(false);
   error      = signal('');
-  confirmado = signal(false);
 
   prestamo   = signal<PrestamoConCliente | null>(null);
   resumen    = signal<IAmpliacionPlazoResumen | null>(null);
@@ -150,7 +148,6 @@ export class AmpliacionPlazoModalComponent {
     this.visible.set(true);
     this.paso.set('formulario');
     this.error.set('');
-    this.confirmado.set(false);
     this.resultado.set(null);
     this.resumen.set(null);
     this.interesAdicional.set(0);
@@ -175,18 +172,6 @@ export class AmpliacionPlazoModalComponent {
   @HostListener('document:keydown.escape')
   onEscape(): void {
     if (this.visible() && !this.procesando()) this.cerrar();
-  }
-
-  avanzarAConfirmacion(): void {
-    if (!this.formularioValido()) return;
-    this.error.set('');
-    this.paso.set('confirmacion');
-    this.confirmado.set(false);
-  }
-
-  volverAFormulario(): void {
-    this.paso.set('formulario');
-    this.error.set('');
   }
 
   onInteresChange(valor: number): void {
@@ -228,7 +213,7 @@ export class AmpliacionPlazoModalComponent {
   }
 
   async confirmarAmpliacion(): Promise<void> {
-    if (!this.confirmado() || !this.formularioValido()) return;
+    if (!this.formularioValido()) return;
 
     const p = this.prestamo();
     if (!p) return;
