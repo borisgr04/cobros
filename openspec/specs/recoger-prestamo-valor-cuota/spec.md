@@ -1,9 +1,7 @@
 ## Purpose
 
 Spec para el formulario de recoger préstamo: entrada de valor de cuota como campo principal (en lugar de cantidad de cuotas), cálculo derivado de cuotas, y convenciones de orden de botones en modales de registro.
-
 ## Requirements
-
 ### Requirement: Formulario de recoger préstamo con entrada de valor de cuota
 En el formulario de recoger préstamo, el usuario SHALL ingresar el valor de cuota deseado (campo moneda). El sistema SHALL derivar la cantidad de cuotas como `⌈totalACobrar / valorCuota⌉`. La cantidad de cuotas NO es un campo de entrada.
 
@@ -17,7 +15,7 @@ En el formulario de recoger préstamo, el usuario SHALL ingresar el valor de cuo
 - **WHEN** `totalACobrar % valorCuota ≠ 0`
 - **THEN** el sistema muestra en el resultado calculado: "N pagos · el último de $Y"
 - **AND** donde Y es `totalACobrar - (cantidadCuotas - 1) × valorCuota`
-- **AND** permite al usuario continuar al paso de confirmación sin corregir
+- **AND** permite al usuario ejecutar la operacion sin paso adicional de confirmacion
 
 #### Scenario: División exacta muestra resumen limpio
 - **WHEN** `totalACobrar % valorCuota = 0`
@@ -27,10 +25,10 @@ En el formulario de recoger préstamo, el usuario SHALL ingresar el valor de cuo
 #### Scenario: Resultado calculado no visible hasta tener valor de cuota válido
 - **WHEN** el valor de cuota es 0 o no está ingresado
 - **THEN** el bloque de resumen calculado no se muestra
-- **AND** el botón de continuar permanece deshabilitado
+- **AND** el botón de accion principal permanece deshabilitado
 
 #### Scenario: Confirmación muestra valor de cuota exacto
-- **WHEN** el usuario avanza al paso de confirmación
+- **WHEN** el usuario revisa el resumen de la operación en el mismo formulario
 - **THEN** la sección "Plan de pagos" muestra el valor de cuota ingresado (no un estimado)
 - **AND** si hay descuadre, se muestra también el valor del último pago
 
@@ -41,3 +39,16 @@ En el footer del modal de registro de préstamo, los botones SHALL seguir la con
 - **WHEN** el usuario abre el modal de registro de préstamo
 - **THEN** el botón "Cancelar" aparece a la izquierda en el footer
 - **AND** el botón "Crear Préstamo" aparece a la derecha del "Cancelar"
+
+### Requirement: Frecuencia por defecto heredada del préstamo origen en recoger
+Al abrir el modal de recoger préstamo, el sistema SHALL inicializar la frecuencia de pago con la frecuencia del préstamo origen. El usuario MUST poder cambiarla antes de ejecutar la operación.
+
+#### Scenario: Modal abre con frecuencia heredada
+- **WHEN** el usuario abre el modal de recoger para un préstamo origen con frecuencia definida
+- **THEN** el selector de frecuencia aparece preseleccionado con esa misma frecuencia
+
+#### Scenario: Usuario puede ajustar frecuencia heredada
+- **WHEN** el usuario cambia manualmente la frecuencia en el formulario de recoger
+- **THEN** el sistema recalcula proyecciones derivadas con la nueva frecuencia
+- **AND** mantiene habilitada la ejecución si el formulario sigue siendo válido
+

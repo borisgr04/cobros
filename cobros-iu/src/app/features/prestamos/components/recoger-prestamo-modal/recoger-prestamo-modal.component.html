@@ -108,6 +108,7 @@
                   class="input-campo"
                   type="date"
                   [value]="fechaInicio()"
+                  [disabled]="procesando()"
                   (input)="fechaInicio.set($any($event.target).value)">
               </div>
 
@@ -243,9 +244,9 @@
             @if (procesando()) {
               <div class="spinner-small"></div>
             } @else {
-              <i class="bi bi-arrow-right"></i>
+              <i class="bi bi-arrow-repeat"></i>
             }
-            Continuar
+            Recoger Préstamo
           </button>
         }
 

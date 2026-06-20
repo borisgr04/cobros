@@ -145,7 +145,7 @@ export class RecogerPrestamoModalComponent {
     this.dineroAdicional.set(0);
     this.intereses.set(0);
     this.valorCuota.set(0);
-    this.frecuenciaPago.set('semanal');
+    this.frecuenciaPago.set((prestamo.frecuenciaPago as FrecuenciaPago) ?? 'diario');
     this.observacion.set('');
     // Fecha inicio default: mañana
     const manana = new Date();

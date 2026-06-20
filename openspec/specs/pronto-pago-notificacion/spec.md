@@ -3,9 +3,7 @@
 ## Purpose
 
 Define the UX behavior after a successful pronto pago execution: WhatsApp notification link for the client and consistent input styling for the negotiated value field.
-
 ## Requirements
-
 ### Requirement: Notificación WhatsApp tras pronto pago
 Tras ejecutar un pronto pago exitoso, el sistema SHALL presentar al usuario un enlace para notificar al cliente por WhatsApp si el cliente tiene teléfono registrado.
 
@@ -39,3 +37,13 @@ El campo "Valor negociado para cerrar el préstamo" SHALL usar el mismo estilo v
 - **WHEN** el usuario abre el modal de pronto pago
 - **THEN** el input del valor negociado muestra un botón de limpiar (×) al lado
 - **AND** al presionarlo el valor se resetea a 0
+
+### Requirement: CTA de guardado en descuento por pronto pago
+En el formulario de pronto pago, el sistema SHALL usar un boton primario con texto de accion final de guardado/aplicacion y MUST ejecutar la operacion al hacer click, sin depender de un paso adicional de confirmacion.
+
+#### Scenario: CTA visible y ejecutable en pronto pago
+- **WHEN** el usuario completa un valor negociado valido en el modal de pronto pago
+- **THEN** el boton primario muestra texto de accion final de guardado/aplicacion
+- **AND** al hacer click se ejecuta `confirmarProntoPago`
+- **AND** el boton muestra estado de procesamiento mientras se completa la solicitud
+

@@ -169,6 +169,7 @@
                   class="input-campo"
                   type="date"
                   [value]="fechaInicio()"
+                  [disabled]="procesando()"
                   (input)="fechaInicio.set($any($event.target).value)">
               </div>
 
@@ -268,9 +269,9 @@
             @if (procesando()) {
               <span class="spinner-btn"></span>
             } @else {
-              <i class="bi bi-arrow-right"></i>
+              <i class="bi bi-calendar-plus-fill"></i>
             }
-            Continuar
+            Ampliar Plazo
           </button>
         }
         @if (paso() === 'resultado') {
